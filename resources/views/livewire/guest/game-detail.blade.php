@@ -3,128 +3,125 @@
 use App\Models\Game;
 use App\Models\Product;
 use App\Models\FieldForm;
-use function Livewire\Volt\{state, mount, computed};
+use Livewire\Attributes\{Layout, Title};
+use Livewire\Volt\Component;
 
-state(['slug', 'game', 'selectedProduct' => null, 'fields' => []]);
+new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Component {
+    public $slug;
+    public $game;
+    public $selectedProduct = null;
+    public $fields = [];
+    public $products = [];
 
-mount(function () {
-    $this->game = Game::with(['products.supplierProduct', 'fieldForms'])
-        ->where('slug', $this->slug)
-        ->where('is_active', true)
-        ->firstOrFail();
+    public function mount()
+    {
+        $this->game = Game::with(['products.supplierProduct', 'fieldForms'])
+            ->where('slug', $this->slug)
+            ->where('is_active', true)
+            ->firstOrFail();
 
-    $this->fields = $this->game->fieldForms->pluck('name')->mapWithKeys(fn($name) => [$name => ''])->toArray();
-});
+        $this->fields = $this->game->fieldForms->pluck('name')->mapWithKeys(fn($name) => [$name => ''])->toArray();
 
-$products = computed(function () {
-    return $this->game->products()
-        ->with('supplierProduct')
-        ->where('is_active', true)
-        ->orderBy('selling_price', 'asc')
-        ->get();
-});
-
-$selectProduct = function ($productId) {
-    $this->selectedProduct = $productId;
-};
-
-$proceedToCheckout = function () {
-    if (!$this->selectedProduct) {
-        $this->dispatch('error', message: 'Silakan pilih produk terlebih dahulu');
-        return;
+        $this->products = $this->game->products()
+            ->with('supplierProduct')
+            ->where('is_active', true)
+            ->orderBy('selling_price', 'asc')
+            ->get();
     }
 
-    // Validate required fields
-    foreach ($this->game->fieldForms as $fieldForm) {
-        if ($fieldForm->is_required && empty($this->fields[$fieldForm->name])) {
-            $this->dispatch('error', message: "Field {$fieldForm->label} harus diisi");
+    public function selectProduct($productId)
+    {
+        $this->selectedProduct = $productId;
+    }
+
+    public function proceedToCheckout()
+    {
+        if (!$this->selectedProduct) {
+            $this->dispatch('error', message: 'Silakan pilih produk terlebih dahulu');
             return;
         }
+
+        // Validate required fields
+        foreach ($this->game->fieldForms as $fieldForm) {
+            if ($fieldForm->is_required && empty($this->fields[$fieldForm->name])) {
+                $this->dispatch('error', message: "Field {$fieldForm->label} harus diisi");
+                return;
+            }
+        }
+
+        // Store in session and redirect to checkout
+        session([
+            'checkout_data' => [
+                'game_id' => $this->game->id,
+                'product_id' => $this->selectedProduct,
+                'fields' => $this->fields,
+            ]
+        ]);
+
+        $this->redirect(route('checkout'), navigate: true);
     }
+}; ?>
 
-    // Store in session and redirect to checkout
-    session([
-        'checkout_data' => [
-            'game_id' => $this->game->id,
-            'product_id' => $this->selectedProduct,
-            'fields' => $this->fields,
-        ]
-    ]);
-
-    $this->redirect(route('checkout'), navigate: true);
-};
-
-?>
-
-<div class="min-h-screen bg-base-200">
+<div class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
     <div class="container mx-auto px-4 py-8">
         <!-- Game Header -->
-        <div class="card bg-base-100 shadow-xl mb-6">
-            <div class="card-body">
-                <div class="flex items-start gap-6">
-                    <img src="{{ $game->image }}" alt="{{ $game->name }}" class="w-32 h-32 rounded-lg object-cover">
-                    <div class="flex-1">
-                        <h1 class="text-3xl font-bold">{{ $game->name }}</h1>
-                        <p class="text-base-content/60 mt-2">{{ $game->description }}</p>
-                        <div class="badge badge-primary mt-3">{{ $game->provider }}</div>
-                    </div>
+        <flux:card class="mb-6">
+            <div class="flex items-start gap-6">
+                <img src="{{ $game->image }}" alt="{{ $game->name }}" class="w-32 h-32 rounded-lg object-cover">
+                <div class="flex-1">
+                    <flux:heading size="xl">{{ $game->name }}</flux:heading>
+                    <flux:subheading class="mt-2">{{ $game->description }}</flux:subheading>
+                    <flux:badge class="mt-3" color="indigo">{{ $game->provider }}</flux:badge>
                 </div>
             </div>
-        </div>
+        </flux:card>
 
         <div class="grid lg:grid-cols-3 gap-6">
             <!-- Left: Product Selection -->
             <div class="lg:col-span-2">
-                <div class="card bg-base-100 shadow-xl">
-                    <div class="card-body">
-                        <h2 class="card-title text-2xl mb-4">Pilih Nominal</h2>
+                <flux:card>
+                    <flux:heading size="lg" class="mb-4">Pilih Nominal</flux:heading>
 
-                        @if($this->products->isEmpty())
-                            <div class="alert alert-warning">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                <span>Produk tidak tersedia saat ini</span>
-                            </div>
-                        @else
-                            <div class="grid md:grid-cols-2 gap-4">
-                                @foreach($this->products as $product)
-                                    <div
-                                        wire:click="selectProduct({{ $product->id }})"
-                                        class="card bg-base-200 cursor-pointer hover:bg-base-300 transition-all {{ $selectedProduct === $product->id ? 'ring-2 ring-primary' : '' }}"
-                                    >
-                                        <div class="card-body p-4">
-                                            <h3 class="font-bold text-lg">{{ $product->name }}</h3>
-                                            @if($product->description)
-                                                <p class="text-sm text-base-content/60">{{ $product->description }}</p>
-                                            @endif
-                                            <div class="flex items-center justify-between mt-2">
-                                                <span class="text-2xl font-bold text-primary">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</span>
-                                                @if($selectedProduct === $product->id)
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                                    </svg>
-                                                @endif
-                                            </div>
-                                        </div>
+                    @if($products->isEmpty())
+                        <flux:banner variant="warning" icon="exclamation-triangle" class="mb-4">
+                            Produk tidak tersedia saat ini
+                        </flux:banner>
+                    @else
+                        <div class="grid md:grid-cols-2 gap-4">
+                            @foreach($products as $product)
+                                <div
+                                    wire:click="selectProduct({{ $product->id }})"
+                                    class="p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all {{ $selectedProduct === $product->id ? 'ring-2 ring-indigo-600' : '' }}"
+                                >
+                                    <flux:heading size="sm">{{ $product->name }}</flux:heading>
+                                    @if($product->description)
+                                        <flux:subheading size="sm" class="mt-1">{{ $product->description }}</flux:subheading>
+                                    @endif
+                                    <div class="flex items-center justify-between mt-3">
+                                        <span class="text-2xl font-bold text-indigo-600">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</span>
+                                        @if($selectedProduct === $product->id)
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        @endif
                                     </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </flux:card>
             </div>
 
             <!-- Right: Player Data Form -->
             <div class="lg:col-span-1">
-                <div class="card bg-base-100 shadow-xl sticky top-4">
-                    <div class="card-body">
-                        <h2 class="card-title text-xl mb-4">Data Player</h2>
+                <flux:card class="sticky top-4">
+                    <flux:heading size="lg" class="mb-4">Data Player</flux:heading>
 
-                        @if($game->fieldForms->isEmpty())
-                            <div class="alert alert-info">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span>Tidak ada data yang perlu diisi</span>
-                            </div>
-                        @else
+                    @if($game->fieldForms->isEmpty())
+                        <flux:banner variant="info" icon="information-circle" class="mb-4">
+                            Tidak ada data yang perlu diisi
+                        </flux:banner>
+                    @else
                             @foreach($game->fieldForms as $fieldForm)
                                 <div class="form-control mb-4">
                                     <label class="label">

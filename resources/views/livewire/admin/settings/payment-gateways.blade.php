@@ -2,8 +2,9 @@
 
 use Livewire\Volt\Component;
 use App\Models\PaymentGateway;
+use Livewire\Attributes\{Layout, Title};
 
-new class extends Component {
+new #[Layout('components.layouts.app'), Title('Payment Gateway Configuration')] class extends Component {
     public $gateways;
     public $editingId = null;
 
@@ -123,300 +124,200 @@ new class extends Component {
     }
 }; ?>
 
-<div>
-    <!-- Breadcrumbs -->
-    <div class="text-sm breadcrumbs mb-4">
-        <ul>
-            <li><a href="{{ route('dashboard') }}" wire:navigate>Dashboard</a></li>
-            <li><a>Settings</a></li>
-            <li>Payment Gateways</li>
-        </ul>
-    </div>
-
+<div class="py-6">
     <!-- Page Header -->
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold flex items-center gap-3">
-            <span class="badge badge-error badge-lg">SETTINGS</span>
-            Payment Gateway Configuration
-        </h1>
-        <p class="text-base-content/60 mt-2">Konfigurasi metode pembayaran untuk transaksi</p>
-    </div>
+    <flux:heading size="xl" class="mb-2">Payment Gateway Configuration</flux:heading>
+    <flux:subheading class="mb-6">Konfigurasi metode pembayaran untuk transaksi</flux:subheading>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Form Section -->
         <div class="lg:col-span-1">
-            <div class="card bg-base-100 shadow-xl sticky top-4">
-                <div class="card-body">
-                    <h2 class="card-title">
-                        @if ($editingId)
-                            <div class="badge badge-warning">EDIT</div>
-                            Edit Gateway
-                        @else
-                            <div class="badge badge-primary">NEW</div>
-                            Add Gateway
-                        @endif
-                    </h2>
-                    <div class="divider"></div>
-
-                    <form wire:submit="save" class="space-y-4">
-                        <div>
-                            <label class="label">
-                                <span class="label-text">Name *</span>
-                            </label>
-                            <input type="text" wire:model="name" class="input input-bordered w-full"
-                                placeholder="e.g. Duitku" required />
-                            @error('name')
-                                <span class="text-error text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="label">
-                                <span class="label-text">Code *</span>
-                            </label>
-                            <input type="text" wire:model="code" class="input input-bordered w-full"
-                                placeholder="e.g. DUITKU" required />
-                            @error('code')
-                                <span class="text-error text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="label">
-                                <span class="label-text">Merchant Code</span>
-                            </label>
-                            <input type="text" wire:model="merchant_code" class="input input-bordered w-full"
-                                placeholder="Merchant ID" />
-                            @error('merchant_code')
-                                <span class="text-error text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="label">
-                                <span class="label-text">API Key</span>
-                            </label>
-                            <input type="password" wire:model="api_key" class="input input-bordered w-full"
-                                placeholder="••••••••" />
-                            @error('api_key')
-                                <span class="text-error text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="label">
-                                <span class="label-text">Callback URL</span>
-                            </label>
-                            <input type="url" wire:model="callback_url" class="input input-bordered w-full"
-                                placeholder="https://yoursite.com/payment/callback" />
-                            @error('callback_url')
-                                <span class="text-error text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="label">
-                                <span class="label-text">Return URL</span>
-                            </label>
-                            <input type="url" wire:model="return_url" class="input input-bordered w-full"
-                                placeholder="https://yoursite.com/payment/return" />
-                            @error('return_url')
-                                <span class="text-error text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="label">
-                                    <span class="label-text">Fee Percent (%)</span>
-                                </label>
-                                <input type="number" wire:model="fee_percent" class="input input-bordered w-full"
-                                    placeholder="0.00" step="0.01" min="0" max="100" />
-                                @error('fee_percent')
-                                    <span class="text-error text-sm">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="label">
-                                    <span class="label-text">Fee Flat (Rp)</span>
-                                </label>
-                                <input type="number" wire:model="fee_flat" class="input input-bordered w-full"
-                                    placeholder="0" step="1" min="0" />
-                                @error('fee_flat')
-                                    <span class="text-error text-sm">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label cursor-pointer justify-start gap-4">
-                                <input type="checkbox" wire:model="is_sandbox" class="checkbox checkbox-warning" />
-                                <div>
-                                    <span class="label-text font-medium">Sandbox Mode</span>
-                                    <div class="text-xs text-gray-500">For testing purposes</div>
-                                </div>
-                            </label>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label cursor-pointer justify-start gap-4">
-                                <input type="checkbox" wire:model="is_active" class="checkbox checkbox-primary" />
-                                <span class="label-text">Active</span>
-                            </label>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-1">
-                                {{ $editingId ? 'Update' : 'Create' }}
-                            </button>
-                            @if ($editingId)
-                                <button type="button" wire:click="cancelEdit" class="btn btn-ghost">
-                                    Cancel
-                                </button>
-                            @endif
-                        </div>
-                    </form>
+            <flux:card class="sticky top-4">
+                <div class="mb-4">
+                    @if ($editingId)
+                        <flux:badge color="amber" size="sm">EDIT</flux:badge>
+                        <flux:heading size="lg" class="mt-2">Edit Gateway</flux:heading>
+                    @else
+                        <flux:badge color="blue" size="sm">NEW</flux:badge>
+                        <flux:heading size="lg" class="mt-2">Add Gateway</flux:heading>
+                    @endif
                 </div>
-            </div>
+
+                <flux:separator />
+
+                <form wire:submit="save" class="space-y-6 mt-6">
+                    <flux:field>
+                        <flux:label>Name <span class="text-red-500">*</span></flux:label>
+                        <flux:input wire:model="name" placeholder="e.g. Duitku" required />
+                        <flux:error name="name" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Code <span class="text-red-500">*</span></flux:label>
+                        <flux:input wire:model="code" placeholder="e.g. DUITKU" required />
+                        <flux:error name="code" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Merchant Code</flux:label>
+                        <flux:input wire:model="merchant_code" placeholder="Merchant ID" />
+                        <flux:error name="merchant_code" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>API Key</flux:label>
+                        <flux:input type="password" wire:model="api_key" placeholder="••••••••" />
+                        <flux:error name="api_key" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Callback URL</flux:label>
+                        <flux:input type="url" wire:model="callback_url" placeholder="https://yoursite.com/payment/callback" />
+                        <flux:error name="callback_url" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Return URL</flux:label>
+                        <flux:input type="url" wire:model="return_url" placeholder="https://yoursite.com/payment/return" />
+                        <flux:error name="return_url" />
+                    </flux:field>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:field>
+                            <flux:label>Fee Percent (%)</flux:label>
+                            <flux:input type="number" wire:model="fee_percent" placeholder="0.00" step="0.01" min="0" max="100" />
+                            <flux:error name="fee_percent" />
+                        </flux:field>
+
+                        <flux:field>
+                            <flux:label>Fee Flat (Rp)</flux:label>
+                            <flux:input type="number" wire:model="fee_flat" placeholder="0" step="1" min="0" />
+                            <flux:error name="fee_flat" />
+                        </flux:field>
+                    </div>
+
+                    <flux:field>
+                        <flux:label>Sandbox Mode</flux:label>
+                        <flux:switch wire:model="is_sandbox" />
+                        <flux:description>{{ $is_sandbox ? 'Enabled' : 'Disabled' }} - For testing purposes</flux:description>
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Status</flux:label>
+                        <flux:switch wire:model="is_active" />
+                        <flux:description>{{ $is_active ? 'Active' : 'Inactive' }}</flux:description>
+                    </flux:field>
+
+                    <div class="flex gap-2">
+                        <flux:button type="submit" variant="primary" class="flex-1">
+                            {{ $editingId ? 'Update' : 'Create' }}
+                        </flux:button>
+                        @if ($editingId)
+                            <flux:button type="button" wire:click="cancelEdit" variant="ghost">
+                                Cancel
+                            </flux:button>
+                        @endif
+                    </div>
+                </form>
+            </flux:card>
         </div>
 
         <!-- List Section -->
         <div class="lg:col-span-2">
-            <div class="card bg-base-100 shadow-2xl border border-base-300">
-                <div class="card-body">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-2xl font-bold flex items-center gap-3">
-                            <span class="badge badge-lg badge-primary">{{ count($gateways) }}</span>
-                            Payment Methods
-                        </h3>
-                    </div>
-
-                    <div class="space-y-4">
-                        @forelse($gateways as $gateway)
-                            <div
-                                class="card bg-base-200 border-2 border-base-300 hover:border-primary hover:shadow-xl transition-all duration-300">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-3 mb-2">
-                                            <h4 class="font-semibold text-lg">{{ $gateway->name }}</h4>
-                                            <span class="badge badge-ghost">{{ $gateway->code }}</span>
-                                            @if ($gateway->is_active)
-                                                <span class="badge badge-success badge-sm">Active</span>
-                                            @else
-                                                <span class="badge badge-error badge-sm">Inactive</span>
-                                            @endif
-                                            @if ($gateway->is_sandbox)
-                                                <span class="badge badge-warning badge-sm">Sandbox</span>
-                                            @endif
-                                        </div>
-
-                                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                                            <div>
-                                                @if ($gateway->merchant_code)
-                                                    <div class="mb-1">
-                                                        <span class="font-medium">Merchant:</span>
-                                                        {{ $gateway->merchant_code }}
-                                                    </div>
-                                                @endif
-
-                                                @if ($gateway->callback_url)
-                                                    <div class="mb-1 flex items-start gap-2">
-                                                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                                        </svg>
-                                                        <span
-                                                            class="truncate text-xs">{{ $gateway->callback_url }}</span>
-                                                    </div>
-                                                @endif
-
-                                                @if ($gateway->return_url)
-                                                    <div class="flex items-start gap-2">
-                                                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                                                        </svg>
-                                                        <span
-                                                            class="truncate text-xs">{{ $gateway->return_url }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-
-                                            <div>
-                                                @if ($gateway->fee_percent > 0 || $gateway->fee_flat > 0)
-                                                    <div class="mb-1">
-                                                        <span class="font-medium">Fees:</span>
-                                                    </div>
-                                                    @if ($gateway->fee_percent > 0)
-                                                        <div class="text-xs">• {{ $gateway->fee_percent }}%</div>
-                                                    @endif
-                                                    @if ($gateway->fee_flat > 0)
-                                                        <div class="text-xs">• Rp
-                                                            {{ number_format($gateway->fee_flat, 0, ',', '.') }}</div>
-                                                    @endif
-                                                @endif
-
-                                                <div class="flex items-center gap-2 mt-2">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                                    </svg>
-                                                    <span>{{ $gateway->orderPayments()->count() }} transactions</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex gap-2">
-                                        <button wire:click="toggleStatus({{ $gateway->id }})"
-                                            class="btn btn-sm btn-ghost" title="Toggle Status">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                            </svg>
-                                        </button>
-
-                                        <button wire:click="edit({{ $gateway->id }})" class="btn btn-sm btn-ghost"
-                                            title="Edit">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </button>
-
-                                        <button wire:click="delete({{ $gateway->id }})"
-                                            wire:confirm="Are you sure you want to delete this payment gateway?"
-                                            class="btn btn-sm btn-ghost text-error" title="Delete">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-center py-12">
-                                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                </svg>
-                                <p class="text-gray-500">No payment gateways configured yet</p>
-                            </div>
-                        @endforelse
+            <flux:card>
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <flux:badge color="blue" size="lg">{{ count($gateways) }}</flux:badge>
+                        <flux:heading size="lg">Payment Methods</flux:heading>
                     </div>
                 </div>
-            </div>
+
+                <div class="space-y-4">
+                    @forelse($gateways as $gateway)
+                        <flux:card class="hover:border-zinc-400 dark:hover:border-zinc-600 transition-all">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-2 flex-wrap">
+                                        <flux:heading size="base">{{ $gateway->name }}</flux:heading>
+                                        <flux:badge color="zinc" size="sm">{{ $gateway->code }}</flux:badge>
+                                        @if ($gateway->is_active)
+                                            <flux:badge color="green" size="sm">Active</flux:badge>
+                                        @else
+                                            <flux:badge color="red" size="sm">Inactive</flux:badge>
+                                        @endif
+                                        @if ($gateway->is_sandbox)
+                                            <flux:badge color="amber" size="sm">Sandbox</flux:badge>
+                                        @endif
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-zinc-600 dark:text-zinc-400">
+                                        <div class="space-y-1">
+                                            @if ($gateway->merchant_code)
+                                                <div>
+                                                    <span class="font-medium">Merchant:</span>
+                                                    {{ $gateway->merchant_code }}
+                                                </div>
+                                            @endif
+
+                                            @if ($gateway->callback_url)
+                                                <div class="flex items-start gap-2">
+                                                    <flux:icon.arrow-left class="size-4 mt-0.5 flex-shrink-0" />
+                                                    <span class="truncate text-xs">{{ $gateway->callback_url }}</span>
+                                                </div>
+                                            @endif
+
+                                            @if ($gateway->return_url)
+                                                <div class="flex items-start gap-2">
+                                                    <flux:icon.arrow-right class="size-4 mt-0.5 flex-shrink-0" />
+                                                    <span class="truncate text-xs">{{ $gateway->return_url }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            @if ($gateway->fee_percent > 0 || $gateway->fee_flat > 0)
+                                                <div>
+                                                    <span class="font-medium">Fees:</span>
+                                                </div>
+                                                @if ($gateway->fee_percent > 0)
+                                                    <div class="text-xs">• {{ $gateway->fee_percent }}%</div>
+                                                @endif
+                                                @if ($gateway->fee_flat > 0)
+                                                    <div class="text-xs">• Rp {{ number_format($gateway->fee_flat, 0, ',', '.') }}</div>
+                                                @endif
+                                            @endif
+
+                                            <div class="flex items-center gap-2">
+                                                <flux:icon.credit-card class="size-4" />
+                                                <span>{{ $gateway->orderPayments()->count() }} transactions</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-2">
+                                    <flux:button wire:click="toggleStatus({{ $gateway->id }})" size="sm" variant="ghost" icon="arrow-path" title="Toggle Status" />
+                                    <flux:button wire:click="edit({{ $gateway->id }})" size="sm" variant="ghost" icon="pencil" title="Edit" />
+                                    <flux:button
+                                        wire:click="delete({{ $gateway->id }})"
+                                        wire:confirm="Are you sure you want to delete this payment gateway?"
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="trash"
+                                        class="text-red-600 hover:text-red-700"
+                                        title="Delete"
+                                    />
+                                </div>
+                            </div>
+                        </flux:card>
+                    @empty
+                        <div class="text-center py-12">
+                            <flux:icon.credit-card class="size-16 mx-auto mb-4 text-zinc-400" />
+                            <flux:subheading>No payment gateways configured yet</flux:subheading>
+                        </div>
+                    @endforelse
+                </div>
+            </flux:card>
         </div>
     </div>
 </div>

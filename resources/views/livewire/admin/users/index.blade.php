@@ -2,11 +2,11 @@
 
 use App\Models\User;
 use Livewire\Volt\Component;
-use Livewire\Attributes\{Layout, Title};
 use Livewire\WithPagination;
+use Livewire\Attributes\{Layout, Title};
+use Flux\Flux;
 
-new #[Layout('components.layouts.app.sidebar'), Title('Users Management')]
-class extends Component {
+new #[Layout('components.layouts.app'), Title('Users Management')] class extends Component {
     use WithPagination;
 
     public $search = '';
@@ -17,9 +17,8 @@ class extends Component {
         $query = User::query();
 
         if ($this->search) {
-            $query->where(function($q) {
-                $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%");
+            $query->where(function ($q) {
+                $q->where('name', 'like', "%{$this->search}%")->orWhere('email', 'like', "%{$this->search}%");
             });
         }
 
@@ -41,191 +40,153 @@ class extends Component {
 
         if ($user && $user->id !== auth()->id()) {
             $user->delete();
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'User deleted successfully!'
-            ]);
+            flux:toast(
+    heading: 'User deleted successfully!',
+    text: 'The user has been removed from the system.',
+);
         }
     }
 }; ?>
 
-<div>
-    <!-- Breadcrumbs -->
-    <div class="text-sm breadcrumbs mb-4">
-        <ul>
-            <li><a href="{{ route('dashboard') }}" wire:navigate>Dashboard</a></li>
-            <li>Users</li>
-        </ul>
-    </div>
-
-    <!-- Page Header -->
-    <div class="flex justify-between items-center mb-6">
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold flex items-center gap-3">
-                <span class="badge badge-secondary badge-lg">USERS</span>
-                Management
-            </h1>
-            <p class="text-base-content/60 mt-2">Kelola data pengguna aplikasi</p>
+            <flux:heading size="xl">Management Users</flux:heading>
+            <flux:subheading>Kelola data pengguna aplikasi</flux:subheading>
         </div>
-        <a href="{{ route('admin.users.create') }}" wire:navigate class="btn btn-primary gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
+        <flux:button wire:navigate href="{{ route('admin.users.create') }}" icon="plus">
             Add User
-        </a>
+        </flux:button>
     </div>
+    <flux:toast />
 
     <!-- Stats Cards -->
-    <div class="stats stats-vertical lg:stats-horizontal shadow w-full mb-6">
-        <div class="stat">
-            <div class="stat-figure text-primary">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Users</flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($totalUsers) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">All registered users</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <flux:icon.users class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
             </div>
-            <div class="stat-title">Total Users</div>
-            <div class="stat-value text-primary">{{ number_format($totalUsers) }}</div>
-            <div class="stat-desc">All registered users</div>
-        </div>
+        </flux:card>
 
-        <div class="stat">
-            <div class="stat-figure text-error">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Administrators</flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($adminCount) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">Admin access</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    <flux:icon.shield-check class="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
             </div>
-            <div class="stat-title">Administrators</div>
-            <div class="stat-value text-error">{{ number_format($adminCount) }}</div>
-            <div class="stat-desc">Admin access</div>
-        </div>
+        </flux:card>
 
-        <div class="stat">
-            <div class="stat-figure text-success">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Regular Users</flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($userCount) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">Customer accounts</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <flux:icon.user class="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
             </div>
-            <div class="stat-title">Regular Users</div>
-            <div class="stat-value text-success">{{ number_format($userCount) }}</div>
-            <div class="stat-desc">Customer accounts</div>
-        </div>
+        </flux:card>
     </div>
 
     <!-- Filters -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-        <div class="card-body">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control">
-                    <div class="input-group">
-                        <span>
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </span>
-                        <input
-                            type="text"
-                            wire:model.live.debounce.300ms="search"
-                            placeholder="Search by name or email..."
-                            class="input input-bordered w-full"
-                        />
-                    </div>
-                </div>
-
-                <select wire:model.live="roleFilter" class="select select-bordered w-full">
-                    <option value="">All Roles</option>
-                    <option value="admin">Admin</option>
-                    <option value="user">User</option>
-                </select>
+    <flux:card>
+        <div class="flex w-full gap-4">
+            <div class="flex w-full">
+                    <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari user berdasarkan nama atau email..." icon="magnifying-glass" />
+            </div>
+            <div class="w-full md:w-48">
+                <flux:field>
+                    <flux:select wire:model.live="roleFilter">
+                        <option value="">All Roles</option>
+                        <option value="admin">Admin</option>
+                        <option value="user">User</option>
+                    </flux:select>
+                </flux:field>
             </div>
         </div>
-    </div>
+    </flux:card>
 
     <!-- Users Table -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body overflow-x-auto">
-            <table class="table table-zebra">
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($users as $user)
-                        <tr>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="avatar placeholder">
-                                        <div class="bg-neutral text-neutral-content rounded-full w-10">
-                                            <span class="text-sm">{{ strtoupper(substr($user->name, 0, 2)) }}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="font-bold">{{ $user->name }}</div>
-                                        @if($user->id === auth()->id())
-                                            <div class="badge badge-info badge-xs">You</div>
-                                        @endif
-                                    </div>
+    <flux:card>
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column>User</flux:table.column>
+                <flux:table.column>Email</flux:table.column>
+                <flux:table.column>Role</flux:table.column>
+                <flux:table.column>Joined</flux:table.column>
+                <flux:table.column>Actions</flux:table.column>
+            </flux:table.columns>
+            <flux:table.rows>
+                @forelse($users as $user)
+                    <flux:table.row>
+                        <flux:table.cell>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center justify-center w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full text-sm font-semibold">
+                                    {{ strtoupper(collect(explode(' ', $user->name))->map(function ($part) {return mb_substr(trim($part), 0, 1);})->filter()->take(2)->implode('')) }}
                                 </div>
-                            </td>
-                            <td>
-                                <div class="text-sm">{{ $user->email }}</div>
-                                @if($user->email_verified_at)
-                                    <div class="badge badge-success badge-xs">Verified</div>
-                                @else
-                                    <div class="badge badge-warning badge-xs">Unverified</div>
-                                @endif
-                            </td>
-                            <td>
-                                @if($user->role === 'admin')
-                                    <div class="badge badge-error">Admin</div>
-                                @else
-                                    <div class="badge badge-ghost">User</div>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="text-sm">{{ $user->created_at->format('d M Y') }}</div>
-                                <div class="text-xs text-base-content/60">{{ $user->created_at->diffForHumans() }}</div>
-                            </td>
-                            <td>
-                                <div class="flex gap-2">
-                                    <a href="{{ route('admin.users.edit', $user) }}" wire:navigate class="btn btn-sm btn-ghost">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </a>
-                                    @if($user->id !== auth()->id())
-                                        <button
-                                            wire:click="deleteUser({{ $user->id }})"
-                                            wire:confirm="Are you sure you want to delete this user?"
-                                            class="btn btn-sm btn-ghost text-error">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
+                                <div>
+                                    <div class="font-bold">{{ $user->name }}</div>
+                                    @if ($user->id === auth()->id())
+                                        <flux:badge color="blue" size="xs">You</flux:badge>
                                     @endif
                                 </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-8">
-                                <div class="flex flex-col items-center gap-2">
-                                    <svg class="w-12 h-12 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                    <span class="text-base-content/60">No users found</span>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                            </div>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="text-sm">{{ $user->email }}</div>
+                            @if ($user->email_verified_at)
+                                <flux:badge color="green" size="xs">Verified</flux:badge>
+                            @else
+                                <flux:badge color="amber" size="xs">Unverified</flux:badge>
+                            @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            @if ($user->role === 'admin')
+                                <flux:badge color="red">Admin</flux:badge>
+                            @else
+                                <flux:badge color="zinc">User</flux:badge>
+                            @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="text-sm">{{ $user->created_at->format('d M Y') }}</div>
+                            <div class="text-xs text-zinc-500">{{ $user->created_at->diffForHumans() }}</div>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2">
+                                <flux:button wire:navigate href="{{ route('admin.users.edit', $user) }}" variant="ghost" size="sm" icon="pencil" />
+                                @if ($user->id !== auth()->id())
+                                    <flux:button wire:click="deleteUser({{ $user->id }})" wire:confirm="Are you sure you want to delete this user?" variant="ghost" size="sm" icon="trash" class="text-red-600" />
+                                @endif
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5" class="text-center py-8">
+                            <div class="flex flex-col items-center gap-2">
+                                <flux:icon.users class="w-12 h-12 text-zinc-300" />
+                                <span class="text-zinc-500">No users found</span>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </flux:card>
 
     <!-- Pagination -->
     <div class="mt-6">

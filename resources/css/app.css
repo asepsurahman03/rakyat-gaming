@@ -1,80 +1,123 @@
 @import 'tailwindcss';
-/* @import '../../vendor/livewire/flux/dist/flux.css';
+@import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../views';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php'; */
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 
-@plugin 'daisyui';
+@custom-variant dark (&:where(.dark, .dark *));
 
-
-@plugin "daisyui/theme" {
-  name: "light";
-  default: false;
-  prefersdark: false;
-  color-scheme: "light";
-  --color-base-100: oklch(97% 0.014 343.198);
-  --color-base-200: oklch(58% 0.253 17.585);
-  --color-base-300: oklch(94% 0.129 101.54);
-  --color-base-content: oklch(26% 0.007 34.298);
-  --color-primary: oklch(85% 0.199 91.936);
-  --color-primary-content: oklch(100% 0 0);
-  --color-secondary: oklch(55% 0.046 257.417);
-  --color-secondary-content: oklch(100% 0 0);
-  --color-accent: oklch(54% 0.281 293.009);
-  --color-accent-content: oklch(96% 0.016 293.756);
-  --color-neutral: oklch(52% 0.223 3.958);
-  --color-neutral-content: oklch(97% 0.014 343.198);
-  --color-info: oklch(74% 0.16 232.661);
-  --color-info-content: oklch(29% 0.066 243.157);
-  --color-success: oklch(76% 0.177 163.223);
-  --color-success-content: oklch(26% 0.051 172.552);
-  --color-warning: oklch(82% 0.189 84.429);
-  --color-warning-content: oklch(27% 0.077 45.635);
-  --color-error: oklch(71% 0.194 13.428);
-  --color-error-content: oklch(27% 0.105 12.094);
-  --radius-selector: 1rem;
-  --radius-field: 1rem;
-  --radius-box: 1rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 1;
+/* Re-assign Flux's gray of choice... */
+@theme {
+    --color-zinc-50: var(--color-neutral-50);
+    --color-zinc-100: var(--color-neutral-100);
+    --color-zinc-200: var(--color-neutral-200);
+    --color-zinc-300: var(--color-neutral-300);
+    --color-zinc-400: var(--color-neutral-400);
+    --color-zinc-500: var(--color-neutral-500);
+    --color-zinc-600: var(--color-neutral-600);
+    --color-zinc-700: var(--color-neutral-700);
+    --color-zinc-800: var(--color-neutral-800);
+    --color-zinc-900: var(--color-neutral-900);
+    --color-zinc-950: var(--color-neutral-950);
 }
 
-@plugin "daisyui/theme" {
-  name: "dark";
-  default: false;
-  prefersdark: false;
-  color-scheme: "light";
-  --color-base-100: oklch(40% 0.153 2.432);
-  --color-base-200: oklch(58% 0.253 17.585);
-  --color-base-300: oklch(64% 0.246 16.439);
-  --color-base-content: oklch(96% 0.007 247.896);
-  --color-primary: oklch(85% 0.199 91.936);
-  --color-primary-content: oklch(100% 0 0);
-  --color-secondary: oklch(55% 0.046 257.417);
-  --color-secondary-content: oklch(100% 0 0);
-  --color-accent: oklch(54% 0.281 293.009);
-  --color-accent-content: oklch(96% 0.016 293.756);
-  --color-neutral: oklch(52% 0.223 3.958);
-  --color-neutral-content: oklch(97% 0.014 343.198);
-  --color-info: oklch(74% 0.16 232.661);
-  --color-info-content: oklch(29% 0.066 243.157);
-  --color-success: oklch(76% 0.177 163.223);
-  --color-success-content: oklch(26% 0.051 172.552);
-  --color-warning: oklch(82% 0.189 84.429);
-  --color-warning-content: oklch(27% 0.077 45.635);
-  --color-error: oklch(71% 0.194 13.428);
-  --color-error-content: oklch(27% 0.105 12.094);
-  --radius-selector: 1rem;
-  --radius-field: 1rem;
-  --radius-box: 1rem;
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-  --border: 1px;
-  --depth: 0;
-  --noise: 1;
+@theme {
+    --color-accent: var(--color-yellow-400);
+    --color-accent-content: var(--color-yellow-600);
+    --color-accent-foreground: var(--color-yellow-950);
+}
+@layer theme {
+    .dark {
+        --color-accent: var(--color-yellow-400);
+        --color-accent-content: var(--color-yellow-400);
+        --color-accent-foreground: var(--color-yellow-950);
+    }
 }
 
+@layer base {
 
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply  !mb-0 !leading-tight;
+}
+
+@layer components {
+    /* Container for a text field (label, control, help) */
+    [data-flux-text] {
+        @apply grid gap-1;
+    }
+
+    /* Row wrapper if needed (label + control on one line) */
+    [data-flux-text] > [data-flux-row] {
+        @apply flex items-center gap-2;
+    }
+
+    /* The actual control (input/textarea/select) inside the flux-text */
+    [data-flux-text] [data-flux-control] {
+        @apply block w-full bg-transparent border border-gray-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm text-gray-800 dark:text-zinc-100 placeholder-gray-400;
+        outline: none;
+        transition: box-shadow 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+
+    /* Focus handled here as well to complement the global focus rule */
+    [data-flux-text] [data-flux-control]:focus {
+        @apply ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    }
+
+    /* Sizes */
+    [data-flux-text][data-size="sm"] [data-flux-control] {
+        @apply text-xs px-2 py-1 rounded;
+    }
+    [data-flux-text][data-size="lg"] [data-flux-control] {
+        @apply text-base px-4 py-3 rounded-lg;
+    }
+
+    /* Label, help and error text */
+    [data-flux-text] [data-flux-label] {
+        @apply text-sm font-medium text-gray-700 dark:text-zinc-200;
+    }
+    [data-flux-text] [data-flux-help] {
+        @apply text-xs text-gray-500 dark:text-zinc-400;
+    }
+    [data-flux-text] [data-flux-error] {
+        @apply text-xs text-red-600;
+    }
+
+    /* Invalid / error state */
+    [data-flux-text][data-invalid="true"] [data-flux-control] {
+        @apply border-red-600 ring-2 ring-red-600;
+    }
+    [data-flux-text][data-invalid="true"] [data-flux-label],
+    [data-flux-text][data-invalid="true"] [data-flux-help] {
+        @apply text-red-600;
+    }
+
+    /* Disabled */
+    [data-flux-text][data-disabled="true"] [data-flux-control] {
+        @apply opacity-60 cursor-not-allowed;
+    }
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ;
+}
+
+/* \[:where(&)\]:size-4 {
+    @apply size-4;
+} */

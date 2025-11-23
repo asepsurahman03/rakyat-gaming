@@ -2,167 +2,273 @@
 
 use App\Models\Product;
 use App\Models\Game;
-use function Livewire\Volt\{state, with};
+use Livewire\Volt\Component;
+use Livewire\WithPagination;
+use Livewire\Attributes\{Layout, Title};
 
-state(['search' => '', 'gameFilter' => '']);
+new #[Layout('components.layouts.app'), Title('Products Management')] class extends Component {
+    use WithPagination;
 
-with(fn () => [
-    'products' => Product::with(['game', 'supplierProduct'])
-        ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-        ->when($this->gameFilter, fn($q) => $q->where('game_id', $this->gameFilter))
-        ->latest()
-        ->paginate(15),
-    'games' => Game::where('is_active', true)->orderBy('name')->get(),
-]);
+    public $search = '';
+    public $gameFilter = '';
+    public $statusFilter = '';
+    public $page = 1;
 
-$delete = function (Product $product) {
-    $product->delete();
-    $this->dispatch('success', message: 'Produk berhasil dihapus');
-};
+    public function with(): array
+    {
+        $query = Product::with(['game', 'supplierProduct']);
 
-?>
+        if ($this->search) {
+            $query->where('name', 'like', "%{$this->search}%");
+        }
 
-<div>
-    <!-- Breadcrumbs -->
-    <div class="text-sm breadcrumbs mb-4">
-        <ul>
-            <li><a href="{{ route('dashboard') }}" wire:navigate>Dashboard</a></li>
-            <li>Products</li>
-        </ul>
+        if ($this->gameFilter) {
+            $query->where('game_id', $this->gameFilter);
+        }
+
+        if ($this->statusFilter !== '') {
+            $query->where('is_active', $this->statusFilter);
+        }
+
+        return [
+            'products' => $query->latest()->paginate(15),
+            'games' => Game::where('is_active', true)->orderBy('name')->get(),
+            'totalProducts' => Product::count(),
+            'activeProducts' => Product::where('is_active', true)->count(),
+            'inactiveProducts' => Product::where('is_active', false)->count(),
+        ];
+    }
+
+    public function resetPage()
+    {
+        $this->page = 1;
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function deleteProduct($id)
+    {
+        $product = Product::find($id);
+        if ($product) {
+            $product->delete();
+            Flux::toast(heading: 'Produk berhasil dihapus!', text: 'Produk telah dihapus dari sistem.', variant: 'success', duration: 3000, position: 'top-right');
+        }
+    }
+}; ?>
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <flux:heading size="xl">Management Products</flux:heading>
+            <flux:subheading>Kelola produk digital untuk dijual</flux:subheading>
+        </div>
+        <flux:button variant="primary" wire:navigate href="{{ route('admin.products.create') }}" icon="plus">
+            Add Product
+        </flux:button>
     </div>
 
-    <!-- Page Header -->
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-3xl font-bold flex items-center gap-3">
-                <span class="badge badge-secondary badge-lg">PRODUCTS</span>
-                Management
-            </h1>
-            <p class="text-base-content/60 mt-2">Kelola produk digital untuk dijual</p>
-        </div>
-        <a href="{{ route('admin.products.create') }}" wire:navigate class="btn btn-secondary gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Tambah Produk
-        </a>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Products
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($totalProducts) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">All products</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <flux:icon.cube class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Active Products
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($activeProducts) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">Ready to sell</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <flux:icon.check-circle class="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Inactive Products
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($inactiveProducts) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">Not available</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                    <flux:icon.x-circle class="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
+            </div>
+        </flux:card>
     </div>
 
     <!-- Filters -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-        <div class="card-body">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control">
-                    <div class="input-group">
-                        <span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </span>
-                        <input
-                            type="text"
-                            wire:model.live.debounce.300ms="search"
-                            placeholder="Cari produk..."
-                            class="input input-bordered w-full"
-                        >
-                    </div>
-                </div>
-                <select wire:model.live="gameFilter" class="select select-bordered w-full">
+    <flux:card>
+        <flux:heading size="lg" class="mb-4">Filter Products</flux:heading>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <flux:field>
+                <flux:label>Search</flux:label>
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari produk..."
+                    icon="magnifying-glass" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>Game</flux:label>
+                <flux:select wire:model.live="gameFilter">
                     <option value="">Semua Game</option>
-                    @foreach($games as $game)
+                    @foreach ($games as $game)
                         <option value="{{ $game->id }}">{{ $game->name }}</option>
                     @endforeach
-                </select>
-            </div>
+                </flux:select>
+            </flux:field>
+
+            <flux:field>
+                <flux:label>Status</flux:label>
+                <flux:select wire:model.live="statusFilter">
+                    <option value="">Semua Status</option>
+                    <option value="1">Aktif</option>
+                    <option value="0">Nonaktif</option>
+                </flux:select>
+            </flux:field>
         </div>
-    </div>
+    </flux:card>
 
     <!-- Products Table -->
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body overflow-x-auto">
-            <table class="table table-zebra">
-                <thead>
-                    <tr>
-                        <th>Produk</th>
-                        <th>Game</th>
-                        <th>Harga Beli</th>
-                        <th>Harga Jual</th>
-                        <th>Margin</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($products as $product)
-                        <tr>
-                            <td>
-                                <div class="font-semibold">{{ $product->name }}</div>
-                                @if($product->supplierProduct)
-                                    <div class="text-xs text-base-content/60">{{ $product->supplierProduct->code }}</div>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="badge badge-outline">{{ $product->game->name }}</div>
-                            </td>
-                            <td>
-                                @if($product->supplierProduct)
-                                    Rp {{ number_format($product->supplierProduct->buyer_price, 0, ',', '.') }}
-                                @else
-                                    <span class="text-base-content/40">-</span>
-                                @endif
-                            </td>
-                            <td class="font-semibold">Rp {{ number_format($product->selling_price, 0, ',', '.') }}</td>
-                            <td>
-                                @if($product->supplierProduct)
-                                    @php
-                                        $margin = $product->selling_price - $product->supplierProduct->buyer_price;
-                                    @endphp
-                                    <span class="text-success">+Rp {{ number_format($margin, 0, ',', '.') }}</span>
-                                @else
-                                    <span class="text-base-content/40">-</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="flex flex-col gap-1">
-                                    <div class="badge {{ $product->is_active ? 'badge-success' : 'badge-error' }} badge-sm">
-                                        {{ $product->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </div>
-                                    @if($product->is_auto_price)
-                                        <div class="badge badge-info badge-sm">Auto Price</div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                <div class="flex gap-2">
-                                    <a href="{{ route('admin.products.edit', $product) }}" wire:navigate class="btn btn-sm btn-ghost">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                        </svg>
-                                    </a>
-                                    <button wire:click="delete({{ $product->id }})" wire:confirm="Yakin ingin menghapus produk ini?" class="btn btn-sm btn-ghost text-error">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-8">
-                                <div class="flex flex-col items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-base-content/30">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                                    </svg>
-                                    <span class="text-base-content/60">Belum ada produk</span>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <flux:card>
+        <div class="flex items-center justify-between mb-4">
+            <flux:heading size="lg">Product List</flux:heading>
+            <flux:subheading>Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of
+                {{ $products->total() }} products</flux:subheading>
         </div>
-    </div>
+
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column>#</flux:table.column>
+                <flux:table.column>Produk</flux:table.column>
+                <flux:table.column>Game</flux:table.column>
+                <flux:table.column>Harga Beli</flux:table.column>
+                <flux:table.column>Harga Jual</flux:table.column>
+                <flux:table.column>Margin</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column class="text-center">Actions</flux:table.column>
+            </flux:table.columns>
+            <flux:table.rows>
+                @forelse($products as $index => $product)
+                    <flux:table.row>
+                        <flux:table.cell>{{ $products->firstItem() + $index }}</flux:table.cell>
+                        <flux:table.cell>
+                            <div>
+                                <div class="font-semibold">{{ $product->name }}</div>
+                                @if ($product->supplierProduct)
+                                    <div class="text-xs text-zinc-500">{{ $product->supplierProduct->code }}</div>
+                                @endif
+                            </div>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge color="zinc" size="sm">{{ $product->game->name }}</flux:badge>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            @if ($product->supplierProduct)
+                                <span class="text-sm">Rp
+                                    {{ number_format($product->supplierProduct->buyer_price, 0, ',', '.') }}</span>
+                            @else
+                                <span class="text-zinc-400">-</span>
+                            @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <span class="font-semibold">Rp
+                                {{ number_format($product->selling_price, 0, ',', '.') }}</span>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            @if ($product->supplierProduct)
+                                @php
+                                    $margin = $product->selling_price - $product->supplierProduct->buyer_price;
+                                @endphp
+                                <span class="text-green-600 font-semibold">+Rp
+                                    {{ number_format($margin, 0, ',', '.') }}</span>
+                            @else
+                                <span class="text-zinc-400">-</span>
+                            @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex flex-col gap-1">
+                                <flux:badge :color="$product->is_active ? 'green' : 'red'" size="sm">
+                                    {{ $product->is_active ? 'Active' : 'Inactive' }}
+                                </flux:badge>
+                                @if ($product->is_auto_price)
+                                    <flux:badge color="blue" size="sm">Auto Price</flux:badge>
+                                @endif
+                            </div>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            <div class="flex gap-2 justify-center">
+                                <flux:button wire:navigate href="{{ route('admin.products.edit', $product) }}"
+                                    variant="ghost" size="sm" icon="pencil" />
+                                <flux:modal.trigger name="delete-product-{{ $product->id }}">
+                                    <flux:button variant="danger">Delete</flux:button>
+                                </flux:modal.trigger>
+
+                                <flux:modal name="delete-product-{{ $product->id }}" class="min-w-[22rem]">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <flux:heading size="lg">Delete Product?</flux:heading>
+
+                                            <flux:text class="mt-2">
+                                                Apakah Anda yakin ingin menghapus produk ini?<br>
+                                                Tindakan ini tidak dapat dibatalkan.
+                                            </flux:text>
+                                        </div>
+
+                                        <div class="flex gap-2">
+                                            <flux:spacer />
+
+                                            <flux:modal.close>
+                                                <flux:button variant="ghost">Cancel</flux:button>
+                                            </flux:modal.close>
+
+                                            <flux:modal.close>
+                                                <flux:button wire:click="deleteProduct({{ $product->id }})" variant="danger">Delete</flux:button>
+                                            </flux:modal.close>
+                                        </div>
+                                    </div>
+                                </flux:modal>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="8" class="text-center py-12">
+                            <div class="flex flex-col items-center gap-3">
+                                <flux:icon.cube class="w-16 h-16 text-zinc-300" />
+                                <div>
+                                    <div class="font-semibold text-zinc-500">No Products Found</div>
+                                    <div class="text-sm text-zinc-400 mt-1">Try adjusting your filters or add a new
+                                        product</div>
+                                </div>
+                                <flux:button wire:navigate href="{{ route('admin.products.create') }}" size="sm"
+                                    icon="plus">
+                                    Add First Product
+                                </flux:button>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </flux:card>
 
     <!-- Pagination -->
     <div class="mt-6">

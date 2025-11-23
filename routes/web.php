@@ -6,6 +6,15 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
+// Language Switcher
+Route::get('/lang/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'id'])) {
+        session()->put('locale', $locale);
+        app()->setLocale($locale);
+    }
+    return redirect()->back();
+})->name('lang.switch');
+
 Volt::route('/', 'guest.welcome')->name('home');
 Volt::route('cek-transaksi', 'guest.cek-transaksi')->name('cek-transaksi');
 Volt::route('game/{slug}', 'guest.game-detail')->name('game.detail');

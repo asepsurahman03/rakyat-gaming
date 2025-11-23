@@ -14,9 +14,16 @@
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.1.1",
+        "livewire/flux-pro": "^2.6",
         "livewire/volt": "^1.7.0",
         "triyatna/digiflazz-laravel-4buyer": "^1.0"
     },
+    "repositories": [
+       {
+           "type": "artifact",
+           "url": "./packages"
+       }
+   ],
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",

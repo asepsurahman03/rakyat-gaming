@@ -6,7 +6,7 @@ use Livewire\WithPagination;
 use App\Models\SupplierProduct;
 use App\Models\Supplier;
 
-new #[Layout('components.layouts.app.sidebar'), Title('Supplier Products')] class extends Component {
+new #[Layout('components.layouts.app'), Title('Supplier Products')] class extends Component {
     use WithPagination;
 
     public string $search = '';
@@ -88,156 +88,151 @@ new #[Layout('components.layouts.app.sidebar'), Title('Supplier Products')] clas
 }; ?>
 
 <div>
+    <flux:breadcrumbs class="mb-6">
+        <flux:breadcrumbs.item href="/admin/dashboard" wire:navigate>Dashboard</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Supplier Products</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
 
     <!-- Page Header -->
-    <div class="flex justify-between items-center my-6">
+    <div class="flex justify-between items-center mb-6">
         <div>
-            <h1 class="text-3xl font-bold flex items-center gap-3">
-                <span class="badge badge-info badge-lg">SUPPLIER</span>
+            <flux:heading size="xl" class="mb-2">
+                <flux:badge color="info" size="lg" class="mr-2">SUPPLIER</flux:badge>
                 Products
-            </h1>
-            <p class="text-base-content/60 mt-2">Produk dari supplier untuk dijual kembali</p>
+            </flux:heading>
+            <flux:subheading>Produk dari supplier untuk dijual kembali</flux:subheading>
         </div>
-        <button wire:click="syncProducts" class="btn btn-info gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+        <flux:button wire:click="syncProducts" variant="primary" icon="arrow-path">
             Sync Products
-        </button>
+        </flux:button>
     </div>
 
     <!-- Stats Cards -->
-    <div class="stats bg-base-200/50 stats-vertical lg:stats-horizontal shadow w-full mb-6">
-        <div class="stat">
-            <div class="stat-figure text-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <flux:card>
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                </div>
+                <div>
+                    <flux:subheading class="mb-1">Total Products</flux:subheading>
+                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ number_format($totalProducts) }}</div>
+                    <div class="text-sm text-zinc-500">From supplier</div>
+                </div>
             </div>
-            <div class="stat-title">Total Products</div>
-            <div class="stat-value text-primary">{{ number_format($totalProducts) }}</div>
-            <div class="stat-desc">From supplier</div>
-        </div>
+        </flux:card>
 
-        <div class="stat">
-            <div class="stat-figure text-success">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+        <flux:card>
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <flux:subheading class="mb-1">Active Products</flux:subheading>
+                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ number_format($activeProducts) }}</div>
+                    <div class="text-sm text-zinc-500">Ready to sell</div>
+                </div>
             </div>
-            <div class="stat-title">Active Products</div>
-            <div class="stat-value text-success">{{ number_format($activeProducts) }}</div>
-            <div class="stat-desc">Ready to sell</div>
-        </div>
+        </flux:card>
     </div>
 
     <!-- Filters & Actions -->
-    <div class="card bg-base-200/50 shadow-xl mb-6">
-        <div class="card-body">
-            <div class="flex flex-col md:flex-row gap-4">
-                <!-- Search -->
-                <div class="flex-1">
-                    <input type="text" wire:model.live.debounce.300ms="search"
-                        placeholder="Search by code, name, or brand..." class="input input-bordered w-full" />
-                </div>
-
-                <!-- Category Filter -->
-                <select wire:model.live="categoryFilter" class="select select-bordered w-full md:w-48">
-                    <option value="">All Categories</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category }}">{{ $category }}</option>
-                    @endforeach
-                </select>
-
-                <!-- Brand Filter -->
-                <select wire:model.live="brandFilter" class="select select-bordered w-full md:w-48">
-                    <option value="">All Brands</option>
-                    @foreach ($brands as $brand)
-                        <option value="{{ $brand }}">{{ $brand }}</option>
-                    @endforeach
-                </select>
-
-                <!-- Status Filter -->
-                <select wire:model.live="statusFilter" class="select select-bordered w-full md:w-32">
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+    <flux:card class="mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+                <flux:input wire:model.live.debounce.300ms="search"
+                    placeholder="Search by code, name, or brand..."
+                    icon="magnifying-glass" />
             </div>
+
+            <!-- Category Filter -->
+            <flux:select wire:model.live="categoryFilter" placeholder="All Categories" class="w-full md:w-48">
+                @foreach ($categories as $category)
+                    <option value="{{ $category }}">{{ $category }}</option>
+                @endforeach
+            </flux:select>
+
+            <!-- Brand Filter -->
+            <flux:select wire:model.live="brandFilter" placeholder="All Brands" class="w-full md:w-48">
+                @foreach ($brands as $brand)
+                    <option value="{{ $brand }}">{{ $brand }}</option>
+                @endforeach
+            </flux:select>
+
+            <!-- Status Filter -->
+            <flux:select wire:model.live="statusFilter" placeholder="All Status" class="w-full md:w-32">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </flux:select>
         </div>
-    </div>
+    </flux:card>
 
     <!-- Products Table -->
-    <div class="card bg-base-200/50 shadow-xl">
-        <div class="overflow-x-auto rounded-box border border-base-content/5">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Product Name</th>
-                        <th>Category</th>
-                        <th>Brand</th>
-                        <th>Buyer Price</th>
-                        <th>Status</th>
-                        <th>Last Sync</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($supplierProducts as $product)
-                        <tr>
-                            <td>
-                                <span class="badge badge-ghost">{{ $product->code }}</span>
-                            </td>
-                            <td>
-                                <div class="font-medium">{{ $product->product_name }}</div>
-                                <div class="text-xs text-gray-400">{{ $product->supplier->name }}</div>
-                            </td>
-                            <td>
-                                <span class="badge badge-outline">{{ $product->category }}</span>
-                            </td>
-                            <td>{{ $product->brand }}</td>
-                            <td>
-                                <span class="font-semibold text-primary">
-                                    Rp {{ number_format($product->buyer_price, 0, ',', '.') }}
-                                </span>
-                            </td>
-                            <td>
-                                @if ($product->status === 'active')
-                                    <span class="badge badge-success">Active</span>
-                                @else
-                                    <span class="badge badge-error">Inactive</span>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="text-xs text-gray-400">
-                                    {{ $product->last_sync_at?->diffForHumans() ?? '-' }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-8">
-                                <div class="text-gray-400">
-                                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                    </svg>
-                                    <div class="text-lg font-medium">No products found</div>
-                                    <div class="text-sm">Click "Sync From Supplier" to load products</div>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <flux:card>
+        <flux:table>
+            <flux:columns>
+                <flux:column>Code</flux:column>
+                <flux:column>Product Name</flux:column>
+                <flux:column>Category</flux:column>
+                <flux:column>Brand</flux:column>
+                <flux:column>Buyer Price</flux:column>
+                <flux:column>Status</flux:column>
+                <flux:column>Last Sync</flux:column>
+            </flux:columns>
+            <flux:rows>
+                @forelse($supplierProducts as $product)
+                    <flux:row>
+                        <flux:cell>
+                            <flux:badge color="zinc" size="sm">{{ $product->code }}</flux:badge>
+                        </flux:cell>
+                        <flux:cell>
+                            <div class="font-medium">{{ $product->product_name }}</div>
+                            <div class="text-xs text-zinc-500">{{ $product->supplier->name }}</div>
+                        </flux:cell>
+                        <flux:cell>
+                            <flux:badge variant="outline" size="sm">{{ $product->category }}</flux:badge>
+                        </flux:cell>
+                        <flux:cell>{{ $product->brand }}</flux:cell>
+                        <flux:cell>
+                            <span class="font-semibold text-blue-600 dark:text-blue-400">
+                                Rp {{ number_format($product->buyer_price, 0, ',', '.') }}
+                            </span>
+                        </flux:cell>
+                        <flux:cell>
+                            @if ($product->status === 'active')
+                                <flux:badge color="success" size="sm">Active</flux:badge>
+                            @else
+                                <flux:badge color="danger" size="sm">Inactive</flux:badge>
+                            @endif
+                        </flux:cell>
+                        <flux:cell>
+                            <span class="text-xs text-zinc-500">
+                                {{ $product->last_sync_at?->diffForHumans() ?? '-' }}
+                            </span>
+                        </flux:cell>
+                    </flux:row>
+                @empty
+                    <flux:row>
+                        <flux:cell colspan="7" class="text-center py-8">
+                            <div class="flex flex-col items-center gap-2 text-zinc-400">
+                                <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                </svg>
+                                <div class="text-lg font-medium">No products found</div>
+                                <div class="text-sm">Click "Sync Products" to load products</div>
+                            </div>
+                        </flux:cell>
+                    </flux:row>
+                @endforelse
+            </flux:rows>
+        </flux:table>
+    </flux:card>
 
     @if ($supplierProducts->hasPages())
         <div class="mt-6">

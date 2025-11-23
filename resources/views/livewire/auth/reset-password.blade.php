@@ -1,63 +1,38 @@
-<x-layouts.auth>
-    <h2 class="text-2xl font-bold text-center mb-2">{{ __('Reset password') }}</h2>
-    <p class="text-center text-sm opacity-70 mb-6">{{ __('Please enter your new password below') }}</p>
+<x-layouts.auth title="Reset Password">
+    <div class="text-center mb-6">
+        <p class="text-sm text-zinc-600 dark:text-zinc-400">Please enter your new password below</p>
+    </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="text-center mb-4" :status="session('status')" />
+    @if (session('status'))
+        <flux:banner variant="success" class="mb-6">
+            {{ session('status') }}
+        </flux:banner>
+    @endif
 
-    <form method="POST" action="{{ route('password.update') }}" class="space-y-4">
+    <form method="POST" action="{{ route('password.update') }}" class="space-y-6">
         @csrf
-        <!-- Token -->
         <input type="hidden" name="token" value="{{ request()->route('token') }}">
 
-        <!-- Email Address -->
-        <div class="form-control">
-            <label class="label">
-                <span class="label-text">{{ __('Email') }}</span>
-            </label>
-            <input type="email" name="email" value="{{ request('email') }}"
-                   class="input input-bordered w-full @error('email') input-error @enderror"
-                   required autocomplete="email" readonly />
-            @error('email')
-                <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
-                </label>
-            @enderror
-        </div>
+        <flux:field>
+            <flux:label>Email</flux:label>
+            <flux:input type="email" name="email" value="{{ request('email') }}" required autocomplete="email" readonly />
+            <flux:error name="email" />
+        </flux:field>
 
-        <!-- Password -->
-        <div class="form-control">
-            <label class="label">
-                <span class="label-text">{{ __('Password') }}</span>
-            </label>
-            <input type="password" name="password" placeholder="{{ __('Password') }}"
-                   class="input input-bordered w-full @error('password') input-error @enderror"
-                   required autocomplete="new-password" />
-            @error('password')
-                <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
-                </label>
-            @enderror
-        </div>
+        <flux:field>
+            <flux:label>Password</flux:label>
+            <flux:input type="password" name="password" placeholder="••••••••" required autocomplete="new-password" />
+            <flux:error name="password" />
+        </flux:field>
 
-        <!-- Confirm Password -->
-        <div class="form-control">
-            <label class="label">
-                <span class="label-text">{{ __('Confirm password') }}</span>
-            </label>
-            <input type="password" name="password_confirmation" placeholder="{{ __('Confirm password') }}"
-                   class="input input-bordered w-full @error('password_confirmation') input-error @enderror"
-                   required autocomplete="new-password" />
-            @error('password_confirmation')
-                <label class="label">
-                    <span class="label-text-alt text-error">{{ $message }}</span>
-                </label>
-            @enderror
-        </div>
+        <flux:field>
+            <flux:label>Confirm Password</flux:label>
+            <flux:input type="password" name="password_confirmation" placeholder="••••••••" required autocomplete="new-password" />
+            <flux:error name="password_confirmation" />
+        </flux:field>
 
-        <button type="submit" class="btn btn-primary w-full" data-test="reset-password-button">
-            {{ __('Reset password') }}
-        </button>
+        <flux:button type="submit" variant="primary" class="w-full" data-test="reset-password-button">
+            Reset Password
+        </flux:button>
     </form>
-    </div>
 </x-layouts.auth>

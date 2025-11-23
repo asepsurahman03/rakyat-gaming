@@ -1,28 +1,26 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="dark">
-    <head>
-        @include('partials.head')
-    </head>
-    <body class="min-h-screen">
-        <div class="hero min-h-screen bg-base-200">
-            <div class="hero-content flex-col">
-                <div class="text-center mb-6">
-                    <a href="{{ route('home') }}" class="inline-flex flex-col items-center gap-2" wire:navigate>
-                        <div class="avatar placeholder">
-                            <div class="bg-neutral text-neutral-content rounded-lg w-16">
-                                {{-- <x-app-logo-icon class="w-10 h-10" /> --}}
-                            </div>
-                        </div>
-                        <h1 class="text-2xl font-bold">{{ config('app.name', 'Laravel') }}</h1>
-                    </a>
-                </div>
-                <div class="card w-full max-w-sm shadow-2xl bg-base-100">
-                    <div class="card-body">
-                        {{ $slot }}
-                    </div>
-                </div>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    @include('partials.head')
+</head>
+<body class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div class="flex min-h-screen flex-col justify-center items-center px-6 py-12">
+        <div class="w-full max-w-md space-y-8">
+            <div class="text-center">
+                <a href="/" wire:navigate class="inline-block">
+                    <img src="{{ asset('images/logo-rkgame-animation.gif') }}" alt="logo" class="h-20 w-auto mx-auto">
+                </a>
+                <h2 class="mt-6 text-3xl font-bold text-zinc-900 dark:text-zinc-100">{{ $title ?? config('app.name', 'Laravel') }}</h2>
             </div>
+
+            <flux:card class="p-8">
+                {{ $slot }}
+            </flux:card>
         </div>
-        @livewireScripts
-    </body>
+    </div>
+
+    @persist('toast')
+        <flux:toast />
+    @endpersist
+</body>
 </html>

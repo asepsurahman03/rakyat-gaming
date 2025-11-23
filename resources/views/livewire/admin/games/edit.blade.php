@@ -3,20 +3,12 @@
 use App\Models\Game;
 use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
+use Livewire\Attributes\{Layout, Title};
 use function Livewire\Volt\{state, mount, rules, uses};
 
 uses([WithFileUploads::class]);
 
-state([
-    'game',
-    'name' => '',
-    'slug' => '',
-    'provider' => '',
-    'description' => '',
-    'image' => null,
-    'is_active' => true,
-    'existingImage' => null,
-]);
+state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'is_active' => true, 'existingImage' => null, 'fieldForms' => []]);
 
 mount(function (Game $game) {
     $this->game = $game;
@@ -26,19 +18,52 @@ mount(function (Game $game) {
     $this->description = $game->description;
     $this->is_active = $game->is_active;
     $this->existingImage = $game->image;
+
+    // Load existing field forms
+    $this->fieldForms = $game->fieldForms
+        ->map(function ($fieldForm) {
+            return [
+                'id' => $fieldForm->id,
+                'label' => $fieldForm->label,
+                'name' => $fieldForm->name,
+                'type' => $fieldForm->type,
+                'is_required' => $fieldForm->is_required,
+            ];
+        })
+        ->toArray();
 });
 
-rules(fn () => [
-    'name' => 'required|string|max:255',
-    'slug' => 'required|string|max:255|unique:games,slug,' . $this->game->id,
-    'provider' => 'required|string|max:255',
-    'description' => 'nullable|string',
-    'image' => 'nullable|image|max:2048',
-    'is_active' => 'boolean',
-]);
+rules(
+    fn() => [
+        'name' => 'required|string|max:255',
+        'slug' => 'required|string|max:255|unique:games,slug,' . $this->game->id,
+        'provider' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'image' => 'nullable|image|max:2048',
+        'is_active' => 'boolean',
+        'fieldForms.*.label' => 'required|string|max:255',
+        'fieldForms.*.name' => 'required|string|max:255',
+        'fieldForms.*.type' => 'required|in:text,number,email,tel,textarea',
+        'fieldForms.*.is_required' => 'boolean',
+    ],
+);
 
 $generateSlug = function () {
     $this->slug = Str::slug($this->name);
+};
+
+$addFieldForm = function () {
+    $this->fieldForms[] = [
+        'label' => '',
+        'name' => '',
+        'type' => 'text',
+        'is_required' => true,
+    ];
+};
+
+$removeFieldForm = function ($index) {
+    unset($this->fieldForms[$index]);
+    $this->fieldForms = array_values($this->fieldForms);
 };
 
 $save = function () {
@@ -56,144 +81,212 @@ $save = function () {
 
     $this->game->update($validated);
 
+    // Sync field forms
+    $existingIds = collect($this->fieldForms)->pluck('id')->filter();
+    $this->game->fieldForms()->whereNotIn('id', $existingIds)->delete();
+
+    foreach ($this->fieldForms as $fieldForm) {
+        if (isset($fieldForm['id'])) {
+            $this->game
+                ->fieldForms()
+                ->where('id', $fieldForm['id'])
+                ->update([
+                    'label' => $fieldForm['label'],
+                    'name' => $fieldForm['name'],
+                    'type' => $fieldForm['type'],
+                    'is_required' => $fieldForm['is_required'],
+                ]);
+        } else {
+            $this->game->fieldForms()->create($fieldForm);
+        }
+    }
+
     $this->redirect(route('admin.games.index'), navigate: true);
     session()->flash('success', 'Game berhasil diperbarui');
 };
 
 ?>
 
-<div>
-    <div class="flex items-center gap-4 mb-6">
-        <a href="{{ route('admin.games.index') }}" wire:navigate class="btn btn-ghost btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
+<div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost" size="sm" icon="arrow-left">
             Kembali
-        </a>
+        </flux:button>
         <div>
-            <h1 class="text-2xl font-bold">Edit Game</h1>
-            <p class="text-base-content/60">Edit informasi game</p>
+            <flux:heading size="xl">Edit Game</flux:heading>
+            <flux:subheading>Edit informasi game</flux:subheading>
         </div>
     </div>
 
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <form wire:submit="save">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Name -->
-                    <div class="form-control md:col-span-2">
-                        <label class="label">
-                            <span class="label-text font-semibold">Nama Game <span class="text-error">*</span></span>
-                        </label>
-                        <input
-                            type="text"
-                            wire:model.live="name"
-                            wire:change="generateSlug"
-                            class="input input-bordered @error('name') input-error @enderror"
-                            placeholder="e.g., Mobile Legends"
-                        >
-                        @error('name') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                    </div>
+    <flux:card>
+        <form wire:submit="save" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Name -->
+                <div class="md:col-span-2">
+                    <flux:field>
+                        <flux:label>Nama Game <span class="text-red-600">*</span></flux:label>
+                        <flux:input wire:model.live="name" wire:change="generateSlug"
+                            placeholder="e.g., Mobile Legends" />
+                        <flux:error name="name" />
+                    </flux:field>
+                </div>
 
-                    <!-- Slug -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Slug <span class="text-error">*</span></span>
-                        </label>
-                        <input
-                            type="text"
-                            wire:model="slug"
-                            class="input input-bordered @error('slug') input-error @enderror"
-                            placeholder="mobile-legends"
-                        >
-                        @error('slug') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                        <label class="label">
-                            <span class="label-text-alt">URL: /game/{{ $slug ?: 'slug-here' }}</span>
-                        </label>
-                    </div>
+                <!-- Slug -->
+                <div>
+                    <flux:field>
+                        <flux:label>Slug <span class="text-red-600">*</span></flux:label>
+                        <flux:input wire:model="slug" placeholder="mobile-legends" />
+                        <flux:error name="slug" />
+                        <flux:description>URL: /game/{{ $slug ?: 'slug-here' }}</flux:description>
+                    </flux:field>
+                </div>
 
-                    <!-- Provider -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Provider <span class="text-error">*</span></span>
-                        </label>
-                        <input
-                            type="text"
-                            wire:model="provider"
-                            class="input input-bordered @error('provider') input-error @enderror"
-                            placeholder="e.g., Moonton"
-                        >
-                        @error('provider') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                    </div>
+                <!-- Provider -->
+                <div>
+                    <flux:field>
+                        <flux:label>Provider <span class="text-red-600">*</span></flux:label>
+                        <flux:input wire:model="provider" placeholder="e.g., Moonton" />
+                        <flux:error name="provider" />
+                    </flux:field>
+                </div>
 
-                    <!-- Description -->
-                    <div class="form-control md:col-span-2">
-                        <label class="label">
-                            <span class="label-text font-semibold">Deskripsi</span>
-                        </label>
-                        <textarea
-                            wire:model="description"
-                            class="textarea textarea-bordered @error('description') textarea-error @enderror"
-                            rows="3"
-                            placeholder="Deskripsi singkat tentang game..."
-                        ></textarea>
-                        @error('description') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                    </div>
+                <!-- Description -->
+                <div class="md:col-span-2">
+                    <flux:field>
+                        <flux:label>Deskripsi</flux:label>
+                        <flux:textarea wire:model="description" placeholder="Deskripsi singkat tentang game..."
+                            rows="3" />
+                        <flux:error name="description" />
+                    </flux:field>
+                </div>
 
-                    <!-- Image -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Gambar</span>
-                        </label>
+                <!-- Image -->
+                <div>
+                    <flux:field>
+                        <flux:label>Gambar</flux:label>
 
                         @if ($existingImage && !$image)
                             <div class="mb-2">
-                                <img src="{{ Storage::url($existingImage) }}" class="w-32 h-32 object-cover rounded-lg" alt="Current image">
-                                <p class="text-xs text-base-content/60 mt-1">Gambar saat ini</p>
+                                <img src="{{ Storage::url($existingImage) }}" class="w-32 h-32 object-cover rounded-lg"
+                                    alt="Current image">
+                                <flux:description>Gambar saat ini</flux:description>
                             </div>
                         @endif
 
-                        <input
-                            type="file"
-                            wire:model="image"
-                            accept="image/*"
-                            class="file-input file-input-bordered @error('image') file-input-error @enderror"
-                        >
-                        @error('image') <span class="text-error text-sm mt-1">{{ $message }}</span> @enderror
-                        <label class="label">
-                            <span class="label-text-alt">Max 2MB, format: JPG, PNG. Kosongkan jika tidak ingin mengubah.</span>
-                        </label>
+                        <input type="file" wire:model="image" accept="image/*"
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
+                        <flux:error name="image" />
+                        <flux:description>Max 2MB, format: JPG, PNG. Kosongkan jika tidak ingin mengubah.
+                        </flux:description>
+                    </flux:field>
 
-                        @if ($image)
-                            <div class="mt-2">
-                                <img src="{{ $image->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
-                                <p class="text-xs text-base-content/60 mt-1">Preview gambar baru</p>
+                    @if ($image)
+                        <div class="mt-2">
+                            <div wire:loading wire:target="image"
+                                class="h-32 flex items-center justify-center border border-dashed rounded-lg">
+                                <flux:icon.arrow-path class="w-6 h-6 animate-spin" />
                             </div>
-                        @endif
-                    </div>
-
-                    <!-- Active Status -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Status</span>
-                        </label>
-                        <label class="label cursor-pointer justify-start gap-4">
-                            <input type="checkbox" wire:model="is_active" class="toggle toggle-success" />
-                            <span class="label-text">{{ $is_active ? 'Aktif' : 'Nonaktif' }}</span>
-                        </label>
-                    </div>
+                            <div wire:loading.remove wire:target="image">
+                                <img src="{{ $image->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg"
+                                    alt="Preview">
+                                <flux:description>Preview gambar baru</flux:description>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
-                <div class="divider"></div>
-
-                <div class="flex gap-2 justify-end">
-                    <a href="{{ route('admin.games.index') }}" wire:navigate class="btn btn-ghost">Batal</a>
-                    <button type="submit" class="btn btn-primary">
-                        <span wire:loading.remove>Simpan Perubahan</span>
-                        <span wire:loading class="loading loading-spinner"></span>
-                    </button>
+                <!-- Active Status -->
+                <div>
+                    <flux:field>
+                        <div class="flex items-center gap-3">
+                            <flux:switch wire:model="is_active" />
+                            <flux:label>{{ $is_active ? 'Aktif' : 'Nonaktif' }}</flux:label>
+                        </div>
+                    </flux:field>
                 </div>
-            </form>
-        </div>
-    </div>
+            </div>
+
+            <flux:separator />
+
+            <!-- Field Forms Section -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <flux:heading size="lg">Form Input Game</flux:heading>
+                        <flux:subheading>Tambahkan field input yang diperlukan untuk pembelian produk game ini
+                        </flux:subheading>
+                    </div>
+                    <flux:button type="button" wire:click="addFieldForm" size="sm" icon="plus">
+                        Tambah Field
+                    </flux:button>
+                </div>
+
+                @if (count($fieldForms) > 0)
+                    <div class="space-y-4">
+                        @foreach ($fieldForms as $index => $fieldForm)
+                            <flux:card class="bg-zinc-50 dark:bg-zinc-900">
+                                <div class="flex items-center justify-between mb-3">
+                                    <flux:heading size="sm">Field #{{ $index + 1 }}</flux:heading>
+                                    <flux:button type="button" wire:click="removeFieldForm({{ $index }})"
+                                        variant="ghost" size="xs" icon="trash" class="text-red-600" />
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <flux:field>
+                                        <flux:label>Label <span class="text-red-600">*</span></flux:label>
+                                        <flux:input wire:model="fieldForms.{{ $index }}.label"
+                                            placeholder="e.g., User ID" size="sm" />
+                                        <flux:error name="fieldForms.{{ $index }}.label" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>Name (Field ID) <span class="text-red-600">*</span></flux:label>
+                                        <flux:input wire:model="fieldForms.{{ $index }}.name"
+                                            placeholder="e.g., user_id" size="sm" />
+                                        <flux:error name="fieldForms.{{ $index }}.name" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>Tipe Input <span class="text-red-600">*</span></flux:label>
+                                        <flux:select wire:model="fieldForms.{{ $index }}.type" size="sm">
+                                            <option value="text">Text</option>
+                                            <option value="number">Number</option>
+                                            <option value="email">Email</option>
+                                            <option value="tel">Phone</option>
+                                            <option value="textarea">Textarea</option>
+                                        </flux:select>
+                                        <flux:error name="fieldForms.{{ $index }}.type" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>Wajib Diisi?</flux:label>
+                                        <div class="flex items-center gap-3">
+                                            <flux:checkbox wire:model="fieldForms.{{ $index }}.is_required" />
+                                            <span
+                                                class="text-sm">{{ $fieldForm['is_required'] ? 'Ya' : 'Tidak' }}</span>
+                                        </div>
+                                    </flux:field>
+                                </div>
+                            </flux:card>
+                        @endforeach
+                    </div>
+                @else
+                    <flux:callout.heading variant="info" icon="information-circle">
+                        <flux:callout.heading class="flex gap-2 @max-md:flex-col items-start">
+                            Belum ada field form. Klik "Tambah Field" untuk menambahkan field input.
+                        </flux:callout.heading>
+                        </flux:callout>
+                @endif
+            </div>
+
+            <flux:separator />
+
+            <div class="flex gap-2 justify-end">
+                <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost">Batal</flux:button>
+                <flux:button type="submit" variant="primary">
+                    <span wire:loading.remove>Simpan Perubahan</span>
+                    <flux:icon.arrow-path wire:loading class="animate-spin" />
+                </flux:button>
+            </div>
+        </form>
+    </flux:card>
 </div>
