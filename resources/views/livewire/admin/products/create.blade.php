@@ -61,13 +61,7 @@ $save = function () {
     Product::create($validated);
 
     $this->redirect(route('admin.products.index'), navigate: true);
-    Flux::toast(
-        heading: 'Produk berhasil ditambahkan!',
-        text: 'Produk baru telah disimpan ke sistem.',
-        variant: 'success',
-        duration: 3000,
-        position: 'top-right',
-    );
+    Flux::toast(heading: 'Produk berhasil ditambahkan!', text: 'Produk baru telah disimpan ke sistem.', variant: 'success', duration: 3000, position: 'top-right');
 };
 
 ?>
@@ -132,18 +126,19 @@ $save = function () {
                     </flux:field>
                 </div>
 
-                <!-- Margin (if auto price) -->
                 @if ($is_auto_price)
-                    <flux:field>
-                        <flux:label>Margin <span class="text-red-600">*</span></flux:label>
-                        <flux:input type="number" wire:model.live="margin" wire:change="updateSellingPrice"
-                            placeholder="1000" step="100" />
-                        <flux:error name="margin" />
-                    </flux:field>
+                    <div class="self-start">
+                        <flux:field>
+                            <flux:label>Margin <span class="text-red-600">*</span></flux:label>
+                            <flux:input type="number" wire:model.live="margin" wire:change="updateSellingPrice"
+                                placeholder="1000" step="100" />
+                            <flux:error name="margin" />
+                        </flux:field>
+                    </div>
                 @endif
 
                 <!-- Selling Price -->
-                <div class="{{ $is_auto_price ? '' : 'md:col-span-2' }}">
+                <div class="{{ $is_auto_price ? 'self-start' : 'md:col-span-2 self-start' }}">
                     <flux:field>
                         <flux:label>Harga Jual <span class="text-red-600">*</span></flux:label>
                         <flux:input type="number" wire:model="selling_price" placeholder="10000" step="100"
@@ -154,6 +149,7 @@ $save = function () {
                         @endif
                     </flux:field>
                 </div>
+                <!-- Margin (if auto price) -->
 
                 <!-- Description -->
                 <div class="md:col-span-2">

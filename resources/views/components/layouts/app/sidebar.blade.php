@@ -43,9 +43,15 @@
                 </div>
             </flux:navlist.item>
 
+            <flux:navlist.item href="{{ route('admin.posts.index') }}" wire:navigate :current="request()->routeIs('posts.*')">
+                <div class="text-yellow-400  flex items-center gap-2">
+                    <flux:icon.document-text size="xs" /> <span>Artikel</span>
+                </div>
+            </flux:navlist.item>
+
             <flux:navlist.item href="{{ route('admin.supplier-products.index') }}" wire:navigate :current="request()->routeIs('admin.supplier-products.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
-                    <flux:icon.inbox-stack size="xs" /> <span>{{ __('messages.supplier_products') }}</span>
+                    <flux:icon.inbox-stack size="xs" /><span>{{ __('messages.supplier_products') }}</span>
                 </div>
             </flux:navlist.item>
 

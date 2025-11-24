@@ -96,39 +96,39 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
     <!-- Orders Table -->
     <flux:card>
         <flux:table>
-            <flux:columns>
-                <flux:column>Order Code</flux:column>
-                <flux:column>Tanggal</flux:column>
-                <flux:column>Customer</flux:column>
-                <flux:column>Game / Produk</flux:column>
-                <flux:column>Harga</flux:column>
-                <flux:column>Status</flux:column>
-                <flux:column>Aksi</flux:column>
-            </flux:columns>
-            <flux:rows>
+            <flux:table.columns>
+                <flux:table.column>Order Code</flux:table.column>
+                <flux:table.column>Tanggal</flux:table.column>
+                <flux:table.column>Customer</flux:table.column>
+                <flux:table.column>Game / Produk</flux:table.column>
+                <flux:table.column>Harga</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column>Aksi</flux:table.column>
+            </flux:table.columns>
+            <flux:table.rows>
                 @forelse($orders as $order)
-                    <flux:row>
-                        <flux:cell>
+                    <flux:table.row>
+                        <flux:table.cell>
                             <div class="font-mono text-sm font-semibold">{{ $order->order_code }}</div>
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <div class="text-sm">{{ $order->created_at->format('d M Y') }}</div>
                             <div class="text-xs text-zinc-500">{{ $order->created_at->format('H:i') }}</div>
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             @if ($order->user)
                                 <div class="text-sm font-semibold">{{ $order->user->name }}</div>
                                 <div class="text-xs text-zinc-500">{{ $order->user->email }}</div>
                             @else
                                 <span class="text-zinc-400">Guest</span>
                             @endif
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <div class="text-sm font-semibold">{{ $order->game->name ?? '-' }}</div>
                             <div class="text-xs text-zinc-500">{{ $order->product->name ?? '-' }}</div>
-                        </flux:cell>
-                        <flux:cell class="font-semibold">Rp {{ number_format($order->price, 0, ',', '.') }}</flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell class="font-semibold">Rp {{ number_format($order->price, 0, ',', '.') }}</flux:table.cell>
+                        <flux:table.cell>
                             <flux:badge :color="$this->getStatusBadge($order->status)" size="sm">
                                 {{ ucfirst($order->status) }}
                             </flux:badge>
@@ -137,14 +137,14 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
                                     {{ ucfirst($order->orderPayment->status) }}
                                 </div>
                             @endif
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <flux:button href="{{ route('admin.orders.show', $order) }}" wire:navigate variant="ghost" size="sm" icon="eye" />
-                        </flux:cell>
-                    </flux:row>
+                        </flux:table.cell>
+                    </flux:table.row>
                 @empty
-                    <flux:row>
-                        <flux:cell colspan="7" class="text-center py-8">
+                    <flux:table.row>
+                        <flux:table.cell colspan="7" class="text-center py-8">
                             <div class="flex flex-col items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-zinc-400">
@@ -153,10 +153,10 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
                                 </svg>
                                 <span class="text-zinc-500">Belum ada pesanan</span>
                             </div>
-                        </flux:cell>
-                    </flux:row>
+                        </flux:table.cell>
+                    </flux:table.row>
                 @endforelse
-            </flux:rows>
+            </flux:table.rows>
         </flux:table>
     </flux:card>
 

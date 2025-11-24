@@ -22,7 +22,7 @@ new class extends Component {
     }
 }; ?>
 
-<footer class="footer bg-black text-base-content p-10">
+<footer class="footer bg-black text-gray-300 p-10">
     <div class="max-w-7xl mx-auto w-full">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full">
             <!-- Brand Section -->

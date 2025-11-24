@@ -74,15 +74,21 @@ new #[Layout('components.layouts.app'), Title('Supplier Products')] class extend
 
         if ($result['success']) {
             $service->applyAutoPricing();
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Berhasil sync ' . $result['count'] . ' produk dari supplier',
-            ]);
+            Flux::toast(
+                heading: 'Berhasil sync ' . $result['count'] . ' produk dari supplier',
+                text: 'Produk telah diperbarui dari supplier.',
+                variant: 'success',
+                duration: 3000,
+                position: 'top-right',
+            );
         } else {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Gagal sync produk: ' . ($result['body']['message'] ?? 'Unknown error'),
-            ]);
+            Flux::toast(
+                heading: 'Gagal sync produk',
+                text: 'Error: ' . ($result['body']['message'] ?? 'Unknown error'),
+                variant: 'error',
+                duration: 3000,
+                position: 'top-right',
+            );
         }
     }
 }; ?>
@@ -175,50 +181,50 @@ new #[Layout('components.layouts.app'), Title('Supplier Products')] class extend
     <!-- Products Table -->
     <flux:card>
         <flux:table>
-            <flux:columns>
-                <flux:column>Code</flux:column>
-                <flux:column>Product Name</flux:column>
-                <flux:column>Category</flux:column>
-                <flux:column>Brand</flux:column>
-                <flux:column>Buyer Price</flux:column>
-                <flux:column>Status</flux:column>
-                <flux:column>Last Sync</flux:column>
-            </flux:columns>
-            <flux:rows>
+            <flux:table.columns>
+                <flux:table.column>Code</flux:table.column>
+                <flux:table.column>Product Name</flux:table.column>
+                <flux:table.column>Category</flux:table.column>
+                <flux:table.column>Brand</flux:table.column>
+                <flux:table.column>Buyer Price</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column>Last Sync</flux:table.column>
+            </flux:table.columns>
+            <flux:table.rows>
                 @forelse($supplierProducts as $product)
-                    <flux:row>
-                        <flux:cell>
+                    <flux:table.row>
+                        <flux:table.cell>
                             <flux:badge color="zinc" size="sm">{{ $product->code }}</flux:badge>
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <div class="font-medium">{{ $product->product_name }}</div>
                             <div class="text-xs text-zinc-500">{{ $product->supplier->name }}</div>
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <flux:badge variant="outline" size="sm">{{ $product->category }}</flux:badge>
-                        </flux:cell>
-                        <flux:cell>{{ $product->brand }}</flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>{{ $product->brand }}</flux:table.cell>
+                        <flux:table.cell>
                             <span class="font-semibold text-blue-600 dark:text-blue-400">
                                 Rp {{ number_format($product->buyer_price, 0, ',', '.') }}
                             </span>
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             @if ($product->status === 'active')
                                 <flux:badge color="success" size="sm">Active</flux:badge>
                             @else
                                 <flux:badge color="danger" size="sm">Inactive</flux:badge>
                             @endif
-                        </flux:cell>
-                        <flux:cell>
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <span class="text-xs text-zinc-500">
                                 {{ $product->last_sync_at?->diffForHumans() ?? '-' }}
                             </span>
-                        </flux:cell>
-                    </flux:row>
+                        </flux:table.cell>
+                    </flux:table.row>
                 @empty
-                    <flux:row>
-                        <flux:cell colspan="7" class="text-center py-8">
+                    <flux:table.row>
+                        <flux:table.cell colspan="7" class="text-center py-8">
                             <div class="flex flex-col items-center gap-2 text-zinc-400">
                                 <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -227,10 +233,10 @@ new #[Layout('components.layouts.app'), Title('Supplier Products')] class extend
                                 <div class="text-lg font-medium">No products found</div>
                                 <div class="text-sm">Click "Sync Products" to load products</div>
                             </div>
-                        </flux:cell>
-                    </flux:row>
+                        </flux:table.cell>
+                    </flux:table.row>
                 @endforelse
-            </flux:rows>
+            </flux:table.rows>
         </flux:table>
     </flux:card>
 

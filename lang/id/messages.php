@@ -12,6 +12,9 @@ return [
 
     // Guest Navigation
     'check_transaction' => 'Cek Transaksi',
+    'leaderboard' => 'Papan Peringkat',
+    'artikel' => 'Artikel',
+    'calculator' => 'Kalkulator',
     'search_orders' => 'Cari pesanan',
 
     // Auth

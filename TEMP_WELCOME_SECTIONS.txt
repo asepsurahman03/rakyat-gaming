@@ -1,0 +1,226 @@
+    <!-- 1. CAROUSEL - Keep as is (JANGAN DIUBAH) -->
+
+    <!-- 2. GAME POPULER SAAT INI (Top 8 Berdasarkan Penjualan Terbanyak) -->
+    <div class="bg-gradient-to-br from-black to-red-500 py-12">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <flux:heading size="xl" class="mb-2 text-white">🔥 Game Populer Saat Ini</flux:heading>
+            <flux:text class="text-white/90 mb-6">Berdasarkan penjualan terbanyak - Game favorit para gamers!</flux:text>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                @forelse($popularGames as $game)
+                    <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group">
+                        <flux:card class="hover:shadow-xl transition-all duration-300 cursor-pointer bg-white dark:bg-zinc-900">
+                            <div class="relative aspect-square overflow-hidden rounded-t-lg">
+                                @if ($game->image)
+                                    <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
+                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                                        <x-icon name="puzzle-piece" class="w-16 h-16 text-white opacity-50" />
+                                    </div>
+                                @endif
+                                @if ($game->products_count > 0)
+                                    <div class="absolute top-2 right-2">
+                                        <flux:badge size="sm" color="indigo">{{ $game->products_count }} Produk</flux:badge>
+                                    </div>
+                                @endif
+                                @if ($game->orders_count > 0)
+                                    <div class="absolute top-2 left-2">
+                                        <flux:badge size="sm" color="green">{{ $game->orders_count }}x Terjual</flux:badge>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="p-3">
+                                <flux:heading size="sm" class="line-clamp-1">{{ $game->name }}</flux:heading>
+                                <flux:subheading size="sm" class="line-clamp-1 mt-1">
+                                    {{ $game->provider ?? 'Top Up Game' }}
+                                </flux:subheading>
+                                <div class="flex justify-between items-center mt-3">
+                                    <flux:badge size="sm" color="green">Tersedia</flux:badge>
+                                    <flux:button size="xs" variant="primary">Beli Sekarang</flux:button>
+                                </div>
+                            </div>
+                        </flux:card>
+                    </a>
+                @empty
+                    <div class="col-span-full text-center py-12">
+                        <x-icon name="puzzle-piece" class="w-16 h-16 text-white/30 mx-auto mb-4" />
+                        <flux:heading size="md" class="text-white mb-2">Belum Ada Game Populer</flux:heading>
+                        <flux:subheading class="text-white/80">Game akan segera ditambahkan</flux:subheading>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SEMUA GAME (Dengan Horizontal Scroll Filter) -->
+    <div class="bg-white dark:bg-zinc-900 py-12">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <flux:heading size="xl" class="mb-2">📱 Semua Game</flux:heading>
+            <flux:text class="text-zinc-600 dark:text-zinc-400 mb-6">Pilih game favoritmu dan mulai top up sekarang!</flux:text>
+
+            <!-- Horizontal Scrollable Filter -->
+            <div class="mb-8 relative" x-data="{ filterGameId: @entangle('filterGameId') }">
+                <div class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide" style="scroll-behavior: smooth;">
+                    <button
+                        @click="filterGameId = ''"
+                        :class="filterGameId === '' ? 'bg-indigo-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700'"
+                        class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition flex-shrink-0">
+                        Semua Game
+                    </button>
+                    @foreach($allGames as $game)
+                        <button
+                            @click="filterGameId = '{{ $game->id }}'"
+                            :class="filterGameId === '{{ $game->id }}' ? 'bg-indigo-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700'"
+                            class="px-4 py-2 rounded-lg font-medium whitespace-nowrap transition flex-shrink-0">
+                            {{ $game->name }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                @php
+                    $filteredGames = $filterGameId
+                        ? $allGames->where('id', $filterGameId)
+                        : $allGames;
+                @endphp
+
+                @forelse($filteredGames as $game)
+                    <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group">
+                        <flux:card class="hover:shadow-xl transition-all duration-300 cursor-pointer">
+                            <div class="relative aspect-square overflow-hidden rounded-t-lg">
+                                @if ($game->image)
+                                    <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
+                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                @else
+                                    <div class="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                                        <x-icon name="puzzle-piece" class="w-12 h-12 text-white opacity-50" />
+                                    </div>
+                                @endif
+                                @if ($game->products_count > 0)
+                                    <div class="absolute top-2 right-2">
+                                        <flux:badge size="sm" color="zinc">{{ $game->products_count }} Item</flux:badge>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="p-3">
+                                <flux:heading size="sm" class="line-clamp-1 mb-1">{{ $game->name }}</flux:heading>
+                                <flux:subheading size="sm" class="line-clamp-2 mb-2">
+                                    {{ $game->description ?? 'Top up cepat & mudah' }}
+                                </flux:subheading>
+                                <flux:button size="xs" variant="primary" class="w-full">Lihat Produk</flux:button>
+                            </div>
+                        </flux:card>
+                    </a>
+                @empty
+                    <div class="col-span-full text-center py-12">
+                        <x-icon name="puzzle-piece" class="w-16 h-16 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
+                        <flux:heading size="md" class="mb-2">Game Tidak Ditemukan</flux:heading>
+                        <flux:subheading class="text-zinc-500">Coba filter game lain</flux:subheading>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
+    @if(count($latestPosts) > 0)
+        <div class="bg-gradient-to-br from-indigo-600 to-purple-600 py-12">
+            <div class="container mx-auto px-4 max-w-7xl">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <flux:heading size="xl" class="text-white mb-2">📰 Artikel Terbaru</flux:heading>
+                        <flux:text class="text-white/90">Tips, trik, dan berita seputar game</flux:text>
+                    </div>
+                    <flux:button href="{{ route('posts.index') }}" wire:navigate variant="ghost" class="text-white hover:bg-white/10">
+                        Lihat Semua →
+                    </flux:button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    @foreach($latestPosts as $post)
+                        <a href="{{ route('posts.show', $post->slug) }}" wire:navigate class="group">
+                            <flux:card class="hover:shadow-2xl transition-all duration-300 h-full">
+                                @if ($post->featured_image)
+                                    <div class="aspect-video overflow-hidden rounded-t-lg">
+                                        <img src="{{ Storage::url($post->featured_image) }}"
+                                             alt="{{ $post->title }}"
+                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                    </div>
+                                @else
+                                    <div class="aspect-video bg-gradient-to-br from-zinc-700 to-zinc-900 rounded-t-lg flex items-center justify-center">
+                                        <x-icon name="document-text" class="w-16 h-16 text-white opacity-30" />
+                                    </div>
+                                @endif
+
+                                <div class="p-4">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <flux:badge size="sm" color="indigo">{{ $post->game->name }}</flux:badge>
+                                        <flux:badge size="sm" color="zinc">
+                                            <x-icon name="eye" class="w-3 h-3" />
+                                            {{ number_format($post->views) }}
+                                        </flux:badge>
+                                    </div>
+
+                                    <flux:heading size="sm" class="line-clamp-2 mb-2 group-hover:text-indigo-600 transition">
+                                        {{ $post->title }}
+                                    </flux:heading>
+
+                                    @if ($post->excerpt)
+                                        <flux:subheading size="sm" class="line-clamp-2 mb-3">
+                                            {{ $post->excerpt }}
+                                        </flux:subheading>
+                                    @endif
+
+                                    <div class="flex items-center justify-between text-xs text-zinc-500">
+                                        <span>{{ $post->author->name }}</span>
+                                        <span>{{ $post->published_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                            </flux:card>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Features Section -->
+    <div class="bg-zinc-50 dark:bg-zinc-800 py-12">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <flux:heading size="lg" class="mb-8 text-center">⭐ Kenapa Pilih Kami?</flux:heading>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="flex items-start gap-4">
+                    <div class="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-lg shrink-0">
+                        <x-icon name="bolt" class="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <div>
+                        <flux:heading size="sm" class="mb-1">Proses Cepat</flux:heading>
+                        <flux:subheading size="sm">Transaksi otomatis dalam hitungan detik</flux:subheading>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg shrink-0">
+                        <x-icon name="shield-check" class="w-8 h-8 text-green-600" />
+                    </div>
+                    <div>
+                        <flux:heading size="sm" class="mb-1">100% Aman</flux:heading>
+                        <flux:subheading size="sm">Data dan transaksi Anda terjamin aman</flux:subheading>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-lg shrink-0">
+                        <x-icon name="currency-dollar" class="w-8 h-8 text-amber-600" />
+                    </div>
+                    <div>
+                        <flux:heading size="sm" class="mb-1">Harga Terjangkau</flux:heading>
+                        <flux:subheading size="sm">Dapatkan harga terbaik untuk top up game</flux:subheading>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -12,6 +12,9 @@ return [
 
     // Guest Navigation
     'check_transaction' => 'Check Transaction',
+    'leaderboard' => 'Leaderboard',
+    'artikel' => 'Articles',
+    'calculator' => 'Calculator',
     'search_orders' => 'Search orders',
 
     // Auth

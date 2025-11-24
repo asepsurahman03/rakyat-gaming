@@ -43,4 +43,12 @@ class Game extends Model
     {
         return $this->hasMany(FieldForm::class);
     }
+
+    /**
+     * Get all posts for this game
+     */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
 }

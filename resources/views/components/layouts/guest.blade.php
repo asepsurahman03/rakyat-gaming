@@ -25,33 +25,103 @@
                     <img src="{{ asset('images/logo-rkgame-animation.gif') }}" alt="logo" class="h-16 w-auto">
                 </a>
                 <flux:input class="w-full" icon="magnifying-glass" placeholder="{{ __('messages.search_orders') }}" />
-                <select class="w-32 border-gray-50 rounded-lg px-2 py-2.5 bg-gray-50 focus:border-yellow-400" variant="listbox" onchange="window.location.href='/lang/'+this.value">
-                    <option value="id" {{ app()->getLocale() === 'id' ? 'selected' : '' }}><span></span> Ind</option>
+                <select class="w-32 border-gray-50 rounded-lg px-2 py-2.5 bg-gray-50 focus:border-yellow-400"
+                    variant="listbox" onchange="window.location.href='/lang/'+this.value">
+                    <option value="id" {{ app()->getLocale() === 'id' ? 'selected' : '' }}><span></span> Ind
+                    </option>
                     <option value="en" {{ app()->getLocale() === 'en' ? 'selected' : '' }}>Eng</option>
                 </select>
             </div>
-            <div class="flex gap-4 items-center">
+            <div class="flex gap-4 items-center justify-between py-3 text-xs">
+                <div class="flex gap-4 md:gap-6 items-center">
+                    <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->is('/') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="/" wire:navigate>
+                        <flux:icon.handbag size="xs" /> <span>{{ __('messages.home') }}</span>
+                    </a>
 
+                    <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('cek-transaksi') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="{{ route('cek-transaksi') }}" wire:navigate>
+                        <flux:icon.file-search size="xs" /> <span>{{ __('messages.check_transaction') }}</span>
+                    </a>
 
-                <a class="max-lg:hidden" href="/" wire:navigate>{{ __('messages.home') }}</a>
-                <a class="max-lg:hidden" href="{{ route('cek-transaksi') }}" wire:navigate>{{ __('messages.check_transaction') }}</a>
+                    <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('leaderboard') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="{{ route('leaderboard') }}" wire:navigate>
+                        <flux:icon.chart-no-axes-column size="xs" /> <span>{{ __('messages.leaderboard') }}</span>
+                    </a>
 
-                @if (Route::has('login'))
-                    @auth
-                        <flux:navbar.item icon="squares-2x2" href="{{ url('/dashboard') }}" wire:navigate>{{ __('messages.dashboard') }}
-                        </flux:navbar.item>
-                    @else
-                        <flux:navbar.item icon="arrow-right-end-on-rectangle" href="{{ route('login') }}" wire:navigate>
-                            {{ __('messages.login') }}</flux:navbar.item>
+                    <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('guest.posts.index') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="{{ route('guest.posts.index') }}" wire:navigate>
+                        <flux:icon.newspaper size="xs" /> <span>{{ __('messages.artikel') }}</span>
+                    </a>
 
-                        @if (Route::has('register'))
-                            <flux:button href="{{ route('register') }}" wire:navigate variant="primary">{{ __('messages.register') }}
-                            </flux:button>
-                        @endif
-                    @endauth
-                @endif
+                    <flux:dropdown>
+                        <button class="inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ (request()->routeIs('magicwhele') || request()->routeIs('winrate') || request()->routeIs('zodiak')) ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}">
+                            <div class="flex items-center">
+                                <flux:icon.calculator size="xs" />
+                                <span>{{ __('messages.calculator') }}</span>
+                            </div>
+                        </button>
+
+                        <flux:menu>
+                            <div>
+                                <div class="rounded-md group">
+                                    <a href="{{ route('magicwhele') }}" wire:navigate class="inline-flex items-start gap-1 p-2 w-full pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('magicwhele') ? 'text-yellow-600 border-yellow-600' : 'text-gray-700 hover:text-yellow-600 hover:border-yellow-600' }}">
+                                        <flux:icon.calculator size="xs" />
+                                        <div>
+                                            <h1 class="group-hover:text-yellow-600">Magic Whele</h1>
+                                            <flux:text class="text-xs">
+                                                Digunnakan untuk menghitung total maksimal diamond yang dibutukan untuk mendapatkan skin legends.
+                                            </flux:text>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="rounded-md group">
+                                    <a href="{{ route('winrate') }}" wire:navigate class="inline-flex items-start gap-1 p-2 w-full pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('winrate') ? 'text-yellow-600 border-yellow-600' : 'text-gray-700 hover:text-yellow-600 hover:border-yellow-600' }}">
+                                        <flux:icon.calculator size="xs" />
+                                        <div>
+                                            <h1 class="group-hover:text-yellow-600">Win Rate</h1>
+                                            <flux:text class="text-xs">
+                                                Digunakan untuk menghitung persentase kemenangan berdasarkan jumlah kemenangan dan total permainan.
+                                            </flux:text>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="rounded-md group">
+                                    <a href="{{ route('zodiak') }}" wire:navigate class="inline-flex items-start gap-1 p-2 w-full pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('zodiak') ? 'text-yellow-600 border-yellow-600' : 'text-gray-700 hover:text-yellow-600 hover:border-yellow-600' }}">
+                                        <flux:icon.calculator size="xs" />
+                                        <div>
+                                            <h1 class="group-hover:text-yellow-600">Zodiak</h1>
+                                            <flux:text class="text-xs">
+                                                Digunnakan untuk menghitung total maksimal diamond yang dibutukan untuk mendapatkan skin zodiacs.
+                                            </flux:text>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </flux:menu>
+                    </flux:dropdown>
+
+                </div>
+
+                <div class="flex gap-2 md:gap-4 items-center">
+                    <!-- Authentication Links -->
+                    @if (Route::has('login'))
+                        @auth
+                            <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ url('/dashboard') }}" wire:navigate>
+                                <flux:icon.squares-2x2 size="xs" />
+                                {{ __('messages.dashboard') }}
+                            </a>
+                        @else
+                            <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ route('login') }}" wire:navigate>
+                                <flux:icon.arrow-right-end-on-rectangle size="xs" />
+                                {{ __('messages.login') }}
+                            </a>
+
+                            @if (Route::has('register'))
+                                <flux:button class="inline-flex items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ route('register') }}" wire:navigate variant="primary">
+                                    {{ __('messages.register') }}
+                                </flux:button>
+                            @endif
+                        @endauth
+                    @endif
+                </div>
             </div>
-
         </div>
     </div>
 
@@ -60,12 +130,14 @@
         {{ $slot }}
     </main>
 
-        <!-- Footer -->
-        @livewire('guest.footer')
+    <!-- Footer -->
+    @livewire('guest.footer')
 
-        @persist('toast')
-            <flux:toast />
-        @endpersist
+    @persist('toast')
+        <flux:toast />
+    @endpersist
+
+    @stack('scripts')
 </body>
 
 </html>

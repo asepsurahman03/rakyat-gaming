@@ -17,8 +17,17 @@ Route::get('/lang/{locale}', function ($locale) {
 
 Volt::route('/', 'guest.welcome')->name('home');
 Volt::route('cek-transaksi', 'guest.cek-transaksi')->name('cek-transaksi');
+Volt::route('leaderboard', 'guest.leaderboard')->name('leaderboard');
 Volt::route('game/{slug}', 'guest.game-detail')->name('game.detail');
 Volt::route('checkout', 'guest.checkout')->name('checkout');
+Volt::route('magicwhele', 'guest.calculate.magicwhele')->name('magicwhele');
+Volt::route('winrate', 'guest.calculate.winrate')->name('winrate');
+Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
+
+
+// Guest Posts/Articles
+Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
+Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show');
 
 Volt::route('dashboard', 'admin.dashboard')
     ->middleware(['auth', 'verified'])
@@ -78,6 +87,11 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('admin/users', 'admin.users.index')->name('admin.users.index');
     Volt::route('admin/users/create', 'admin.users.create')->name('admin.users.create');
     Volt::route('admin/users/{user}/edit', 'admin.users.edit')->name('admin.users.edit');
+
+    // Posts/Articles Management
+    Volt::route('admin/posts', 'admin.posts.index')->name('admin.posts.index');
+    Volt::route('admin/posts/create', 'admin.posts.create')->name('admin.posts.create');
+    Volt::route('admin/posts/{post}/edit', 'admin.posts.edit')->name('admin.posts.edit');
 
     // Settings
     Volt::route('admin/settings/application', 'admin.settings.application')->name('admin.settings.application');

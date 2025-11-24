@@ -2,7 +2,6 @@
     <div class="text-center mb-6">
         <p class="text-sm text-zinc-600 dark:text-zinc-400">Sign in to continue to Warung Gaming</p>
     </div>
-    @endif
 
     <form method="POST" action="{{ route('login.store') }}" class="space-y-6">
         @csrf
