@@ -145,6 +145,11 @@ class DuitkuService
 
             $body = $response->json();
 
+            Log::info('Duitku get payment methods', [
+                'payload' => $payload,
+                'response' => $body,
+            ]);
+
             if ($response->successful() && isset($body['paymentFee'])) {
                 return [
                     'success' => true,

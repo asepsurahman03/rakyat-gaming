@@ -35,25 +35,25 @@
             <div class="flex gap-4 items-center justify-between py-3 text-xs">
                 <div class="flex gap-4 md:gap-6 items-center">
                     <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->is('/') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="/" wire:navigate>
-                        <flux:icon.handbag size="xs" /> <span>{{ __('messages.home') }}</span>
+                        <flux:icon.handbag class="size-4" /> <span>{{ __('messages.home') }}</span>
                     </a>
 
                     <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('cek-transaksi') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="{{ route('cek-transaksi') }}" wire:navigate>
-                        <flux:icon.file-search size="xs" /> <span>{{ __('messages.check_transaction') }}</span>
+                        <flux:icon.file-search class="size-4" /> <span>{{ __('messages.check_transaction') }}</span>
                     </a>
 
                     <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('leaderboard') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="{{ route('leaderboard') }}" wire:navigate>
-                        <flux:icon.chart-no-axes-column size="xs" /> <span>{{ __('messages.leaderboard') }}</span>
+                        <flux:icon.chart-no-axes-column class="size-4" /> <span>{{ __('messages.leaderboard') }}</span>
                     </a>
 
                     <a class="max-lg:hidden inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('guest.posts.index') ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}" href="{{ route('guest.posts.index') }}" wire:navigate>
-                        <flux:icon.newspaper size="xs" /> <span>{{ __('messages.artikel') }}</span>
+                        <flux:icon.newspaper class="size-4" /> <span>{{ __('messages.artikel') }}</span>
                     </a>
 
                     <flux:dropdown>
                         <button class="inline-flex items-center gap-0.5 pb-1 border-b-2 border-transparent transition-colors duration-150 {{ (request()->routeIs('magicwhele') || request()->routeIs('winrate') || request()->routeIs('zodiak')) ? 'text-yellow-400 border-yellow-400' : 'text-gray-300 hover:text-yellow-400 hover:border-yellow-400' }}">
                             <div class="flex items-center">
-                                <flux:icon.calculator size="xs" />
+                                <flux:icon.calculator class="size-4" />
                                 <span>{{ __('messages.calculator') }}</span>
                             </div>
                         </button>
@@ -62,7 +62,7 @@
                             <div>
                                 <div class="rounded-md group">
                                     <a href="{{ route('magicwhele') }}" wire:navigate class="inline-flex items-start gap-1 p-2 w-full pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('magicwhele') ? 'text-yellow-600 border-yellow-600' : 'text-gray-700 hover:text-yellow-600 hover:border-yellow-600' }}">
-                                        <flux:icon.calculator size="xs" />
+                                        <flux:icon.calculator class="size-4" />
                                         <div>
                                             <h1 class="group-hover:text-yellow-600">Magic Whele</h1>
                                             <flux:text class="text-xs">
@@ -73,7 +73,7 @@
                                 </div>
                                 <div class="rounded-md group">
                                     <a href="{{ route('winrate') }}" wire:navigate class="inline-flex items-start gap-1 p-2 w-full pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('winrate') ? 'text-yellow-600 border-yellow-600' : 'text-gray-700 hover:text-yellow-600 hover:border-yellow-600' }}">
-                                        <flux:icon.calculator size="xs" />
+                                        <flux:icon.calculator class="size-4" />
                                         <div>
                                             <h1 class="group-hover:text-yellow-600">Win Rate</h1>
                                             <flux:text class="text-xs">
@@ -84,7 +84,7 @@
                                 </div>
                                 <div class="rounded-md group">
                                     <a href="{{ route('zodiak') }}" wire:navigate class="inline-flex items-start gap-1 p-2 w-full pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('zodiak') ? 'text-yellow-600 border-yellow-600' : 'text-gray-700 hover:text-yellow-600 hover:border-yellow-600' }}">
-                                        <flux:icon.calculator size="xs" />
+                                        <flux:icon.calculator class="size-4" />
                                         <div>
                                             <h1 class="group-hover:text-yellow-600">Zodiak</h1>
                                             <flux:text class="text-xs">
@@ -104,19 +104,19 @@
                     @if (Route::has('login'))
                         @auth
                             <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ url('/dashboard') }}" wire:navigate>
-                                <flux:icon.squares-2x2 size="xs" />
+                                <flux:icon.squares-2x2 class="size-4" />
                                 {{ __('messages.dashboard') }}
                             </a>
                         @else
                             <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ route('login') }}" wire:navigate>
-                                <flux:icon.arrow-right-end-on-rectangle size="xs" />
+                                <flux:icon.arrow-right-end-on-rectangle class="size-4" />
                                 {{ __('messages.login') }}
                             </a>
 
                             @if (Route::has('register'))
-                                <flux:button class="inline-flex items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ route('register') }}" wire:navigate variant="primary">
+                                <a class="inline-flex text-white bg-yellow-400 px-3 py-2 rounded-md font-medium items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ route('register') }}" wire:navigate variant="primary">
                                     {{ __('messages.register') }}
-                                </flux:button>
+                                </a>
                             @endif
                         @endauth
                     @endif

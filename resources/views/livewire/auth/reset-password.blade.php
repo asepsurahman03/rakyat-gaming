@@ -1,12 +1,12 @@
 <x-layouts.auth title="Reset Password">
     <div class="text-center mb-6">
-        <p class="text-sm text-zinc-600 dark:text-zinc-400">Please enter your new password below</p>
+        <p class="text-sm text-zinc-100">Please enter your new password below</p>
     </div>
 
     @if (session('status'))
-        <flux:banner variant="success" class="mb-6">
+        <flux:callout variant="success" class="mb-6">
             {{ session('status') }}
-        </flux:banner>
+        </flux:callout>
     @endif
 
     <form method="POST" action="{{ route('password.update') }}" class="space-y-6">
@@ -14,20 +14,20 @@
         <input type="hidden" name="token" value="{{ request()->route('token') }}">
 
         <flux:field>
-            <flux:label>Email</flux:label>
-            <flux:input type="email" name="email" value="{{ request('email') }}" required autocomplete="email" readonly />
+            <label  class="text-white">Email</label>
+            <input class="px-2 text-white py-1 rounded-md border focus:border-yellow-400 focus:outline-0" type="email" name="email" value="{{ request('email') }}" required autocomplete="email" readonly />
             <flux:error name="email" />
         </flux:field>
 
         <flux:field>
-            <flux:label>Password</flux:label>
-            <flux:input type="password" name="password" placeholder="••••••••" required autocomplete="new-password" />
+            <label  class="text-white">Password</label>
+            <input class="px-2 text-white py-1 rounded-md border focus:border-yellow-400 focus:outline-0" type="password" name="password" placeholder="••••••••" required autocomplete="new-password" />
             <flux:error name="password" />
         </flux:field>
 
         <flux:field>
-            <flux:label>Confirm Password</flux:label>
-            <flux:input type="password" name="password_confirmation" placeholder="••••••••" required autocomplete="new-password" />
+            <label  class="text-white">Confirm Password</label>
+            <input class="px-2 text-white py-1 rounded-md border focus:border-yellow-400 focus:outline-0" type="password" name="password_confirmation" placeholder="••••••••" required autocomplete="new-password" />
             <flux:error name="password_confirmation" />
         </flux:field>
 

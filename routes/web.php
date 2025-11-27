@@ -19,7 +19,6 @@ Volt::route('/', 'guest.welcome')->name('home');
 Volt::route('cek-transaksi', 'guest.cek-transaksi')->name('cek-transaksi');
 Volt::route('leaderboard', 'guest.leaderboard')->name('leaderboard');
 Volt::route('game/{slug}', 'guest.game-detail')->name('game.detail');
-Volt::route('checkout', 'guest.checkout')->name('checkout');
 Volt::route('magicwhele', 'guest.calculate.magicwhele')->name('magicwhele');
 Volt::route('winrate', 'guest.calculate.winrate')->name('winrate');
 Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
@@ -30,20 +29,21 @@ Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
 Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show');
 
 Volt::route('dashboard', 'admin.dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+->middleware(['auth', 'verified'])
+->name('dashboard');
 
 // Webhooks & Callbacks
 Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
-    ->name('webhook.digiflazz');
+->name('webhook.digiflazz');
 
 Route::post('/payment/callback', [PaymentController::class, 'callback'])
-    ->name('payment.callback');
+->name('payment.callback');
 
 Route::get('/payment/return', [PaymentController::class, 'return'])
-    ->name('payment.return');
+->name('payment.return');
 
 Route::middleware(['auth'])->group(function () {
+    Volt::route('checkout', 'guest.checkout')->name('checkout');
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');

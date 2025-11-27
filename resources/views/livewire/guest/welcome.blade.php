@@ -177,7 +177,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         </style>
 
         {{-- section carousel --}}
-        <div class="bg-gradient-to-bl from-red-600 to-black px-4 md:px-6 py-10 md:py-20 relative">
+        <div class="bg-gradient-to-bl from-[#7E0000] to-[#470000] px-4 md:px-6 py-10 md:py-20 relative">
             <!-- Particle Canvas - wire:ignore to prevent Livewire from touching it -->
             <div wire:ignore class="absolute inset-0 w-full h-full pointer-events-none z-0">
                 <canvas id="particleCanvas" class="w-full h-full"></canvas>
@@ -270,8 +270,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     @endif
 
     <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
-    <div class="bg-gradient-to-br from-black to-red-500 py-20">
-        <div class="container mx-auto px-4 max-w-7xl">
+    <div class="bg-gradient-to-br from-[#470000] to-[#6d0000]">
+        <div class="container mx-auto px-4 max-w-7xl mb-20">
             <flux:heading size="xl" class="mb-2 text-white">🔥 Game Populer Saat Ini</flux:heading>
             <flux:text class="text-white/90 mb-6">Berdasarkan penjualan terbanyak - Top 8 game favorit para gamers!
             </flux:text>
@@ -279,14 +279,15 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 @forelse($popularGames as $game)
                     <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group">
-                        <div class="relative overflow-hidden rounded-lg cursor-pointer transition-shadow duration-300 hover:shadow-xl">
+                        <div
+                            class="relative overflow-hidden rounded-lg cursor-pointer transition-shadow duration-300 hover:shadow-xl">
                             <div class="aspect-square h-40 w-full bg-zinc-900">
                                 @if ($game->image)
-                                    <img src="{{ Storage::url($game->image) }}"
-                                        alt="{{ $game->name }}"
+                                    <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
                                         class="w-full h-full object-cover transform transition duration-500 ease-in-out group-hover:scale-105" />
                                 @else
-                                    <div class="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                                    <div
+                                        class="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
                                         <x-icon name="puzzle-piece" class="w-16 h-16 text-white opacity-50" />
                                     </div>
                                 @endif
@@ -298,8 +299,10 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                     class="w-full p-3 transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-yellow-400/70 to-transparent">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="min-w-0">
-                                            <h3 class="text-white text-sm font-semibold line-clamp-1">{{ $game->name }}</h3>
-                                            <p class="text-zinc-200 text-xs line-clamp-1 mt-1">{{ $game->provider ?? 'Top Up Game' }}</p>
+                                            <h3 class="text-white text-sm font-semibold line-clamp-1">
+                                                {{ $game->name }}</h3>
+                                            <p class="text-zinc-200 text-xs line-clamp-1 mt-1">
+                                                {{ $game->provider ?? 'Top Up Game' }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -315,10 +318,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                 @endforelse
             </div>
         </div>
-    </div>
 
-    <!-- 3. SEMUA GAME (Dengan Horizontal Scroll Filter) -->
-    <div class="bg-red-500 py-12">
+        {{-- Section Semua Game --}}
         <div class="container mx-auto px-4 max-w-7xl">
             <flux:heading size="xl" class="mb-2 text-white">Semua Game</flux:heading>
             <flux:text class="text-gray-300 mb-6">Pilih game favoritmu dan mulai top up sekarang!</flux:text>
@@ -351,30 +352,43 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
                 @forelse($filteredGames as $game)
                     <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
-                        x-data="{ idx: 0, interval: null, start() { if (!this.interval) this.interval = setInterval(()=> this.idx = (this.idx + 1) % 2, 1200) }, stop() { if (this.interval) { clearInterval(this.interval); this.interval = null; this.idx = 0 } } }"
-                        @mouseenter="start" @mouseleave="stop">
-                         <div class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl">
-                              <div class="relative aspect-square overflow-hidden rounded-xl">
-                                    @if ($game->image)
-                                         <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
-                                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                    @else
-                                         <div class="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                                              <x-icon name="puzzle-piece" class="w-12 h-12 text-white opacity-50" />
-                                         </div>
-                                    @endif
-                              </div>
-
-                              <div class="absolute inset-0 flex items-end pointer-events-none">
+                        x-data="{
+                            idx: 0,
+                            interval: null,
+                            start() { if (!this.interval) this.interval = setInterval(() => this.idx = (this.idx + 1) % 2, 1200) },
+                            stop() {
+                                if (this.interval) {
+                                    clearInterval(this.interval);
+                                    this.interval = null;
+                                    this.idx = 0
+                                }
+                            }
+                        }" @mouseenter="start" @mouseleave="stop">
+                        <div
+                            class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl">
+                            <div class="relative aspect-square overflow-hidden rounded-xl">
+                                @if ($game->image)
+                                    <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                @else
                                     <div
-                                        class="w-full h-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg">
-                                        <div class="min-h-[2rem]">
-                                            <h3 class="text-sm font-semibold text-white">{{ $game->name }}</h3>
-                                            <p class="text-xs text-gray-300 mt-1">{{ $game->provider ?? 'Top Up Game' }}</p>
-                                        </div>
+                                        class="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                                        <x-icon name="puzzle-piece" class="w-12 h-12 text-white opacity-50" />
                                     </div>
-                              </div>
-                         </div>
+                                @endif
+                            </div>
+
+                            <div class="absolute inset-0 flex items-end pointer-events-none">
+                                <div
+                                    class="w-full h-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg">
+                                    <div class="min-h-[2rem]">
+                                        <h3 class="text-sm font-semibold text-white">{{ $game->name }}</h3>
+                                        <p class="text-xs text-gray-300 mt-1">{{ $game->provider ?? 'Top Up Game' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </a>
                 @empty
                     <div class="col-span-full text-center py-12">
@@ -385,11 +399,9 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                 @endforelse
             </div>
         </div>
-    </div>
+        <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
 
-    <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
-    @if (count($latestPosts) > 0)
-        <div class="bg-gradient-to-t from-[#7E0000] to-red-500 py-12">
+        @if (count($latestPosts) > 0)
             <div class="container mx-auto px-4 max-w-7xl">
                 <div class="flex items-center justify-between mb-6">
                     <div>
@@ -405,9 +417,9 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     @foreach ($latestPosts as $post)
                         <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group">
-                            <flux:card class="hover:shadow-2xl transition-all duration-300 h-full">
+                            <div class="hover:shadow-2xl shadow-yellow-400 hover:border hover:border-yellow-400 rounded-xl transition-all duration-300 h-full">
                                 @if ($post->featured_image)
-                                    <div class="aspect-video overflow-hidden rounded-t-lg">
+                                    <div class="aspect-video overflow-hidden rounded-t-xl">
                                         <img src="{{ Storage::url($post->featured_image) }}"
                                             alt="{{ $post->title }}"
                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
@@ -419,18 +431,9 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                     </div>
                                 @endif
 
-                                <div class="p-4">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <flux:badge size="sm" color="indigo">{{ $post->game->name }}
-                                        </flux:badge>
-                                        <flux:badge size="sm" color="zinc">
-                                            <x-icon name="eye" class="w-3 h-3" />
-                                            {{ number_format($post->views) }}
-                                        </flux:badge>
-                                    </div>
-
+                                <div class="p-4 bg-zinc-900 rounded-b-xl flex flex-col justify-between">
                                     <flux:heading size="sm"
-                                        class="line-clamp-2 mb-2 group-hover:text-indigo-600 transition">
+                                        class="line-clamp-2 mb-2 text-yellow-400 transition">
                                         {{ $post->title }}
                                     </flux:heading>
 
@@ -440,76 +443,71 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                     @endif
 
                                     <div class="flex items-center justify-between text-xs text-zinc-500">
-                                        <span>{{ $post->author->name }}</span>
                                         <span>{{ $post->published_at->diffForHumans() }}</span>
                                     </div>
                                 </div>
-                            </flux:card>
+                            </div>
                         </a>
                     @endforeach
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
 
-    <!-- Features Section -->
-    <div class="bg-[#7E0000]">
+        <!-- Features Section -->
         <div class="container mx-auto px-4 max-w-7xl">
-            <img src="{{ asset('images/bgoverlay-rkgame-animation.gif') }}" alt="bg-animation"
-                class="mx-auto w-full">
+            <img src="{{ asset('images/RG BORDER WEBSITE.png') }}" alt="bg-animation" class="mx-auto w-full">
         </div>
     </div>
-</div>
 
-@push('scripts')
-    @vite('resources/js/particles.js')
-    <script>
-        // Use window object to ensure single instance across page lifecycle
-        if (!window.particleSystemInitialized) {
-            window.particleSystemInitialized = false;
-            window.particleSystemInstance = null;
-        }
-
-        function initParticles() {
-            // Prevent multiple initialization
-            if (window.particleSystemInitialized) {
-                console.log('Particles already initialized, skipping...');
-                return;
+    @push('scripts')
+        @vite('resources/js/particles.js')
+        <script>
+            // Use window object to ensure single instance across page lifecycle
+            if (!window.particleSystemInitialized) {
+                window.particleSystemInitialized = false;
+                window.particleSystemInstance = null;
             }
 
-            const canvas = document.getElementById('particleCanvas');
-            if (!canvas) {
-                console.log('Canvas not found');
-                return;
+            function initParticles() {
+                // Prevent multiple initialization
+                if (window.particleSystemInitialized) {
+                    console.log('Particles already initialized, skipping...');
+                    return;
+                }
+
+                const canvas = document.getElementById('particleCanvas');
+                if (!canvas) {
+                    console.log('Canvas not found');
+                    return;
+                }
+
+                console.log('Initializing particles...');
+
+                // Initialize particle system with golden theme
+                window.particleSystemInstance = new ParticleSystem('particleCanvas', {
+                    particleCount: 80,
+                    particleColor: 'rgba(255, 215, 0, 0.7)', // Golden color
+                    particleSize: {
+                        min: 1,
+                        max: 3
+                    },
+                    speed: {
+                        min: 0.5,
+                        max: 1
+                    },
+                    shapes: ['circle', 'star', 'diamond'],
+                    glow: true
+                });
+
+                window.particleSystemInitialized = true;
             }
 
-            console.log('Initializing particles...');
-
-            // Initialize particle system with golden theme
-            window.particleSystemInstance = new ParticleSystem('particleCanvas', {
-                particleCount: 80,
-                particleColor: 'rgba(255, 215, 0, 0.7)', // Golden color
-                particleSize: {
-                    min: 1,
-                    max: 3
-                },
-                speed: {
-                    min: 0.5,
-                    max: 1
-                },
-                shapes: ['circle', 'star', 'diamond'],
-                glow: true
-            });
-
-            window.particleSystemInitialized = true;
-        }
-
-        // Initialize on DOM load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initParticles);
-        } else {
-            // DOM already loaded
-            initParticles();
-        }
-    </script>
-@endpush
+            // Initialize on DOM load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initParticles);
+            } else {
+                // DOM already loaded
+                initParticles();
+            }
+        </script>
+    @endpush

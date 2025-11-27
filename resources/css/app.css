@@ -118,6 +118,19 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ;
 }
 
+.divider {
+  display: flex;
+  align-items: center;
+}
+
+.divider::before, .divider::after {
+  flex: 1;
+  content: '';
+  padding: 1px;
+  background-color: white;
+  margin: 4px;
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
