@@ -126,6 +126,16 @@ class DigiflazzService
         // update order status based on response
         if ($response->ok() && isset($body['data']) && ($body['data']['status'] ?? null) === 'SUCCESS') {
             $order->update(['status' => 'success', 'note' => json_encode($body['data'])]);
+
+            // Increment FlazzSellProduct sold_count if product is in active FlazzSell
+            $product = $order->product;
+            if ($product) {
+                $flazzSellProduct = $product->activeFlazzSellProduct();
+                if ($flazzSellProduct) {
+                    $flazzSellProduct->incrementSoldCount();
+                }
+            }
+
             return ['success' => true, 'body' => $body];
         }
 

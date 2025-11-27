@@ -37,7 +37,6 @@ mount(function () {
 
     if ($result['success']) {
         $this->paymentMethods = collect($result['methods'])->take(10)->toArray();
-        dd($this->paymentMethods);
     }
 });
 
@@ -63,8 +62,10 @@ $createOrder = function () {
 
         // Create order
         $order = Order::create([
-            'order_code' => 'WG-' . strtoupper(Str::random(10)),
-            'user_id' => auth()->id(),
+            'order_code' => 'RG-' . strtoupper(Str::random(10)),
+            'user_id' => auth()->id() ?? null,
+            'email' => $this->email,
+            'whatsapp' => $this->whatsapp,
             'game_id' => $this->game->id,
             'product_id' => $this->product->id,
             'data_player' => $this->fields,
@@ -73,14 +74,17 @@ $createOrder = function () {
             'status' => 'pending',
         ]);
 
+        dd($order);
+
         // Get payment gateway (Duitku)
         $paymentGateway = PaymentGateway::where('code', 'duitku')->where('is_active', true)->first();
 
         if (!$paymentGateway) {
+            dd('payment gateway not found');
             throw new \Exception('Payment gateway tidak tersedia');
         }
 
-        dd($this->selectedPaymentMethod);
+        dd($this->selectedPaymentMethod, $paymentGateway->id);
 
         // Create order payment
         $orderPayment = OrderPayment::create([
@@ -113,6 +117,7 @@ $createOrder = function () {
         // Redirect to payment page
         return redirect()->away($result['pay_url']);
     } catch (\Exception $e) {
+        dd($e);
         \DB::rollBack();
         $this->loading = false;
 
@@ -140,7 +145,8 @@ $createOrder = function () {
                         <h2 class="card-title">Ringkasan Pesanan</h2>
 
                         <div class="flex items-center gap-4 mt-4">
-                            <img src="{{ $game->image }}" alt="{{ $game->name }}" class="w-16 h-16 rounded-lg">
+                            <img src="{{ asset('storage/' . $game->image) }}" alt="{{ $game->name }}"
+                                class="w-16 h-16 rounded-lg">
                             <div class="flex-1">
                                 <h3 class="font-bold">{{ $game->name }}</h3>
                                 <p class="text-sm text-base-content/60">{{ $product->name }}</p>
@@ -182,10 +188,7 @@ $createOrder = function () {
                                 </flux:label>
                                 <flux:input id="email" type="email" wire:model="email"
                                     class="input input-bordered" placeholder="email@example.com" required />
-                                @error('email')
-                                    <span class="text-error text-sm mt-1">
-                                        {{ $message }}</span>
-                                @enderror
+                                <flux:error name="email" />
                             </div>
 
                             <div class="form-control mt-4">
@@ -196,8 +199,7 @@ $createOrder = function () {
                                 <flux:input id="whatsapp" mask="81234567890" placeholder="81234567890" type="text"
                                     wire:model="whatsapp" required />
                                 <flux:error name="whatsapp" />
-                                <flux:text class="label mt-4 flex gap-2 items-start"
-                                    variant="warning">
+                                <flux:text class="label mt-4 flex gap-2 items-start" variant="warning">
                                     <flux:icon.triangle-alert class="inline-block w-4 h-4 mr-1" />
                                     Pastikan Email dan WhatsApp yang di masukan benar. agar kami bisa menghubungi jika
                                     transaksi bermasalah. Tulis tanpa angka 0 di depan. Contoh: 8960xxxx>
@@ -206,63 +208,27 @@ $createOrder = function () {
                         </form>
                     </div>
                 </flux:card>
-
-                <!-- Payment Method Selection -->
-                <flux:card class="">
-                    <div class="card-body">
-                        <h2 class="card-title">Metode Pembayaran</h2>
-
-                        @if (empty($paymentMethods))
-                            <div class="alert alert-warning">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6"
-                                    fill="none" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                <span>Metode pembayaran tidak tersedia</span>
-                            </div>
-                        @else
-                            <div class="space-y-2 mt-4">
-                                @foreach ($paymentMethods as $method)
-                                    <div wire:click="$set('selectedPaymentMethod', '{{ $method['paymentMethod'] }}')"
-                                        class="card bg-base-200 cursor-pointer hover:bg-base-300 transition-all {{ $selectedPaymentMethod === $method['paymentMethod'] ? 'ring-2 ring-primary' : '' }}">
-                                        <div class="card-body p-4 flex-row items-center justify-between">
-                                            <div class="flex items-center gap-3">
-                                                @if (isset($method['paymentImage']))
-                                                    <img src="{{ $method['paymentImage'] }}"
-                                                        alt="{{ $method['paymentName'] }}" class="h-8">
-                                                @endif
-                                                <div>
-                                                    <h3 class="font-semibold">{{ $method['paymentName'] }}</h3>
-                                                    <p class="text-xs text-base-content/60">Fee: Rp
-                                                        {{ number_format($method['totalFee'], 0, ',', '.') }}</p>
-                                                </div>
-                                            </div>
-                                            @if ($selectedPaymentMethod === $method['paymentMethod'])
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                            @error('selectedPaymentMethod')
-                                <span class="text-error text-sm mt-2">{{ $message }}</span>
-                            @enderror
-                        @endif
-                    </div>
-                </flux:card>
             </div>
 
             <!-- Right: Summary & Checkout Button -->
             <div class="lg:col-span-1">
                 <flux:card class="sticky top-30">
                     <div class="card-body">
-                        <h2 class="card-title text-xl">Total Pembayaran</h2>
+                        <h2 class="card-title text-xl">Transaction Area</h2>
+                        <div class="space-y-2 mt-4">
+                            <flux:label>Pilih Metode Pembayaran</flux:label>
+                            <flux:select wire:model="selectedPaymentMethod" variant="listbox"
+                                class="input input-bordered" placeholder="pilih metode pembayaran" class="w-full">
+                                @foreach ($paymentMethods as $method)
+                                    <flux:select.option value="{{ $method['paymentMethod'] }}">
+                                        {{ $method['paymentName'] }}
+                                    </flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            <flux:error name="selectedPaymentMethod" />
+                        </div>
+
+                        <h2 class="card-title text-xl">Detail Transaction</h2>
 
                         <div class="space-y-2 mt-4">
                             <div class="flex justify-between">

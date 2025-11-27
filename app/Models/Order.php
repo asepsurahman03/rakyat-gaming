@@ -17,6 +17,8 @@ class Order extends Model
         'user_id',
         'game_id',
         'product_id',
+        'email',
+        'whatsapp',
         'data_player',
         'payment_method',
         'price',

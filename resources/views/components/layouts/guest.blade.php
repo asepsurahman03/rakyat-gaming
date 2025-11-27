@@ -59,7 +59,7 @@
                         </button>
 
                         <flux:menu>
-                            <div>
+                            <div class="w-65">
                                 <div class="rounded-md group">
                                     <a href="{{ route('magicwhele') }}" wire:navigate class="inline-flex items-start gap-1 p-2 w-full pb-1 border-b-2 border-transparent transition-colors duration-150 {{ request()->routeIs('magicwhele') ? 'text-yellow-600 border-yellow-600' : 'text-gray-700 hover:text-yellow-600 hover:border-yellow-600' }}">
                                         <flux:icon.calculator class="size-4" />
@@ -103,18 +103,25 @@
                     <!-- Authentication Links -->
                     @if (Route::has('login'))
                         @auth
-                            <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ url('/dashboard') }}" wire:navigate>
-                                <flux:icon.squares-2x2 class="size-4" />
-                                {{ __('messages.dashboard') }}
-                            </a>
+                            @if (auth()->user()->role === 'admin')
+                                <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150 hover:text-yellow-400 hover:border-yellow-400" href="{{ route('dashboard') }}" wire:navigate>
+                                    <flux:icon.squares-2x2 class="size-4" />
+                                    {{ __('messages.dashboard') }}
+                                </a>
+                            @else
+                                <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150 hover:text-yellow-400 hover:border-yellow-400" href="{{ route('user.dashboard') }}" wire:navigate>
+                                    <flux:icon.squares-2x2 class="size-4" />
+                                    {{ __('messages.dashboard') }}
+                                </a>
+                            @endif
                         @else
-                            <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ route('login') }}" wire:navigate>
+                            <a class="flex text-gray-300 items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150 hover:text-yellow-400 hover:border-yellow-400" href="{{ route('login') }}" wire:navigate>
                                 <flux:icon.arrow-right-end-on-rectangle class="size-4" />
                                 {{ __('messages.login') }}
                             </a>
 
                             @if (Route::has('register'))
-                                <a class="inline-flex text-white bg-yellow-400 px-3 py-2 rounded-md font-medium items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150" href="{{ route('register') }}" wire:navigate variant="primary">
+                                <a class="inline-flex text-white bg-yellow-400 px-3 py-2 rounded-md font-medium items-center gap-1 pb-1 border-b-2 border-transparent transition-colors duration-150 hover:bg-yellow-500" href="{{ route('register') }}" wire:navigate>
                                     {{ __('messages.register') }}
                                 </a>
                             @endif

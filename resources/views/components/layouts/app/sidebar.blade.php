@@ -25,6 +25,12 @@
                 </div>
             </flux:navlist.item>
 
+            <flux:navlist.item href="{{ route('admin.categories.index') }}" wire:navigate :current="request()->routeIs('admin.categories.*')">
+                <div class="text-yellow-400  flex items-center gap-2">
+                    <flux:icon.squares-2x2 size="xs" /> <span>Categories</span>
+                </div>
+            </flux:navlist.item>
+
             <flux:navlist.item href="{{ route('admin.games.index') }}" wire:navigate :current="request()->routeIs('admin.games.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.puzzle size="xs" /> <span>{{ __('messages.games') }}</span>
@@ -46,6 +52,12 @@
             <flux:navlist.item href="{{ route('admin.posts.index') }}" wire:navigate :current="request()->routeIs('posts.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.document-text size="xs" /> <span>Artikel</span>
+                </div>
+            </flux:navlist.item>
+
+            <flux:navlist.item href="{{ route('admin.flazz-sells.index') }}" wire:navigate :current="request()->routeIs('admin.flazz-sells.*')">
+                <div class="text-yellow-400  flex items-center gap-2">
+                    <flux:icon.fire size="xs" /> <span>FlazzSell</span>
                 </div>
             </flux:navlist.item>
 
@@ -84,8 +96,8 @@
 
         <flux:navlist variant="outline">
             @include('livewire.settings.appearance')
-            <flux:navlist.item icon="user" href="{{ route('profile.edit') }}" wire:navigate
-                :current="request()->routeIs('profile.edit')">Profile</flux:navlist.item>
+            <flux:navlist.item icon="user" href="{{ route('admin.profile') }}" wire:navigate
+                :current="request()->routeIs('admin.profile')">Profile</flux:navlist.item>
         </flux:navlist>
 
         <flux:dropdown position="top" align="start" class="max-lg:hidden">

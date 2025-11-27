@@ -154,7 +154,7 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
                 {{ $products->total() }} products</flux:subheading>
         </div>
 
-        <flux:table>
+        <flux:table :paginate="$products">
             <flux:table.columns>
                 <flux:table.column>#</flux:table.column>
                 <flux:table.column>Produk</flux:table.column>
@@ -269,9 +269,4 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
             </flux:table.rows>
         </flux:table>
     </flux:card>
-
-    <!-- Pagination -->
-    <div class="mt-6">
-        {{ $products->links() }}
-    </div>
 </div>

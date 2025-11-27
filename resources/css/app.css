@@ -134,3 +134,28 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Custom NProgress (Loading Bar) Colors */
+#nprogress .bar {
+    background: #facc15 !important; /* Yellow-400 */
+    height: 3px !important;
+}
+
+#nprogress .peg {
+    box-shadow: 0 0 10px #facc15, 0 0 5px #facc15 !important;
+}
+
+#nprogress .spinner-icon {
+    border-top-color: #facc15 !important;
+    border-left-color: #facc15 !important;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+}

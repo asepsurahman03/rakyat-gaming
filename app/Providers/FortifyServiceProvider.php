@@ -29,6 +29,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureRedirects();
     }
 
     /**
@@ -52,6 +53,33 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::registerView(fn () => view('livewire.auth.register'));
         Fortify::resetPasswordView(fn () => view('livewire.auth.reset-password'));
         Fortify::requestPasswordResetLinkView(fn () => view('livewire.auth.forgot-password'));
+    }
+
+    /**
+     * Configure redirects after authentication.
+     */
+    private function configureRedirects(): void
+    {
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = \App\Models\User::where('email', $request->email)->first();
+
+            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+                return $user;
+            }
+        });
+
+        // Redirect after login based on role
+        \Laravel\Fortify\Fortify::redirects('login', function () {
+            if (auth()->user()->role === 'admin') {
+                return route('dashboard');
+            }
+            return route('user.dashboard');
+        });
+
+        // Redirect after registration
+        \Laravel\Fortify\Fortify::redirects('register', function () {
+            return route('home');
+        });
     }
 
     /**

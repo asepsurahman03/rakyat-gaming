@@ -19,16 +19,13 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
     public function delete(Game $game)
     {
         // $game->delete();
-        Flux::toast(
-    heading: 'Changes saved.',
-    text: 'You can always update this in your settings.',
-);
+        Flux::toast(heading: 'Changes saved.', text: 'You can always update this in your settings.');
     }
 
     public function with(): array
     {
         return [
-            'games' => Game::query()->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('provider', 'like', "%{$this->search}%"))->latest()->paginate(12),
+            'games' => Game::with('category')->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('provider', 'like', "%{$this->search}%"))->latest()->paginate(12),
         ];
     }
 };
@@ -51,15 +48,6 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
         </flux:button>
     </div>
 
-    @if (session('success'))
-        <flux:callout variant="success" inline x-data="{ visible: true }" x-show="visible">
-            <flux:callout.heading>{{ session('success') }}</flux:callout.heading>
-            <x-slot name="controls">
-                <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
-            </x-slot>
-        </flux:callout>
-    @endif
-
     <flux:card>
         <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari game..." icon="magnifying-glass" />
     </flux:card>
@@ -81,6 +69,12 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
 
                 <flux:heading size="sm">{{ $game->name }}</flux:heading>
                 <flux:subheading class="text-xs">{{ $game->provider }}</flux:subheading>
+
+                @if($game->category)
+                    <div class="mt-1">
+                        <flux:badge color="zinc" size="sm">{{ $game->category->icon }} {{ $game->category->name }}</flux:badge>
+                    </div>
+                @endif
 
                 <div class="mt-2">
                     <flux:badge :color="$game->is_active ? 'green' : 'red'" size="sm">

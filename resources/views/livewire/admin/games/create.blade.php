@@ -1,10 +1,11 @@
 <?php
 
 use App\Models\Game;
+use App\Models\Category;
 use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\{Layout, Title};
-use function Livewire\Volt\{state, rules, uses};
+use function Livewire\Volt\{state, rules, uses, computed};
 
 uses([WithFileUploads::class]);
 
@@ -14,16 +15,22 @@ state([
     'provider' => '',
     'description' => '',
     'image' => null,
+    'banner' => null,
     'is_active' => true,
+    'category_id' => null,
     'fieldForms' => [],
 ]);
+
+$categories = computed(fn() => Category::where('is_active', true)->orderBy('sort_order')->get());
 
 rules([
     'name' => 'required|string|max:255',
     'slug' => 'required|string|max:255|unique:games,slug',
     'provider' => 'required|string|max:255',
     'description' => 'nullable|string',
+    'category_id' => 'required|exists:categories,id',
     'image' => 'nullable|image|max:2048',
+    'banner' => 'nullable|image|max:2048',
     'is_active' => 'boolean',
     'fieldForms.*.label' => 'required|string|max:255',
     'fieldForms.*.name' => 'required|string|max:255',
@@ -54,6 +61,10 @@ $save = function () {
 
     if ($this->image) {
         $validated['image'] = $this->image->store('games', 'public');
+    }
+
+    if ($this->banner) {
+        $validated['banner'] = $this->banner->store('games', 'public');
     }
 
     $game = Game::create($validated);
@@ -111,6 +122,19 @@ $save = function () {
                     </flux:field>
                 </div>
 
+                <!-- Category -->
+                <div class="md:col-span-2">
+                    <flux:field>
+                        <flux:label>Category <span class="text-red-600">*</span></flux:label>
+                        <flux:select wire:model="category_id" placeholder="Pilih category...">
+                            @foreach($this->categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->icon }} {{ $category->name }}</option>
+                            @endforeach
+                        </flux:select>
+                        <flux:error name="category_id" />
+                    </flux:field>
+                </div>
+
                 <!-- Description -->
                 <div class="md:col-span-2">
                     <flux:field>
@@ -136,6 +160,27 @@ $save = function () {
                             </div>
                             <div wire:loading.remove wire:target="image">
                                 <img src="{{ $image->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Banner -->
+                <div>
+                    <flux:field>
+                        <flux:label>Banner</flux:label>
+                        <input type="file" wire:model="banner" accept="image/*" class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
+                        <flux:error name="banner" />
+                        <flux:description>Max 2MB, format: JPG, PNG</flux:description>
+                    </flux:field>
+
+                    @if ($banner)
+                        <div class="mt-2">
+                            <div wire:loading wire:target="banner" class="h-32 flex items-center justify-center border border-dashed rounded-lg">
+                                <flux:icon.arrow-path class="w-6 h-6 animate-spin" />
+                            </div>
+                            <div wire:loading.remove wire:target="banner">
+                                <img src="{{ $banner->temporaryUrl() }}" class="w-full h-32 object-cover rounded-lg" alt="Preview">
                             </div>
                         </div>
                     @endif

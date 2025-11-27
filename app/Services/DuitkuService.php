@@ -25,9 +25,7 @@ class DuitkuService
         $this->returnUrl = config('services.duitku.return_url');
         $this->sandbox = config('services.duitku.sandbox', true);
 
-        $this->baseUrl = $this->sandbox
-            ? 'https://sandbox.duitku.com/webapi/api/merchant'
-            : 'https://passport.duitku.com/webapi/api/merchant';
+        $this->baseUrl = $this->sandbox ? 'https://sandbox.duitku.com/webapi/api/merchant' : 'https://passport.duitku.com/webapi/api/merchant';
     }
 
     /**
@@ -43,7 +41,7 @@ class DuitkuService
         $merchantOrderId = $order->order_code;
 
         // Generate signature
-        $signature = md5($this->merchantCode . $merchantOrderId . $amount . $this->apiKey);
+        $signature = hash('sha256', $this->merchantCode . $merchantOrderId . $amount . $this->apiKey);
 
         $payload = [
             'merchantCode' => $this->merchantCode,
@@ -91,7 +89,6 @@ class DuitkuService
                 'message' => $body['Message'] ?? 'Payment request failed',
                 'body' => $body,
             ];
-
         } catch (\Exception $e) {
             Log::error('Duitku payment request failed', [
                 'order_id' => $order->id,
@@ -117,7 +114,7 @@ class DuitkuService
         $amount = $data['amount'] ?? 0;
         $receivedSignature = $data['signature'] ?? '';
 
-        $signature = md5($this->merchantCode . $amount . $merchantOrderId . $this->apiKey);
+        $signature = hash('sha256', $this->merchantCode . $amount . $merchantOrderId . $this->apiKey);
 
         return hash_equals($signature, $receivedSignature);
     }
@@ -131,7 +128,7 @@ class DuitkuService
     public function getPaymentMethods(int $amount = 10000): array
     {
         $datetime = date('Y-m-d H:i:s');
-        $signature = md5($this->merchantCode . $amount . $datetime . $this->apiKey);
+        $signature = hash('sha256', $this->merchantCode . $amount . $datetime . $this->apiKey);
 
         $payload = [
             'merchantcode' => $this->merchantCode,
@@ -161,7 +158,6 @@ class DuitkuService
                 'success' => false,
                 'methods' => [],
             ];
-
         } catch (\Exception $e) {
             Log::error('Failed to get payment methods', [
                 'error' => $e->getMessage(),

@@ -18,53 +18,42 @@ Route::get('/lang/{locale}', function ($locale) {
 Volt::route('/', 'guest.welcome')->name('home');
 Volt::route('cek-transaksi', 'guest.cek-transaksi')->name('cek-transaksi');
 Volt::route('leaderboard', 'guest.leaderboard')->name('leaderboard');
+Volt::route('checkout', 'guest.checkout')->name('checkout');
 Volt::route('game/{slug}', 'guest.game-detail')->name('game.detail');
 Volt::route('magicwhele', 'guest.calculate.magicwhele')->name('magicwhele');
 Volt::route('winrate', 'guest.calculate.winrate')->name('winrate');
 Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
 
-
 // Guest Posts/Articles
 Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
 Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show');
 
-Volt::route('dashboard', 'admin.dashboard')
-->middleware(['auth', 'verified'])
-->name('dashboard');
-
-// Webhooks & Callbacks
+// Webhooks & Callbacks (No auth required)
 Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
-->name('webhook.digiflazz');
+    ->name('webhook.digiflazz');
 
 Route::post('/payment/callback', [PaymentController::class, 'callback'])
-->name('payment.callback');
+    ->name('payment.callback');
 
 Route::get('/payment/return', [PaymentController::class, 'return'])
-->name('payment.return');
+    ->name('payment.return');
 
-Route::middleware(['auth'])->group(function () {
-    Volt::route('checkout', 'guest.checkout')->name('checkout');
-    Route::redirect('settings', 'settings/profile');
+// User Dashboard Routes (Only for authenticated users with role 'user')
+Route::middleware(['auth', 'user'])->group(function () {
+    Volt::route('/user/dashboard', 'user.dashboard')->name('user.dashboard');
+    Volt::route('/user/transactions', 'user.transactions')->name('user.transactions');
+    Volt::route('/user/profile', 'user.profile')->name('user.profile');
+});
 
-    Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
-    Volt::route('settings/password', 'settings.password')->name('user-password.edit');
-    Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
+// Admin Dashboard Routes (Only for authenticated users with role 'admin')
+Route::middleware(['auth', 'admin'])->group(function () {
+    Volt::route('/admin/dashboard', 'admin.dashboard')->name('dashboard');
+    Volt::route('/admin/profile', 'admin.profile')->name('admin.profile');
 
-    Volt::route('settings/two-factor', 'settings.two-factor')
-        ->middleware(
-            when(
-                Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
-                ['password.confirm'],
-                [],
-            ),
-        )
-        ->name('two-factor.show');
-
-    // Carousel Management
-    Volt::route('carousel', 'carousel.index')->name('carousel.index');
-    Volt::route('carousel/create', 'carousel.create')->name('carousel.create');
-    Volt::route('carousel/{carousel}/edit', 'carousel.edit')->name('carousel.edit');
+    // Category Management
+    Volt::route('admin/categories', 'admin.categories.index')->name('admin.categories.index');
+    Volt::route('admin/categories/create', 'admin.categories.create')->name('admin.categories.create');
+    Volt::route('admin/categories/{category}/edit', 'admin.categories.edit')->name('admin.categories.edit');
 
     // Game Management
     Volt::route('admin/games', 'admin.games.index')->name('admin.games.index');
@@ -93,8 +82,39 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('admin/posts/create', 'admin.posts.create')->name('admin.posts.create');
     Volt::route('admin/posts/{post}/edit', 'admin.posts.edit')->name('admin.posts.edit');
 
+    // FlazzSell Management
+    Volt::route('admin/flazz-sells', 'admin.flazz-sells.index')->name('admin.flazz-sells.index');
+    Volt::route('admin/flazz-sells/create', 'admin.flazz-sells.create')->name('admin.flazz-sells.create');
+    Volt::route('admin/flazz-sells/{flazzSell}/edit', 'admin.flazz-sells.edit')->name('admin.flazz-sells.edit');
+
+    // Carousel Management
+    Volt::route('carousel', 'carousel.index')->name('carousel.index');
+    Volt::route('carousel/create', 'carousel.create')->name('carousel.create');
+    Volt::route('carousel/{carousel}/edit', 'carousel.edit')->name('carousel.edit');
+
     // Settings
     Volt::route('admin/settings/application', 'admin.settings.application')->name('admin.settings.application');
     Volt::route('admin/settings/suppliers', 'admin.settings.suppliers')->name('admin.settings.suppliers');
     Volt::route('admin/settings/payment-gateways', 'admin.settings.payment-gateways')->name('admin.settings.payment-gateways');
+});
+
+// Shared Auth Routes (Both admin and user can access)
+Route::middleware(['auth'])->group(function () {
+    Route::redirect('settings', 'settings/profile');
+
+    Volt::route('profile', 'settings.profile')->name('profile');
+    Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
+    Volt::route('settings/password', 'settings.password')->name('user-password.edit');
+    Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
+
+    Volt::route('settings/two-factor', 'settings.two-factor')
+        ->middleware(
+            when(
+                Features::canManageTwoFactorAuthentication()
+                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
+                ['password.confirm'],
+                [],
+            ),
+        )
+        ->name('two-factor.show');
 });

@@ -24,8 +24,11 @@ class DatabaseSeeder extends Seeder
             SettingSeeder::class,
             SupplierSeeder::class,
             PaymentGatewaySeeder::class,
+            CategorySeeder::class,
             GameSeeder::class,
             FieldFormSeeder::class,
+            ProductSeeder::class,
+            FlazzSellSeeder::class,
         ]);
     }
 }

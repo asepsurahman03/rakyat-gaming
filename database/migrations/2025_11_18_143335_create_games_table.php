@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name', 150);
             $table->string('slug', 150)->unique();
             $table->string('image', 255)->nullable();
+            $table->string('banner', 255)->nullable();
             $table->text('description')->nullable();
             $table->string('provider', 100);
             $table->boolean('is_active')->default(true);

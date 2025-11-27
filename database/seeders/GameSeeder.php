@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Game;
+use App\Models\Category;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -13,8 +14,15 @@ class GameSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get categories
+        $moba = Category::where('slug', 'moba')->first();
+        $battleRoyale = Category::where('slug', 'battle-royale')->first();
+        $rpg = Category::where('slug', 'rpg')->first();
+        $casual = Category::where('slug', 'casual')->first();
+
         $games = [
             [
+                'category_id' => $moba->id,
                 'name' => 'Mobile Legends',
                 'slug' => 'mobile-legends',
                 'provider' => 'Moonton',
@@ -22,6 +30,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $battleRoyale->id,
                 'name' => 'Free Fire',
                 'slug' => 'free-fire',
                 'provider' => 'Garena',
@@ -29,6 +38,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $battleRoyale->id,
                 'name' => 'PUBG Mobile',
                 'slug' => 'pubg-mobile',
                 'provider' => 'Tencent',
@@ -36,6 +46,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $rpg->id,
                 'name' => 'Genshin Impact',
                 'slug' => 'genshin-impact',
                 'provider' => 'HoYoverse',
@@ -43,6 +54,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $battleRoyale->id,
                 'name' => 'Valorant',
                 'slug' => 'valorant',
                 'provider' => 'Riot Games',
@@ -50,6 +62,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $battleRoyale->id,
                 'name' => 'Call of Duty Mobile',
                 'slug' => 'call-of-duty-mobile',
                 'provider' => 'Activision',
@@ -57,6 +70,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $moba->id,
                 'name' => 'Arena of Valor',
                 'slug' => 'arena-of-valor',
                 'provider' => 'Tencent',
@@ -64,6 +78,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $rpg->id,
                 'name' => 'Honkai Star Rail',
                 'slug' => 'honkai-star-rail',
                 'provider' => 'HoYoverse',
@@ -71,6 +86,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $moba->id,
                 'name' => 'League of Legends Wild Rift',
                 'slug' => 'league-of-legends-wild-rift',
                 'provider' => 'Riot Games',
@@ -78,6 +94,7 @@ class GameSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'category_id' => $casual->id,
                 'name' => 'Stumble Guys',
                 'slug' => 'stumble-guys',
                 'provider' => 'Scopely',

@@ -95,7 +95,7 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
 
     <!-- Orders Table -->
     <flux:card>
-        <flux:table>
+        <flux:table :paginate="$orders">
             <flux:table.columns>
                 <flux:table.column>Order Code</flux:table.column>
                 <flux:table.column>Tanggal</flux:table.column>
@@ -159,10 +159,4 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
             </flux:table.rows>
         </flux:table>
     </flux:card>
-
-    <!-- Pagination -->
-    <div class="mt-6">
-        {{ $orders->links() }}
-    </div>
-
 </div>
