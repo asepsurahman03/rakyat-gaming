@@ -8,7 +8,7 @@ new #[Layout('components.layouts.guest'), Title('leaderBoard - Top Up Game Termu
     //
 }; ?>
 
-<div class="bg-gradient-to-bl from-red-600 to-black">
+<div>
     <div x-data="leaderboard()" x-init="init()"
         class="max-w-7xl mx-auto min-h-screen flex flex-col items-center justify-start py-10 space-y-6">
         <!-- Hero Section -->

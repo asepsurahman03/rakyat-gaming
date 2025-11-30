@@ -87,7 +87,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 }; ?>
 
 <div>
-    <div class="bg-gradient-to-bl from-[#7E0000] to-[#470000] px-4 md:px-6 py-10 md:py-20">
+    <div class="px-4 md:px-6 py-10 md:py-20">
         <div class="max-w-7xl mx-auto px-4 py-8">
             <!-- Game Header -->
             <flux:card class="mb-6">

@@ -4,7 +4,7 @@ use App\Models\Order;
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title};
 
-new #[Layout('components.layouts.user'), Title('Dashboard')] class extends Component {
+new #[Layout('components.layouts.user'), Title('Dashboard - Client')] class extends Component {
     public function with(): array
     {
         $userId = auth()->id();

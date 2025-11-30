@@ -127,9 +127,7 @@ new class extends Component {
             </div>
         </div>
 
-        <!-- Bottom Bar -->
-        <div class="divider"></div>
-        <div class="flex w-full justify-between">
+        <div class="flex w-full justify-between border-t border-gray-700 mt-10 pt-6">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm opacity-70">
                 <p>&copy; 2025 {{ $settings['site_name'] }}. All rights reserved.</p>
             </div>

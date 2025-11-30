@@ -98,7 +98,8 @@ $save = function () {
                 <div class="md:col-span-2">
                     <flux:field>
                         <flux:label>Nama Game <span class="text-red-600">*</span></flux:label>
-                        <flux:input wire:model.live="name" wire:change="generateSlug" placeholder="e.g., Mobile Legends" />
+                        <flux:input wire:model.live="name" wire:change="generateSlug"
+                            placeholder="e.g., Mobile Legends" />
                         <flux:error name="name" />
                     </flux:field>
                 </div>
@@ -127,7 +128,7 @@ $save = function () {
                     <flux:field>
                         <flux:label>Category <span class="text-red-600">*</span></flux:label>
                         <flux:select wire:model="category_id" placeholder="Pilih category...">
-                            @foreach($this->categories as $category)
+                            @foreach ($this->categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->icon }} {{ $category->name }}</option>
                             @endforeach
                         </flux:select>
@@ -139,7 +140,8 @@ $save = function () {
                 <div class="md:col-span-2">
                     <flux:field>
                         <flux:label>Deskripsi</flux:label>
-                        <flux:textarea wire:model="description" placeholder="Deskripsi singkat tentang game..." rows="3" />
+                        <flux:textarea wire:model="description" placeholder="Deskripsi singkat tentang game..."
+                            rows="3" />
                         <flux:error name="description" />
                     </flux:field>
                 </div>
@@ -147,40 +149,52 @@ $save = function () {
                 <!-- Image -->
                 <div>
                     <flux:field>
-                        <flux:label>Gambar</flux:label>
-                        <input type="file" wire:model="image" accept="image/*" class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
-                        <flux:error name="image" />
-                        <flux:description>Max 2MB, format: JPG, PNG</flux:description>
-                    </flux:field>
+    <flux:label>Gambar</flux:label>
 
-                    @if ($image)
-                        <div class="mt-2">
-                            <div wire:loading wire:target="image" class="h-32 flex items-center justify-center border border-dashed rounded-lg">
-                                <flux:icon.arrow-path class="w-6 h-6 animate-spin" />
-                            </div>
-                            <div wire:loading.remove wire:target="image">
-                                <img src="{{ $image->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
-                            </div>
-                        </div>
-                    @endif
+    <flux:input.file
+        wire:model.live="image"
+        accept="image/*"
+    />
+
+    <flux:error name="image" />
+</flux:field>
+
+@if ($image)
+    <div class="mt-2">
+        @if ($image instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+            <img src="{{ $image->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
+        @endif
+    </div>
+@endif
+
                 </div>
 
                 <!-- Banner -->
                 <div>
                     <flux:field>
                         <flux:label>Banner</flux:label>
-                        <input type="file" wire:model="banner" accept="image/*" class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
+                        <input type="file" wire:model="banner" accept="image/*"
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="banner" />
                         <flux:description>Max 2MB, format: JPG, PNG</flux:description>
                     </flux:field>
 
                     @if ($banner)
                         <div class="mt-2">
-                            <div wire:loading wire:target="banner" class="h-32 flex items-center justify-center border border-dashed rounded-lg">
+                            <div wire:loading wire:target="banner"
+                                class="h-32 flex items-center justify-center border border-dashed rounded-lg">
                                 <flux:icon.arrow-path class="w-6 h-6 animate-spin" />
                             </div>
                             <div wire:loading.remove wire:target="banner">
-                                <img src="{{ $banner->temporaryUrl() }}" class="w-full h-32 object-cover rounded-lg" alt="Preview">
+                                @if (method_exists($banner, 'temporaryUrl'))
+                                    <img src="{{ $banner->temporaryUrl() }}" class="w-full h-32 object-cover rounded-lg"
+                                        alt="Preview">
+                                @else
+                                    <div
+                                        class="w-full h-32 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                                        <flux:icon.photo class="w-8 h-8 text-zinc-400" />
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -204,31 +218,35 @@ $save = function () {
                 <div class="flex items-center justify-between">
                     <div>
                         <flux:heading size="lg">Form Input Game</flux:heading>
-                        <flux:subheading>Tambahkan field input yang diperlukan untuk pembelian produk game ini</flux:subheading>
+                        <flux:subheading>Tambahkan field input yang diperlukan untuk pembelian produk game ini
+                        </flux:subheading>
                     </div>
                     <flux:button type="button" wire:click="addFieldForm" size="sm" icon="plus">
                         Tambah Field
                     </flux:button>
                 </div>
 
-                @if(count($fieldForms) > 0)
+                @if (count($fieldForms) > 0)
                     <div class="space-y-4">
-                        @foreach($fieldForms as $index => $fieldForm)
+                        @foreach ($fieldForms as $index => $fieldForm)
                             <flux:card class="bg-zinc-50 dark:bg-zinc-900">
                                 <div class="flex items-center justify-between mb-3">
                                     <flux:heading size="sm">Field #{{ $index + 1 }}</flux:heading>
-                                    <flux:button type="button" wire:click="removeFieldForm({{ $index }})" variant="ghost" size="xs" icon="trash" class="text-red-600" />
+                                    <flux:button type="button" wire:click="removeFieldForm({{ $index }})"
+                                        variant="ghost" size="xs" icon="trash" class="text-red-600" />
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <flux:field>
                                         <flux:label>Label <span class="text-red-600">*</span></flux:label>
-                                        <flux:input wire:model="fieldForms.{{ $index }}.label" placeholder="e.g., User ID" size="sm" />
+                                        <flux:input wire:model="fieldForms.{{ $index }}.label"
+                                            placeholder="e.g., User ID" size="sm" />
                                         <flux:error name="fieldForms.{{ $index }}.label" />
                                     </flux:field>
 
                                     <flux:field>
                                         <flux:label>Name (Field ID) <span class="text-red-600">*</span></flux:label>
-                                        <flux:input wire:model="fieldForms.{{ $index }}.name" placeholder="e.g., user_id" size="sm" />
+                                        <flux:input wire:model="fieldForms.{{ $index }}.name"
+                                            placeholder="e.g., user_id" size="sm" />
                                         <flux:error name="fieldForms.{{ $index }}.name" />
                                     </flux:field>
 
@@ -248,7 +266,8 @@ $save = function () {
                                         <flux:label>Wajib Diisi?</flux:label>
                                         <div class="flex items-center gap-3">
                                             <flux:checkbox wire:model="fieldForms.{{ $index }}.is_required" />
-                                            <span class="text-sm">{{ $fieldForm['is_required'] ? 'Ya' : 'Tidak' }}</span>
+                                            <span
+                                                class="text-sm">{{ $fieldForm['is_required'] ? 'Ya' : 'Tidak' }}</span>
                                         </div>
                                     </flux:field>
                                 </div>
@@ -261,7 +280,8 @@ $save = function () {
             <flux:separator />
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost">Batal</flux:button>
+                <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost">Batal
+                </flux:button>
                 <flux:button type="submit" variant="primary">
                     <span wire:loading.remove>Simpan</span>
                     <flux:icon.arrow-path wire:loading class="animate-spin" />

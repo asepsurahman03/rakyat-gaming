@@ -1,18 +1,26 @@
 <?php
 
 use App\Models\User;
+use App\Models\Profile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Volt\Component;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\{Layout, Title};
 
 new #[Layout('components.layouts.user'), Title('Profile')] class extends Component {
+    use WithFileUploads;
+
     public string $name = '';
     public string $email = '';
-    
+    public string $whatsapp = '';
+    public $image;
+    public $currentImage = null;
+
     // Password fields
     public string $current_password = '';
     public string $password = '';
@@ -23,8 +31,14 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
-        $this->email = Auth::user()->email;
+        $user = Auth::user();
+        $this->name = $user->name;
+        $this->email = $user->email;
+
+        if ($user->profile) {
+            $this->whatsapp = $user->profile->whatsapp ?? '';
+            $this->currentImage = $user->profile->image;
+        }
     }
 
     /**
@@ -44,15 +58,44 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id)
             ],
+            'whatsapp' => ['nullable', 'string', 'max:20'],
+            'image' => ['nullable', 'image', 'max:2048'],
         ]);
 
-        $user->fill($validated);
+        $user->fill([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
         $user->save();
+
+        // Handle profile data
+        $profileData = [
+            'whatsapp' => $validated['whatsapp'] ?? null,
+        ];
+
+        // Handle image upload
+        if ($this->image) {
+            // Delete old image if exists
+            if ($user->profile && $user->profile->image) {
+                Storage::disk('public')->delete($user->profile->image);
+            }
+
+            $profileData['image'] = $this->image->store('profiles', 'public');
+            $this->currentImage = $profileData['image'];
+            $this->image = null;
+        }
+
+        // Create or update profile
+        if ($user->profile) {
+            $user->profile->update($profileData);
+        } else {
+            $user->profile()->create($profileData);
+        }
 
         Flux::toast(
             heading: 'Profile berhasil diupdate!',
@@ -107,127 +150,301 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
 
         Session::flash('status', 'verification-link-sent');
     }
+
+    /**
+     * Delete the user account.
+     */
+    public function deleteUser(): void
+    {
+        $this->validate([
+            'password' => ['required', 'string', 'current_password'],
+        ]);
+        $user = Auth::user();
+        Auth::logout();
+        $user->delete();
+        Flux::toast(
+            heading: 'Akun berhasil dihapus!',
+            text: 'Akun Anda telah dihapus dari sistem.',
+            variant: 'success',
+            duration: 3000,
+            position: 'top-right'
+        );
+    }
 }; ?>
 
-<div class="space-y-6">
-    <div>
-        <flux:heading size="xl">Profile Settings</flux:heading>
-        <flux:subheading>Update your account's profile information and email address</flux:subheading>
+<div class="max-w-5xl mx-auto p-6 space-y-6">
+    <!-- Header with Avatar -->
+    <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-2xl p-8 text-white shadow-lg">
+        <div class="flex items-center gap-6">
+            <div class="relative">
+                @if ($currentImage)
+                    <img src="{{ Storage::url($currentImage) }}" alt="{{ auth()->user()->name }}"
+                        class="w-24 h-24 rounded-full border-4 border-white shadow-xl object-cover">
+                @else
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&size=120&background=000&color=fff&bold=true"
+                        alt="{{ auth()->user()->name }}" class="w-24 h-24 rounded-full border-4 border-white shadow-xl">
+                @endif
+                <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold">{{ auth()->user()->name }}</h1>
+                <p class="text-yellow-100 text-lg">{{ auth()->user()->email }}</p>
+                <div class="mt-2 flex items-center gap-2">
+                    <flux:icon.shield-check class="w-5 h-5" />
+                    <span class="text-sm">Member sejak {{ auth()->user()->created_at->format('M Y') }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <flux:card class="space-y-6">
-        <form wire:submit="updateProfileInformation" class="space-y-6">
-            <flux:field>
-                <flux:label for="name">Name</flux:label>
-                <flux:input wire:model="name" id="name" name="name" type="text" required autofocus
-                    autocomplete="name" />
-                <flux:error name="name" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label for="email">Email</flux:label>
-                <flux:input wire:model="email" id="email" name="email" type="email" required
-                    autocomplete="username" />
-                <flux:error name="email" />
-
-                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
-                    <div class="mt-2">
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                            Your email address is unverified.
-
-                            <button wire:click.prevent="sendVerification"
-                                class="underline text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-zinc-800">
-                                Click here to re-send the verification email.
-                            </button>
-                        </p>
-
-                        @if (session('status') === 'verification-link-sent')
-                            <p class="mt-2 font-medium text-sm text-green-600 dark:text-green-400">
-                                A new verification link has been sent to your email address.
-                            </p>
-                        @endif
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Profile Info -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Profile Information Card -->
+            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                        <flux:icon.user class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                     </div>
-                @endif
-            </flux:field>
+                    <div>
+                        <flux:heading size="lg">Informasi Profile</flux:heading>
+                        <flux:subheading>Perbarui informasi akun Anda</flux:subheading>
+                    </div>
+                </div>
 
-            <div class="flex items-center gap-4">
-                <flux:button type="submit" variant="primary">Save</flux:button>
-            </div>
-        </form>
-    </flux:card>
+                <form wire:submit="updateProfileInformation" class="space-y-5">
+                    <!-- Photo Upload -->
+                    <flux:field>
+                        <flux:label for="image" class="font-semibold">Foto Profile</flux:label>
+                        <div class="flex items-center gap-4">
+                            @if ($image)
+                                <img src="{{ $image->temporaryUrl() }}" alt="Preview"
+                                    class="w-20 h-20 rounded-full object-cover border-2 border-yellow-400">
+                            @elseif($currentImage)
+                                <img src="{{ Storage::url($currentImage) }}" alt="Current"
+                                    class="w-20 h-20 rounded-full object-cover border-2 border-zinc-300 dark:border-zinc-600">
+                            @else
+                                <div
+                                    class="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border-2 border-zinc-300 dark:border-zinc-600">
+                                    <flux:icon.user class="w-10 h-10 text-zinc-400" />
+                                </div>
+                            @endif
+                            <div class="flex-1">
+                                <input type="file" wire:model="image" accept="image/*" id="image"
+                                    class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-yellow-100 file:text-yellow-700 hover:file:bg-yellow-200 dark:file:bg-yellow-900/30 dark:file:text-yellow-400 dark:hover:file:bg-yellow-900/50" />
+                                <flux:description>JPG, PNG max 2MB</flux:description>
+                            </div>
+                        </div>
+                        <flux:error name="image" />
+                        <div wire:loading wire:target="image"
+                            class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-2">
+                            <flux:icon.arrow-path class="w-4 h-4 animate-spin" />
+                            Mengupload...
+                        </div>
+                    </flux:field>
 
-    <!-- Update Password -->
-    <flux:card class="space-y-6">
-        <div>
-            <flux:heading size="lg">Update Password</flux:heading>
-            <flux:subheading>Ensure your account is using a long, random password to stay secure</flux:subheading>
+                    <flux:field>
+                        <flux:label for="name" class="font-semibold">Nama Lengkap</flux:label>
+                        <flux:input wire:model="name" id="name" type="text" required autofocus icon="user"
+                            placeholder="Masukkan nama lengkap Anda" />
+                        <flux:error name="name" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label for="email" class="font-semibold">Alamat Email</flux:label>
+                        <flux:input wire:model="email" id="email" type="email" required icon="envelope"
+                            placeholder="email@example.com" />
+                        <flux:error name="email" />
+
+                        @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
+                            <div
+                                class="mt-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                <div class="flex items-start gap-3">
+                                    <flux:icon.exclamation-triangle
+                                        class="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                            Email Belum Terverifikasi
+                                        </p>
+                                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                            Silahkan verifikasi email Anda untuk mengaktifkan semua fitur.
+                                        </p>
+                                        <button wire:click.prevent="sendVerification"
+                                            class="mt-2 text-sm font-medium text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 underline">
+                                            Kirim ulang link verifikasi
+                                        </button>
+                                    </div>
+                                </div>
+
+                                @if (session('status') === 'verification-link-sent')
+                                    <div
+                                        class="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                        <p class="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                                            <flux:icon.check-circle class="w-4 h-4" />
+                                            Link verifikasi telah dikirim ke email Anda!
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label for="whatsapp" class="font-semibold">Nomor WhatsApp</flux:label>
+                        <flux:input wire:model="whatsapp" id="whatsapp" type="text" icon="phone"
+                            placeholder="628123456789" />
+                        <flux:error name="whatsapp" />
+                        <flux:description>Format: 628xxxxxxxxxx (tanpa +)</flux:description>
+                    </flux:field>
+
+                    <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                        <flux:button type="submit" variant="primary" icon="check" class="w-full sm:w-auto">
+                            Simpan Perubahan
+                        </flux:button>
+                    </div>
+                </form>
+            </flux:card>
+
+            <!-- Change Password Card -->
+            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                        <flux:icon.lock-closed class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                        <flux:heading size="lg">Ubah Password</flux:heading>
+                        <flux:subheading>Pastikan akun Anda menggunakan password yang kuat</flux:subheading>
+                    </div>
+                </div>
+
+                <form wire:submit="updatePassword" class="space-y-5">
+                    <flux:field>
+                        <flux:label for="current_password" class="font-semibold">Password Saat Ini</flux:label>
+                        <flux:input wire:model="current_password" id="current_password" type="password"
+                            icon="lock-closed" placeholder="Masukkan password saat ini" />
+                        <flux:error name="current_password" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label for="password" class="font-semibold">Password Baru</flux:label>
+                        <flux:input wire:model="password" id="password" type="password" icon="key"
+                            placeholder="Minimal 8 karakter" />
+                        <flux:error name="password" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label for="password_confirmation" class="font-semibold">Konfirmasi Password Baru
+                        </flux:label>
+                        <flux:input wire:model="password_confirmation" id="password_confirmation" type="password"
+                            icon="key" placeholder="Ulangi password baru" />
+                        <flux:error name="password_confirmation" />
+                    </flux:field>
+
+                    <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                        <flux:button type="submit" variant="primary" icon="check" class="w-full sm:w-auto">
+                            Update Password
+                        </flux:button>
+                    </div>
+                </form>
+            </flux:card>
         </div>
 
-        <form wire:submit="updatePassword" class="space-y-6">
-            <flux:field>
-                <flux:label for="current_password">Current Password</flux:label>
-                <flux:input wire:model="current_password" id="current_password" name="current_password" type="password"
-                    autocomplete="current-password" />
-                <flux:error name="current_password" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label for="password">New Password</flux:label>
-                <flux:input wire:model="password" id="password" name="password" type="password"
-                    autocomplete="new-password" />
-                <flux:error name="password" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label for="password_confirmation">Confirm Password</flux:label>
-                <flux:input wire:model="password_confirmation" id="password_confirmation" name="password_confirmation"
-                    type="password" autocomplete="new-password" />
-                <flux:error name="password_confirmation" />
-            </flux:field>
-
-            <div class="flex items-center gap-4">
-                <flux:button type="submit" variant="primary">Save</flux:button>
-            </div>
-        </form>
-    </flux:card>
-
-    <!-- Delete Account Section -->
-    <flux:card class="space-y-6">
-        <flux:heading size="lg">Delete Account</flux:heading>
-        <flux:subheading>Once your account is deleted, all of its resources and data will be permanently
-            deleted.</flux:subheading>
-
-        <flux:modal.trigger name="confirm-user-deletion">
-            <flux:button variant="danger">Delete Account</flux:button>
-        </flux:modal.trigger>
-
-        <flux:modal name="confirm-user-deletion" class="min-w-[22rem]">
-            <form wire:submit="deleteUser" class="space-y-6">
-                <div>
-                    <flux:heading size="lg">Are you sure you want to delete your account?</flux:heading>
-                    <flux:text class="mt-2">
-                        Once your account is deleted, all of its resources and data will be permanently deleted.
-                        Please enter your password to confirm you would like to permanently delete your account.
-                    </flux:text>
+        <!-- Right Column - Quick Info & Actions -->
+        <div class="space-y-6">
+            <!-- Account Stats -->
+            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                <flux:heading size="lg" class="mb-4">Statistik Akun</flux:heading>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <flux:icon.shopping-bag class="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                            <span class="text-sm font-medium">Total Transaksi</span>
+                        </div>
+                        <span class="text-lg font-bold text-yellow-600">{{ auth()->user()->orders()->count() }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <flux:icon.clock class="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                            <span class="text-sm font-medium">Member Sejak</span>
+                        </div>
+                        <span class="text-sm font-semibold">{{ auth()->user()->created_at->diffForHumans() }}</span>
+                    </div>
                 </div>
+            </flux:card>
 
-                <flux:field>
-                    <flux:label for="password">Password</flux:label>
-                    <flux:input wire:model="password" id="password" name="password" type="password"
-                        placeholder="Password" />
-                    <flux:error name="password" />
-                </flux:field>
-
-                <div class="flex gap-2">
-                    <flux:spacer />
-
-                    <flux:modal.close>
-                        <flux:button variant="ghost">Cancel</flux:button>
-                    </flux:modal.close>
-
-                    <flux:button type="submit" variant="danger">Delete Account</flux:button>
+            <!-- Quick Actions -->
+            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                <flux:heading size="lg" class="mb-4">Aksi Cepat</flux:heading>
+                <div class="space-y-3">
+                    <a href="{{ route('user.transactions') }}" wire:navigate
+                        class="flex items-center gap-3 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors group">
+                        <flux:icon.document-text
+                            class="w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-yellow-600" />
+                        <span class="text-sm font-medium">Lihat Transaksi</span>
+                    </a>
+                    <a href="{{ route('user.dashboard') }}" wire:navigate
+                        class="flex items-center gap-3 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors group">
+                        <flux:icon.home class="w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-yellow-600" />
+                        <span class="text-sm font-medium">Ke Dashboard</span>
+                    </a>
+                    <a href="/" wire:navigate
+                        class="flex items-center gap-3 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors group">
+                        <flux:icon.shopping-cart
+                            class="w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-yellow-600" />
+                        <span class="text-sm font-medium">Mulai Belanja</span>
+                    </a>
                 </div>
-            </form>
-        </flux:modal>
-    </flux:card>
+            </flux:card>
+
+            <!-- Danger Zone -->
+            <flux:card class="border-2 border-red-200 dark:border-red-900 shadow-sm bg-red-50/50 dark:bg-red-900/10">
+                <div class="flex items-center gap-2 mb-3">
+                    <flux:icon.exclamation-triangle class="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <flux:heading size="lg" class="text-red-700 dark:text-red-400">Zona Berbahaya</flux:heading>
+                </div>
+                <flux:subheading class="mb-4 text-red-600 dark:text-red-400">
+                    Tindakan ini tidak dapat dibatalkan
+                </flux:subheading>
+
+                <flux:modal.trigger name="confirm-user-deletion">
+                    <flux:button variant="danger" icon="trash" class="w-full">
+                        Hapus Akun
+                    </flux:button>
+                </flux:modal.trigger>
+
+                <flux:modal name="confirm-user-deletion" class="max-w-md">
+                    <form wire:submit="deleteUser" class="space-y-6">
+                        <div class="text-center">
+                            <div
+                                class="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+                                <flux:icon.exclamation-triangle class="w-8 h-8 text-red-600 dark:text-red-400" />
+                            </div>
+                            <flux:heading size="lg">Hapus Akun Permanen?</flux:heading>
+                            <flux:text class="mt-3 text-zinc-600 dark:text-zinc-400">
+                                Tindakan ini akan menghapus semua data Anda secara permanen termasuk riwayat transaksi,
+                                profile, dan informasi lainnya. Data yang sudah dihapus tidak dapat dikembalikan.
+                            </flux:text>
+                        </div>
+
+                        <flux:field>
+                            <flux:label for="password" class="font-semibold">Konfirmasi dengan Password</flux:label>
+                            <flux:input wire:model="password" id="password" type="password" icon="lock-closed"
+                                placeholder="Masukkan password Anda" />
+                            <flux:error name="password" />
+                        </flux:field>
+
+                        <div class="flex gap-3">
+                            <flux:modal.close class="flex-1">
+                                <flux:button variant="ghost" class="w-full">Batal</flux:button>
+                            </flux:modal.close>
+
+                            <flux:button type="submit" variant="danger" icon="trash" class="flex-1">
+                                Ya, Hapus Akun
+                            </flux:button>
+                        </div>
+                    </form>
+                </flux:modal>
+            </flux:card>
+        </div>
+    </div>
 </div>

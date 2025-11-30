@@ -3,28 +3,34 @@
 use App\Models\Carousel;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
-use Livewire\Attributes\{Layout, Title, Validate};
+use Livewire\Attributes\{Layout, Title};
 
 new #[Layout('components.layouts.app'), Title('Tambah Carousel')] class extends Component {
     use WithFileUploads;
 
-    #[Validate('required|image|max:2048')]
     public $image;
 
-    #[Validate('required|string|max:255')]
     public $title = '';
 
     public $loading = false;
 
-    #[Validate('nullable|string')]
     public $description = '';
 
-    public function updatedImage()
+    public function rules(): array
     {
-        $this->validate([
-            'image' => 'image|max:2048',
-        ]);
+        return [
+            'image' => 'required|image|max:2048',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ];
     }
+
+    // public function updatedImage()
+    // {
+    //     $this->validate([
+    //         'image' => 'image|max:2048',
+    //     ]);
+    // }
 
     public function save()
     {
@@ -65,7 +71,7 @@ new #[Layout('components.layouts.app'), Title('Tambah Carousel')] class extends 
 
     <!-- Form -->
     <flux:card>
-        <form wire:submit="save">
+        <form wire:submit="save" >
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Left Column - Form Fields -->
                 <div class="space-y-6">
@@ -77,9 +83,14 @@ new #[Layout('components.layouts.app'), Title('Tambah Carousel')] class extends 
 
                     <flux:field>
                         <flux:label>Gambar Carousel <span class="text-red-500">*</span></flux:label>
-                        <flux:input type="file" wire:model="image" accept="image/*" />
+                                        <input type="file" wire:model="image" accept="image/*"
+                    class="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-neutral-100 file:text-neutral-700 hover:file:bg-neutral-200 dark:file:bg-neutral-800 dark:file:text-neutral-300 dark:hover:file:bg-neutral-700" />
                         <flux:description>Max size 2MB</flux:description>
                         <flux:error name="image" />
+
+                        @if ($image)
+                            <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="w-full h-auto object-cover" />
+                        @endif
                     </flux:field>
 
                     <flux:field>

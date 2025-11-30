@@ -16,6 +16,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     public $latestPosts = [];
     public $flazzSellProducts = [];
     public $loading = false;
+    public $timeRemaining = '';
+    public $event = null;
 
     public function mount()
     {
@@ -38,6 +40,18 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         $activeEvents = \App\Models\FlazzSell::active()
             ->with(['flazzSellProducts.product.game'])
             ->get();
+
+        $event = $activeEvents
+            ->filter(function ($e) {
+                return isset($e->start_at) && $e->start_at->gt(now());
+            })
+            ->sortBy('start_at')
+            ->first() ?? $activeEvents->first();
+        if ($event) {
+            $this->timeRemaining = $event->getTimeRemaining();
+            $this->event = $event;
+
+        }
 
         // Collect all products from all active events
         $products = collect();
@@ -299,11 +313,59 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     @if (count($flazzSellProducts) > 0)
         <div class="bg-gradient-to-br from-[#470000] to-[#6d0000] py-12">
             <div class="container mx-auto px-4 max-w-7xl">
-                <div class="flex items-center gap-3 mb-2">
-                    <flux:icon.fire class="w-8 h-8 text-red-500 animate-pulse" />
-                    <flux:heading size="xl" class="text-white">FlazzSell - Diskon Terbatas!</flux:heading>
+                <div class="w-full sm:flex justify-between items-center">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <flux:icon.fire class="w-8 h-8 text-red-500 animate-pulse" />
+                            <flux:heading size="xl" class="text-white">Flash Sale - Diskon Terbatas!</flux:heading>
+                        </div>
+                        <flux:text class="text-white/90 mb-6">Buruan ambil sebelum kehabisan - Harga spesial cuma hari ini!
+                        </flux:text>
+                    </div>
+                    <!-- Countdown Timer -->
+                    <div class="pt-3">
+                        <div class="flex gap-1.5" x-data="{
+                            days: {{ $timeRemaining['days'] }},
+                            hours: {{ $timeRemaining['hours'] }},
+                            minutes: {{ $timeRemaining['minutes'] }},
+                            seconds: {{ $timeRemaining['seconds'] }},
+                            endTime: new Date('{{ $event->end_at->toIso8601String() }}').getTime()
+                        }" x-init="setInterval(() => {
+                            let now = new Date().getTime();
+                            let distance = endTime - now;
+
+                            if (distance < 0) {
+                                days = hours = minutes = seconds = 0;
+                                return;
+                            }
+
+                            days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                            hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                            seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        }, 1000)">
+                            <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                <div class="font-bold text-zinc-50 text-2xl md:text-4xl" x-text="days"></div>
+                                <div class="text-xs text-zinc-300">Hari</div>
+                            </div>
+                            <h1 class="font-bold text-zinc-50 text-2xl md:text-4xl">:</h1>
+                            <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                <div class="font-bold text-zinc-50 text-2xl md:text-4xl" x-text="hours"></div>
+                                <div class="text-xs text-zinc-300">Jam</div>
+                            </div>
+                            <h1 class="font-bold text-zinc-50 text-2xl md:text-4xl">:</h1>
+                            <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                <div class="font-bold text-zinc-50 text-2xl md:text-4xl" x-text="minutes"></div>
+                                <div class="text-xs text-zinc-300">Menit</div>
+                            </div>
+                            <h1 class="font-bold text-zinc-50 text-2xl md:text-4xl">:</h1>
+                            <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                <div class="font-bold text-zinc-50 text-2xl md:text-4xl" x-text="seconds"></div>
+                                <div class="text-xs text-zinc-300">Detik</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <flux:text class="text-white/90 mb-6">Buruan ambil sebelum kehabisan - Harga spesial cuma hari ini!</flux:text>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($flazzSellProducts as $item)
@@ -315,17 +377,20 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                             $timeRemaining = $event->getTimeRemaining();
                         @endphp
                         <a href="{{ route('game.detail', $product->game->slug) }}" wire:navigate class="group">
-                            <div class="relative bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-400 dark:border-red-600 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300">
+                            <div
+                                class="relative bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-400 dark:border-red-600 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300">
                                 <!-- Event Badge -->
                                 <div class="absolute top-3 left-3 z-10">
-                                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                                    <div
+                                        class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                                         {{ $event->name }}
                                     </div>
                                 </div>
 
                                 <!-- Discount Badge -->
                                 <div class="absolute top-3 right-3 z-10">
-                                    <div class="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                                    <div
+                                        class="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
                                         -{{ number_format($flazzSellProduct->discount_percentage, 0) }}%
                                     </div>
                                 </div>
@@ -337,7 +402,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                             alt="{{ $product->game->name }}"
                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                     @else
-                                        <div class="w-full h-full bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center">
+                                        <div
+                                            class="w-full h-full bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center">
                                             <flux:icon.fire class="w-16 h-16 text-white opacity-50" />
                                         </div>
                                     @endif
@@ -347,7 +413,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                 <div class="p-4">
                                     <div class="flex items-start justify-between gap-2 mb-3">
                                         <div class="flex-1 min-w-0">
-                                            <h3 class="text-sm font-semibold text-zinc-800 dark:text-white line-clamp-1">
+                                            <h3
+                                                class="text-sm font-semibold text-zinc-800 dark:text-white line-clamp-1">
                                                 {{ $product->game->name }}
                                             </h3>
                                             <p class="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-1 mt-1">
@@ -368,68 +435,29 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                                 Rp {{ number_format($discountedPrice, 0, ',', '.') }}
                                             </span>
                                             <span class="text-xs text-green-600 font-semibold">
-                                                Hemat Rp {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
+                                                Hemat Rp
+                                                {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
                                             </span>
                                         </div>
                                     </div>
 
                                     <!-- Quota Info -->
-                                    @if($flazzSellProduct->quota)
+                                    @if ($flazzSellProduct->quota)
                                         <div class="mb-3">
                                             <div class="flex items-center justify-between text-xs">
                                                 <span class="text-zinc-600 dark:text-zinc-400">Stok tersisa:</span>
-                                                <span class="font-bold text-orange-600">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}</span>
+                                                <span
+                                                    class="font-bold text-orange-600">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}</span>
                                             </div>
                                             <div class="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 mt-1">
                                                 <div class="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all"
-                                                     style="width: {{ (($flazzSellProduct->quota - $flazzSellProduct->sold_count) / $flazzSellProduct->quota) * 100 }}%"></div>
+                                                    style="width: {{ (($flazzSellProduct->quota - $flazzSellProduct->sold_count) / $flazzSellProduct->quota) * 100 }}%">
+                                                </div>
                                             </div>
                                         </div>
                                     @endif
 
-                                    <!-- Countdown Timer -->
-                                    <div class="pt-3 border-t border-red-200 dark:border-red-800">
-                                        <div class="text-xs text-zinc-600 dark:text-zinc-400 mb-2">Berakhir dalam:</div>
-                                        <div class="flex gap-1.5"
-                                            x-data="{
-                                                days: {{ $timeRemaining['days'] }},
-                                                hours: {{ $timeRemaining['hours'] }},
-                                                minutes: {{ $timeRemaining['minutes'] }},
-                                                seconds: {{ $timeRemaining['seconds'] }},
-                                                endTime: new Date('{{ $event->end_at->toIso8601String() }}').getTime()
-                                            }"
-                                            x-init="setInterval(() => {
-                                                let now = new Date().getTime();
-                                                let distance = endTime - now;
 
-                                                if (distance < 0) {
-                                                    days = hours = minutes = seconds = 0;
-                                                    return;
-                                                }
-
-                                                days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                                                hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                                minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                                seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                                            }, 1000)">
-                                            <div class="flex-1 bg-white dark:bg-zinc-800 rounded px-2 py-1.5 text-center">
-                                                <div class="text-base font-bold text-red-600" x-text="days"></div>
-                                                <div class="text-xs text-zinc-500">Hari</div>
-                                            </div>
-                                            <div class="flex-1 bg-white dark:bg-zinc-800 rounded px-2 py-1.5 text-center">
-                                                <div class="text-base font-bold text-red-600" x-text="hours"></div>
-                                                <div class="text-xs text-zinc-500">Jam</div>
-                                            </div>
-                                            <div class="flex-1 bg-white dark:bg-zinc-800 rounded px-2 py-1.5 text-center">
-                                                <div class="text-base font-bold text-red-600" x-text="minutes"></div>
-                                                <div class="text-xs text-zinc-500">Menit</div>
-                                            </div>
-                                            <div class="flex-1 bg-white dark:bg-zinc-800 rounded px-2 py-1.5 text-center">
-                                                <div class="text-base font-bold text-red-600" x-text="seconds"></div>
-                                                <div class="text-xs text-zinc-500">Detik</div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </a>
@@ -587,7 +615,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     @foreach ($latestPosts as $post)
                         <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group">
-                            <div class="hover:shadow-2xl shadow-yellow-400 hover:border hover:border-yellow-400 rounded-xl transition-all duration-300 h-full">
+                            <div
+                                class="hover:shadow-2xl shadow-yellow-400 hover:border hover:border-yellow-400 rounded-xl transition-all duration-300 h-full">
                                 @if ($post->featured_image)
                                     <div class="aspect-video overflow-hidden rounded-t-xl">
                                         <img src="{{ Storage::url($post->featured_image) }}"
@@ -602,8 +631,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                 @endif
 
                                 <div class="p-4 bg-zinc-900 rounded-b-xl flex flex-col justify-between">
-                                    <flux:heading size="sm"
-                                        class="line-clamp-2 mb-2 text-yellow-400 transition">
+                                    <flux:heading size="sm" class="line-clamp-2 mb-2 text-yellow-400 transition">
                                         {{ $post->title }}
                                     </flux:heading>
 

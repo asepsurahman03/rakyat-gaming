@@ -10,12 +10,5 @@
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
-<script>
-    // Load theme from localStorage BEFORE any styles load to prevent flash
-    (function() {
-        const theme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
-    })();
-</script>
-
 @vite(['resources/css/app.css', 'resources/js/app.js'])
+@fluxAppearance
