@@ -41,7 +41,7 @@ class DuitkuService
         $merchantOrderId = $order->order_code;
 
         // Generate signature
-        $signature = hash('sha256', $this->merchantCode . $merchantOrderId . $amount . $this->apiKey);
+        $signature = hash('md5', $this->merchantCode . $merchantOrderId . $amount . $this->apiKey);
 
         $payload = [
             'merchantCode' => $this->merchantCode,

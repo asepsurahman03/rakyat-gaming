@@ -93,8 +93,6 @@
                             </div>
                         </flux:menu>
                     </flux:dropdown>
-                    div
-
                 </div>
 
                 <div class="flex gap-2 xl:gap-4 items-center flex-shrink-0">
@@ -226,7 +224,20 @@
                                     <flux:icon.squares-2x2 class="size-5" />
                                     <span>{{ __('messages.dashboard') }}</span>
                                 </a>
+                                <a href="{{ route('user.transactions') }}" wire:navigate class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-yellow-400 hover:bg-zinc-900 rounded-lg transition-colors"><flux:icon.file-clock class="size-5" />
+                                    <span>{{ __('messages.history_transaction') }}</span></a>
+                                <a href="{{ route('user.profile') }}" wire:navigate class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-yellow-400 hover:bg-zinc-900 rounded-lg transition-colors"><flux:icon.circle-user-round class="size-5" />
+                                    <span>{{ __('messages.profile') }}</span></a>
                             @endif
+
+                        <form method="POST" action="{{ route('logout') }}" class="mt-2">
+                        @csrf
+                        <button type="submit"
+                                class="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50">
+                                <flux:icon name="arrow-right-start-on-rectangle" class="inline-block mr-2" />
+                            {{ __('messages.logout') }}
+                        </button>
+                    </form>
                         @else
                             <a href="{{ route('login') }}" wire:navigate x-on:click="open = false" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-yellow-400 hover:bg-zinc-900 rounded-lg transition-colors">
                                 <flux:icon.arrow-right-end-on-rectangle class="size-5" />

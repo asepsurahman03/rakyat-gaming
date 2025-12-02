@@ -9,6 +9,7 @@ return [
     'logout' => 'Keluar',
     'profile' => 'Profil',
     'settings' => 'Pengaturan',
+    'history_transaction' => 'Riwayat Pembelian',
 
     // Guest Navigation
     'check_transaction' => 'Cek Transaksi',
@@ -88,4 +89,8 @@ return [
     'appearance' => 'Tampilan',
     'theme' => 'Tema',
     'language' => 'Bahasa',
+
+    //auth
+    'login' => 'masuk',
+    'logout' => 'keluar',
 ];

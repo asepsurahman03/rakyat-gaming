@@ -311,7 +311,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
     <!-- FlazzSell Section -->
     @if (count($flazzSellProducts) > 0)
-        <div class="bg-gradient-to-br from-[#470000] to-[#6d0000] py-12">
+        <div class="bg-zinc-900 py-20">
             <div class="container mx-auto px-4 max-w-7xl">
                 <div class="w-full sm:flex justify-between items-center">
                     <div>
@@ -367,7 +367,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Horizontal Scrollable Flash Sale Products -->
+                <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
                     @foreach ($flazzSellProducts as $item)
                         @php
                             $event = $item['event'];
@@ -376,88 +377,82 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                             $discountedPrice = $flazzSellProduct->getDiscountedPrice();
                             $timeRemaining = $event->getTimeRemaining();
                         @endphp
-                        <a href="{{ route('game.detail', $product->game->slug) }}" wire:navigate class="group">
+                        <a href="{{ route('game.detail', $product->game->slug) }}" wire:navigate class="group flex-shrink-0 w-[280px] sm:w-[320px] snap-start">
                             <div
-                                class="relative bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-400 dark:border-red-600 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300">
-                                <!-- Event Badge -->
-                                <div class="absolute top-3 left-3 z-10">
-                                    <div
-                                        class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                                        {{ $event->name }}
-                                    </div>
-                                </div>
+                                class="relative border-2 border-red-400 dark:border-red-600 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300 h-full">
 
-                                <!-- Discount Badge -->
-                                <div class="absolute top-3 right-3 z-10">
-                                    <div
-                                        class="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                                        -{{ number_format($flazzSellProduct->discount_percentage, 0) }}%
-                                    </div>
-                                </div>
-
-                                <!-- Product Image -->
-                                <div class="aspect-video overflow-hidden bg-zinc-900">
+                                <!-- Product Image with Overlay -->
+                                <div class="relative aspect-video overflow-hidden bg-zinc-900">
                                     @if ($product->game->image)
                                         <img src="{{ Storage::url($product->game->image) }}"
                                             alt="{{ $product->game->name }}"
-                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                            class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-300">
                                     @else
                                         <div
                                             class="w-full h-full bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center">
                                             <flux:icon.fire class="w-16 h-16 text-white opacity-50" />
                                         </div>
                                     @endif
-                                </div>
 
-                                <!-- Product Info -->
-                                <div class="p-4">
-                                    <div class="flex items-start justify-between gap-2 mb-3">
-                                        <div class="flex-1 min-w-0">
-                                            <h3
-                                                class="text-sm font-semibold text-zinc-800 dark:text-white line-clamp-1">
+                                    <!-- Dark Gradient Overlay -->
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+
+                                    <!-- Event Badge -->
+                                    <div class="absolute top-3 right-3 z-10">
+                                        <div
+                                            class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg mb-1.5">
+                                            {{ $event->name }}
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <div
+                                                class="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                                                -{{ number_format($flazzSellProduct->discount_percentage, 0) }}%
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Product Info Overlay -->
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
+                                        <!-- Product Name -->
+                                        <div class="mb-3">
+                                            <h3 class="text-sm font-bold text-white line-clamp-1 drop-shadow-lg">
                                                 {{ $product->game->name }}
                                             </h3>
-                                            <p class="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-1 mt-1">
+                                            <p class="text-xs text-zinc-200 line-clamp-1 mt-1 drop-shadow-lg">
                                                 {{ $product->name }}
                                             </p>
                                         </div>
-                                    </div>
 
-                                    <!-- Price -->
-                                    <div class="mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs text-zinc-500 line-through">
-                                                Rp {{ number_format($product->selling_price, 0, ',', '.') }}
-                                            </span>
-                                        </div>
-                                        <div class="flex items-baseline gap-2">
-                                            <span class="text-2xl font-bold text-red-600">
-                                                Rp {{ number_format($discountedPrice, 0, ',', '.') }}
-                                            </span>
-                                            <span class="text-xs text-green-600 font-semibold">
-                                                Hemat Rp
-                                                {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Quota Info -->
-                                    @if ($flazzSellProduct->quota)
+                                        <!-- Price -->
                                         <div class="mb-3">
-                                            <div class="flex items-center justify-between text-xs">
-                                                <span class="text-zinc-600 dark:text-zinc-400">Stok tersisa:</span>
-                                                <span
-                                                    class="font-bold text-orange-600">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}</span>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-xs text-zinc-300 line-through drop-shadow-lg">
+                                                    Rp {{ number_format($product->selling_price, 0, ',', '.') }}
+                                                </span>
+                                                <span class="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full font-semibold shadow-lg">
+                                                    Hemat {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
+                                                </span>
                                             </div>
-                                            <div class="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 mt-1">
-                                                <div class="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all"
-                                                    style="width: {{ (($flazzSellProduct->quota - $flazzSellProduct->sold_count) / $flazzSellProduct->quota) * 100 }}%">
+                                            <div class="text-2xl font-bold text-yellow-400 drop-shadow-lg">
+                                                Rp {{ number_format($discountedPrice, 0, ',', '.') }}
+                                            </div>
+                                        </div>
+
+                                        <!-- Quota Info -->
+                                        @if ($flazzSellProduct->quota)
+                                            <div class="bg-black/40 backdrop-blur-sm rounded-lg p-2">
+                                                <div class="flex items-center justify-between text-xs mb-1">
+                                                    <span class="text-white font-medium">Stok tersisa:</span>
+                                                    <span class="font-bold text-orange-400">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}/{{ $flazzSellProduct->quota }}</span>
+                                                </div>
+                                                <div class="w-full bg-zinc-700 rounded-full h-2">
+                                                    <div class="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all shadow-lg"
+                                                        style="width: {{ (($flazzSellProduct->quota - $flazzSellProduct->sold_count) / $flazzSellProduct->quota) * 100 }}%">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endif
-
-
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </a>
@@ -469,7 +464,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
     <div class="bg-gradient-to-br from-[#470000] to-[#6d0000]">
         <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
-        <div class="container mx-auto px-4 max-w-7xl mb-20">
+        <div class="container mx-auto px-4 max-w-7xl py-20">
             <flux:heading size="xl" class="mb-2 text-white">🔥 Game Populer Saat Ini</flux:heading>
             <flux:text class="text-white/90 mb-6">Berdasarkan penjualan terbanyak - Top 8 game favorit para gamers!
             </flux:text>
@@ -479,10 +474,10 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                     <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group">
                         <div
                             class="relative overflow-hidden rounded-lg cursor-pointer transition-shadow duration-300 hover:shadow-xl">
-                            <div class="aspect-square h-40 w-full bg-zinc-900">
+                            <div class="w-full h-40 bg-zinc-900 overflow-hidden">
                                 @if ($game->image)
                                     <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
-                                        class="w-full h-full object-cover transform transition duration-500 ease-in-out group-hover:scale-105" />
+                                        class="w-full h-full object-cover object-top transform transition duration-500 ease-in-out group-hover:scale-105" />
                                 @else
                                     <div
                                         class="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
@@ -564,21 +559,21 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                         }" @mouseenter="start" @mouseleave="stop">
                         <div
                             class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl">
-                            <div class="relative aspect-square overflow-hidden rounded-xl">
+                            <div class="relative w-full overflow-hidden rounded-xl">
                                 @if ($game->image)
                                     <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
-                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                        class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300">
                                 @else
                                     <div
-                                        class="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                                        <x-icon name="puzzle-piece" class="w-12 h-12 text-white opacity-50" />
+                                        class="w-full aspect-square bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                                        <x-icon name="puzzle-piece" class="w-12 text-white opacity-50" />
                                     </div>
                                 @endif
                             </div>
 
                             <div class="absolute inset-0 flex items-end pointer-events-none">
                                 <div
-                                    class="w-full h-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg">
+                                    class="w-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg">
                                     <div class="min-h-[2rem]">
                                         <h3 class="text-sm font-semibold text-white">{{ $game->name }}</h3>
                                         <p class="text-xs text-gray-300 mt-1">{{ $game->provider ?? 'Top Up Game' }}

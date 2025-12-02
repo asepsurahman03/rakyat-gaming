@@ -9,6 +9,7 @@ return [
     'logout' => 'Logout',
     'profile' => 'Profile',
     'settings' => 'Settings',
+    'history_transaction' => 'History Transaction',
 
     // Guest Navigation
     'check_transaction' => 'Check Transaction',

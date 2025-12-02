@@ -107,7 +107,7 @@ class DigiflazzService
 
         // log request
         DigiflazzLog::create(['order_id' => $order->id, 'request_body' => $payload, 'status' => 'sent']);
-
+        
         $response = Http::withHeaders([
             'Authorization' => "Bearer {$this->apiKey}",
             'Accept' => 'application/json',
