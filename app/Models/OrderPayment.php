@@ -14,6 +14,7 @@ class OrderPayment extends Model
         'order_id',
         'payment_gateway_id',
         'method',
+        'payment_name',
         'amount',
         'status',
         'payment_reference',

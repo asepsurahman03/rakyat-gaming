@@ -1,0 +1,22 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BE-B_KRM.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-l0sNRNKZ.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/particles.js": {
+    "file": "assets/particles-jVFMuF0K.js",
+    "name": "particles",
+    "src": "resources/js/particles.js",
+    "isEntry": true
+  }
+}

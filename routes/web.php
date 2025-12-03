@@ -38,6 +38,9 @@ Route::post('/payment/callback', [PaymentController::class, 'callback'])
 Route::get('/payment/return', [PaymentController::class, 'return'])
     ->name('payment.return');
 
+Volt::route('/payment/detail', 'guest.payment-return')
+    ->name('payment.detail');
+
 // User Dashboard Routes (Only for authenticated users with role 'user')
 Route::middleware(['auth', 'user'])->group(function () {
     Volt::route('/user/dashboard', 'user.dashboard')->name('user.dashboard');

@@ -4,320 +4,274 @@ use Livewire\Volt\Component;
 use App\Models\PaymentGateway;
 use Livewire\Attributes\{Layout, Title};
 
-new #[Layout('components.layouts.app'), Title('Payment Gateway Configuration')] class extends Component {
-    public $gateways;
-    public $editingId = null;
+new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class extends Component {
+    public $duitkuConfig;
 
     // Form fields
-    public string $name = '';
-    public string $code = '';
-    public string $merchant_code = '';
     public string $api_key = '';
+    public string $api_secret = '';
     public string $callback_url = '';
-    public string $return_url = '';
-    public bool $is_sandbox = false;
+    public string $redirect_url = '';
+    public bool $is_sandbox = true;
     public bool $is_active = true;
-    public float $fee_percent = 0;
-    public float $fee_flat = 0;
 
     public function mount(): void
     {
-        $this->loadGateways();
+        $this->loadConfig();
     }
 
-    public function loadGateways(): void
+    public function loadConfig(): void
     {
-        $this->gateways = PaymentGateway::orderBy('name')->get();
-    }
+        // Ambil konfigurasi Duitku pertama atau buat default
+        $this->duitkuConfig = PaymentGateway::where('code', 'duitku')->first();
 
-    public function edit($id): void
-    {
-        $gateway = PaymentGateway::findOrFail($id);
-        $this->editingId = $id;
-        $this->name = $gateway->name;
-        $this->code = $gateway->code;
-        $this->merchant_code = $gateway->merchant_code ?? '';
-        $this->api_key = $gateway->api_key ?? '';
-        $this->callback_url = $gateway->callback_url ?? '';
-        $this->return_url = $gateway->return_url ?? '';
-        $this->is_sandbox = $gateway->is_sandbox;
-        $this->is_active = $gateway->is_active;
-        $this->fee_percent = $gateway->fee_percent ?? 0;
-        $this->fee_flat = $gateway->fee_flat ?? 0;
-    }
-
-    public function cancelEdit(): void
-    {
-        $this->reset(['editingId', 'name', 'code', 'merchant_code', 'api_key', 'callback_url', 'return_url', 'is_sandbox', 'is_active', 'fee_percent', 'fee_flat']);
-        $this->is_active = true;
-        $this->is_sandbox = false;
-        $this->fee_percent = 0;
-        $this->fee_flat = 0;
+        if ($this->duitkuConfig) {
+            $this->api_key = $this->duitkuConfig->api_key ?? '';
+            $this->api_secret = $this->duitkuConfig->api_secret ?? '';
+            $this->callback_url = $this->duitkuConfig->callback_url ?? '';
+            $this->redirect_url = $this->duitkuConfig->redirect_url ?? '';
+            $this->is_sandbox = (bool) $this->duitkuConfig->is_sandbox;
+            $this->is_active = (bool) $this->duitkuConfig->is_active;
+        } else {
+            // Set default URLs
+            $this->callback_url = route('payment.callback');
+            $this->redirect_url = route('payment.return');
+        }
     }
 
     public function save(): void
     {
         $validated = $this->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:payment_gateways,code,' . $this->editingId,
-            'merchant_code' => 'nullable|string',
-            'api_key' => 'nullable|string',
-            'callback_url' => 'nullable|url',
-            'return_url' => 'nullable|url',
+            'api_key' => 'required|string',
+            'api_secret' => 'required|string',
+            'callback_url' => 'required|url',
+            'redirect_url' => 'required|url',
             'is_sandbox' => 'boolean',
             'is_active' => 'boolean',
-            'fee_percent' => 'nullable|numeric|min:0|max:100',
-            'fee_flat' => 'nullable|numeric|min:0',
         ]);
 
-        if ($this->editingId) {
-            $gateway = PaymentGateway::findOrFail($this->editingId);
-            $gateway->update($validated);
-            $message = 'Payment gateway updated successfully';
+        if ($this->duitkuConfig) {
+            $this->duitkuConfig->update($validated);
+            $message = 'Konfigurasi Duitku berhasil diupdate';
         } else {
-            PaymentGateway::create($validated);
-            $message = 'Payment gateway created successfully';
-        }
-
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => $message,
-        ]);
-
-        $this->cancelEdit();
-        $this->loadGateways();
-    }
-
-    public function delete($id): void
-    {
-        $gateway = PaymentGateway::findOrFail($id);
-
-        if ($gateway->orderPayments()->exists()) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Cannot delete payment gateway with existing transactions',
+            PaymentGateway::create([
+                'name' => 'Duitku',
+                'code' => 'duitku',
+                ...$validated
             ]);
-            return;
+            $message = 'Konfigurasi Duitku berhasil disimpan';
         }
 
-        $gateway->delete();
+        Flux::toast(
+            heading: 'Sukses',
+            text: $message,
+            variant: 'success',
+            duration: 3000,
+            position: 'top-right',
+        );
 
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Payment gateway deleted successfully',
-        ]);
-
-        $this->loadGateways();
+        $this->loadConfig();
     }
 
-    public function toggleStatus($id): void
+    public function testConnection(): void
     {
-        $gateway = PaymentGateway::findOrFail($id);
-        $gateway->update(['is_active' => !$gateway->is_active]);
-
-        $this->loadGateways();
-
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Payment gateway status updated',
+        $this->validate([
+            'api_key' => 'required',
+            'api_secret' => 'required',
         ]);
+
+        $duitkuService = new \App\Services\DuitkuService();
+        $result = $duitkuService->testConnection($this->api_key, $this->api_secret, true);
+
+        if ($result['success']) {
+            Flux::toast(
+                heading: 'Koneksi Berhasil!',
+                text: $result['message'] . '. Ditemukan ' . $result['methods_count'] . ' metode pembayaran.',
+                variant: 'success',
+                duration: 5000,
+                position: 'top-right',
+            );
+        } else {
+            Flux::toast(
+                heading: 'Koneksi Gagal',
+                text: $result['message'],
+                variant: 'danger',
+                duration: 5000,
+                position: 'top-right',
+            );
+        }
     }
 }; ?>
 
 <div class="py-6">
     <!-- Page Header -->
-    <flux:heading size="xl" class="mb-2">Payment Gateway Configuration</flux:heading>
-    <flux:subheading class="mb-6">Konfigurasi metode pembayaran untuk transaksi</flux:subheading>
+    <flux:heading size="xl" class="mb-2">Konfigurasi Duitku Payment Gateway</flux:heading>
+    <flux:subheading class="mb-6">Pengaturan koneksi ke payment gateway Duitku untuk memproses pembayaran</flux:subheading>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Form Section -->
-        <div class="lg:col-span-1">
-            <flux:card class="sticky top-4">
-                <div class="mb-4">
-                    @if ($editingId)
-                        <flux:badge color="amber" size="sm">EDIT</flux:badge>
-                        <flux:heading size="lg" class="mt-2">Edit Gateway</flux:heading>
+    <div class="max-w-3xl mx-auto">
+        <flux:card>
+            <div class="p-6 md:p-8">
+                <!-- Status Badge -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-blue-600">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                        </svg>
+                        <div>
+                            <flux:heading size="lg">Duitku Payment Gateway</flux:heading>
+                            <flux:subheading class="text-sm">Indonesian Payment Solution</flux:subheading>
+                        </div>
+                    </div>
+                    @if($duitkuConfig)
+                        @if($is_active)
+                            <flux:badge color="green" size="lg">Active</flux:badge>
+                        @else
+                            <flux:badge color="red" size="lg">Inactive</flux:badge>
+                        @endif
                     @else
-                        <flux:badge color="blue" size="sm">NEW</flux:badge>
-                        <flux:heading size="lg" class="mt-2">Add Gateway</flux:heading>
+                        <flux:badge color="zinc" size="lg">Not Configured</flux:badge>
                     @endif
                 </div>
 
-                <flux:separator />
+                <flux:separator class="my-6" />
 
-                <form wire:submit="save" class="space-y-6 mt-6">
-                    <flux:field>
-                        <flux:label>Name <span class="text-red-500">*</span></flux:label>
-                        <flux:input wire:model="name" placeholder="e.g. Duitku" required />
-                        <flux:error name="name" />
-                    </flux:field>
+                <!-- Info Callout -->
+                @if(!$duitkuConfig)
+                    <flux:callout variant="info" icon="information-circle" class="mb-6">
+                        <strong>Belum Ada Konfigurasi</strong> Silakan isi form di bawah untuk mengkonfigurasi koneksi ke Duitku.
+                    </flux:callout>
+                @endif
 
-                    <flux:field>
-                        <flux:label>Code <span class="text-red-500">*</span></flux:label>
-                        <flux:input wire:model="code" placeholder="e.g. DUITKU" required />
-                        <flux:error name="code" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Merchant Code</flux:label>
-                        <flux:input wire:model="merchant_code" placeholder="Merchant ID" />
-                        <flux:error name="merchant_code" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>API Key</flux:label>
-                        <flux:input type="password" wire:model="api_key" placeholder="••••••••" />
-                        <flux:error name="api_key" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Callback URL</flux:label>
-                        <flux:input type="url" wire:model="callback_url" placeholder="https://yoursite.com/payment/callback" />
-                        <flux:error name="callback_url" />
-                    </flux:field>
-
-                    <flux:field>
-                        <flux:label>Return URL</flux:label>
-                        <flux:input type="url" wire:model="return_url" placeholder="https://yoursite.com/payment/return" />
-                        <flux:error name="return_url" />
-                    </flux:field>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <flux:field>
-                            <flux:label>Fee Percent (%)</flux:label>
-                            <flux:input type="number" wire:model="fee_percent" placeholder="0.00" step="0.01" min="0" max="100" />
-                            <flux:error name="fee_percent" />
+                <!-- Configuration Form -->
+                <form wire:submit="save" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <flux:field class="md:col-span-2">
+                            <flux:label>API Key (Merchant Code) <span class="text-red-500">*</span></flux:label>
+                            <flux:input wire:model="api_secret" placeholder="Masukkan Merchant Code dari Duitku" required />
+                            <flux:error name="api_secret" />
+                            <flux:description>Merchant Code yang didapatkan dari dashboard Duitku</flux:description>
                         </flux:field>
 
-                        <flux:field>
-                            <flux:label>Fee Flat (Rp)</flux:label>
-                            <flux:input type="number" wire:model="fee_flat" placeholder="0" step="1" min="0" />
-                            <flux:error name="fee_flat" />
+                        <flux:field class="md:col-span-2">
+                            <flux:label>API Secret <span class="text-red-500">*</span></flux:label>
+                            <flux:input type="password" wire:model="api_key" placeholder="••••••••••••••••" required />
+                            <flux:error name="api_key" />
+                            <flux:description>API Key/Secret untuk autentikasi ke Duitku API</flux:description>
+                        </flux:field>
+
+                        <flux:field class="md:col-span-2">
+                            <flux:label>Callback URL <span class="text-red-500">*</span></flux:label>
+                            <flux:input type="url" wire:model="callback_url" placeholder="{{ route('payment.callback') }}" required readonly />
+                            <flux:error name="callback_url" />
+                            <flux:description>URL untuk menerima notifikasi status pembayaran dari Duitku (POST method)</flux:description>
+                        </flux:field>
+
+                        <flux:field class="md:col-span-2">
+                            <flux:label>Redirect URL <span class="text-red-500">*</span></flux:label>
+                            <flux:input type="url" wire:model="redirect_url" placeholder="{{ route('payment.return') }}" required readonly />
+                            <flux:error name="redirect_url" />
+                            <flux:description>URL untuk redirect customer setelah pembayaran (GET method)</flux:description>
                         </flux:field>
                     </div>
 
-                    <flux:field>
-                        <flux:label>Sandbox Mode</flux:label>
-                        <flux:switch wire:model="is_sandbox" />
-                        <flux:description>{{ $is_sandbox ? 'Enabled' : 'Disabled' }} - For testing purposes</flux:description>
-                    </flux:field>
+                    <flux:separator />
 
-                    <flux:field>
-                        <flux:label>Status</flux:label>
-                        <flux:switch wire:model="is_active" />
-                        <flux:description>{{ $is_active ? 'Active' : 'Inactive' }}</flux:description>
-                    </flux:field>
+                    <div class="space-y-4">
+                        <flux:field>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <flux:label>Mode Sandbox</flux:label>
+                                    <flux:description>Aktifkan untuk testing dengan data sandbox Duitku</flux:description>
+                                </div>
+                                <flux:switch wire:model="is_sandbox" />
+                            </div>
+                        </flux:field>
 
-                    <div class="flex gap-2">
-                        <flux:button type="submit" variant="primary" class="flex-1">
-                            {{ $editingId ? 'Update' : 'Create' }}
+                        <flux:field>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <flux:label>Status Aktif</flux:label>
+                                    <flux:description>Aktifkan payment gateway untuk menerima pembayaran</flux:description>
+                                </div>
+                                <flux:switch wire:model="is_active" />
+                            </div>
+                        </flux:field>
+                    </div>
+
+                    <flux:separator />
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <flux:button type="submit" variant="primary" icon="check" class="flex-1">
+                            {{ $duitkuConfig ? 'Update Konfigurasi' : 'Simpan Konfigurasi' }}
                         </flux:button>
-                        @if ($editingId)
-                            <flux:button type="button" wire:click="cancelEdit" variant="ghost">
-                                Cancel
-                            </flux:button>
-                        @endif
+                        <flux:button type="button" wire:click="testConnection" variant="ghost" icon="play" class="flex-1">
+                            Test Koneksi
+                        </flux:button>
                     </div>
                 </form>
-            </flux:card>
-        </div>
 
-        <!-- List Section -->
-        <div class="lg:col-span-2">
-            <flux:card>
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center gap-3">
-                        <flux:badge color="blue" size="lg">{{ count($gateways) }}</flux:badge>
-                        <flux:heading size="lg">Payment Methods</flux:heading>
+                @if($duitkuConfig)
+                    <flux:separator class="my-6" />
+
+                    <!-- Statistics -->
+                    <div class="bg-zinc-50 dark:bg-zinc-800 p-6 rounded-lg">
+                        <flux:heading size="base" class="mb-4">Statistik</flux:heading>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                                    {{ PaymentGateway::where('code', '!=', 'DUITKU')->count() }}
+                                </div>
+                                <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Metode Pembayaran</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-green-600 dark:text-green-400">
+                                    {{ $duitkuConfig->orderPayments()->count() }}
+                                </div>
+                                <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Total Transaksi</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                                    {{ $is_sandbox ? 'Sandbox' : 'Production' }}
+                                </div>
+                                <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Mode</div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </flux:card>
+
+        <!-- Additional Info Card -->
+        <flux:card class="mt-6">
+            <div class="p-6">
+                <div class="flex items-start gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                    </svg>
+                    <div class="flex-1">
+                        <flux:heading size="base" class="mb-2">Informasi Penting</flux:heading>
+                        <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
+                                <span>Pastikan API Key (Merchant Code) dan API Secret sesuai dengan akun Duitku Anda</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
+                                <span>Callback URL dan Redirect URL harus didaftarkan di dashboard Duitku</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
+                                <span>Gunakan mode Sandbox untuk testing sebelum production</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
+                                <span>Metode pembayaran individual (QRIS, VA Bank, dll) dapat dikelola di menu Payment Methods</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-
-                <div class="space-y-4">
-                    @forelse($gateways as $gateway)
-                        <flux:card class="hover:border-zinc-400 dark:hover:border-zinc-600 transition-all">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-3 mb-2 flex-wrap">
-                                        <flux:heading size="base">{{ $gateway->name }}</flux:heading>
-                                        <flux:badge color="zinc" size="sm">{{ $gateway->code }}</flux:badge>
-                                        @if ($gateway->is_active)
-                                            <flux:badge color="green" size="sm">Active</flux:badge>
-                                        @else
-                                            <flux:badge color="red" size="sm">Inactive</flux:badge>
-                                        @endif
-                                        @if ($gateway->is_sandbox)
-                                            <flux:badge color="amber" size="sm">Sandbox</flux:badge>
-                                        @endif
-                                    </div>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-zinc-600 dark:text-zinc-400">
-                                        <div class="space-y-1">
-                                            @if ($gateway->merchant_code)
-                                                <div>
-                                                    <span class="font-medium">Merchant:</span>
-                                                    {{ $gateway->merchant_code }}
-                                                </div>
-                                            @endif
-
-                                            @if ($gateway->callback_url)
-                                                <div class="flex items-start gap-2">
-                                                    <flux:icon.arrow-left class="size-4 mt-0.5 flex-shrink-0" />
-                                                    <span class="truncate text-xs">{{ $gateway->callback_url }}</span>
-                                                </div>
-                                            @endif
-
-                                            @if ($gateway->return_url)
-                                                <div class="flex items-start gap-2">
-                                                    <flux:icon.arrow-right class="size-4 mt-0.5 flex-shrink-0" />
-                                                    <span class="truncate text-xs">{{ $gateway->return_url }}</span>
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <div class="space-y-1">
-                                            @if ($gateway->fee_percent > 0 || $gateway->fee_flat > 0)
-                                                <div>
-                                                    <span class="font-medium">Fees:</span>
-                                                </div>
-                                                @if ($gateway->fee_percent > 0)
-                                                    <div class="text-xs">• {{ $gateway->fee_percent }}%</div>
-                                                @endif
-                                                @if ($gateway->fee_flat > 0)
-                                                    <div class="text-xs">• Rp {{ number_format($gateway->fee_flat, 0, ',', '.') }}</div>
-                                                @endif
-                                            @endif
-
-                                            <div class="flex items-center gap-2">
-                                                <flux:icon.credit-card class="size-4" />
-                                                <span>{{ $gateway->orderPayments()->count() }} transactions</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="flex gap-2">
-                                    <flux:button wire:click="toggleStatus({{ $gateway->id }})" size="sm" variant="ghost" icon="arrow-path" title="Toggle Status" />
-                                    <flux:button wire:click="edit({{ $gateway->id }})" size="sm" variant="ghost" icon="pencil" title="Edit" />
-                                    <flux:button
-                                        wire:click="delete({{ $gateway->id }})"
-                                        wire:confirm="Are you sure you want to delete this payment gateway?"
-                                        size="sm"
-                                        variant="ghost"
-                                        icon="trash"
-                                        class="text-red-600 hover:text-red-700"
-                                        title="Delete"
-                                    />
-                                </div>
-                            </div>
-                        </flux:card>
-                    @empty
-                        <div class="text-center py-12">
-                            <flux:icon.credit-card class="size-16 mx-auto mb-4 text-zinc-400" />
-                            <flux:subheading>No payment gateways configured yet</flux:subheading>
-                        </div>
-                    @endforelse
-                </div>
-            </flux:card>
-        </div>
+            </div>
+        </flux:card>
     </div>
 </div>

@@ -90,7 +90,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 
             $duitkuService = app(DuitkuService::class);
             $result = $duitkuService->getPaymentMethods((int) $price);
-
+            
             if ($result['success']) {
                 $this->paymentMethods = collect($result['methods'])->toArray();
             }
@@ -185,6 +185,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 'order_id' => $order->id,
                 'payment_gateway_id' => $paymentGateway->id,
                 'method' => $this->selectedPaymentMethod,
+                'payment_name' => $method['paymentName'] ?? null,
                 'amount' => $totalAmount,
                 'status' => 'pending',
             ]);

@@ -18,10 +18,12 @@ class PaymentGateway extends Model
         'callback_url',
         'redirect_url',
         'is_active',
+        'is_sandbox',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_sandbox' => 'boolean',
     ];
 
     protected $hidden = [

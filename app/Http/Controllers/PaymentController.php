@@ -92,7 +92,6 @@ class PaymentController extends Controller
                     ]);
                 }
             }
-
         } else {
             // Payment failed or expired
             $orderPayment->update([
@@ -115,24 +114,14 @@ class PaymentController extends Controller
         $resultCode = $request->query('resultCode');
 
         if (!$merchantOrderId) {
+            Log::warning('merchantOrderId missing in payment return', [
+                'ip' => $request->ip(),
+                'query' => $request->query(),
+            ]);
             return redirect()->route('home')->with('error', 'Invalid payment response');
         }
 
-        $order = Order::where('order_code', $merchantOrderId)->first();
-
-        if (!$order) {
-            return redirect()->route('home')->with('error', 'Order not found');
-        }
-
-        // Redirect based on result code
-        if ($resultCode === '00') {
-            return redirect()->route('cek-transaksi')
-                ->with('success', 'Pembayaran berhasil! Pesanan Anda sedang diproses.')
-                ->with('order_code', $order->order_code);
-        } else {
-            return redirect()->route('cek-transaksi')
-                ->with('error', 'Pembayaran gagal atau dibatalkan.')
-                ->with('order_code', $order->order_code);
-        }
+        // Redirect to payment detail page with order code parameter
+        return redirect()->route('payment.detail', ['order_code' => $merchantOrderId]);
     }
 }

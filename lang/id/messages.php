@@ -2,7 +2,7 @@
 
 return [
     // Navigation
-    'home' => 'Beranda',
+    'home' => 'Topup',
     'dashboard' => 'Dashboard',
     'login' => 'Masuk',
     'register' => 'Daftar',

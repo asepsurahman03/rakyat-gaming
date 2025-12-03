@@ -19,6 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
         ]);
 
+        // Exclude webhook and callback routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            '/webhook/digiflazz',
+            '/payment/callback',
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

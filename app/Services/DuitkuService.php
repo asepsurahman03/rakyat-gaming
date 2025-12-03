@@ -19,11 +19,24 @@ class DuitkuService
 
     public function __construct()
     {
-        $this->merchantCode = config('services.duitku.merchant_code');
-        $this->apiKey = config('services.duitku.api_key');
-        $this->callbackUrl = config('services.duitku.callback_url');
-        $this->returnUrl = config('services.duitku.return_url');
-        $this->sandbox = config('services.duitku.sandbox', true);
+        // Load configuration from database
+        $duitkuConfig = PaymentGateway::where('code', 'duitku')->where('is_active', true)->first();
+
+        if ($duitkuConfig) {
+            // Use database configuration
+            $this->merchantCode = $duitkuConfig->api_secret ?? config('services.duitku.api_key');
+            $this->apiKey = $duitkuConfig->api_key ?? config('services.duitku.merchant_code');
+            $this->callbackUrl = $duitkuConfig->callback_url ?? config('services.duitku.callback_url');
+            $this->returnUrl = $duitkuConfig->redirect_url ?? config('services.duitku.return_url');
+            $this->sandbox = (bool) ($duitkuConfig->is_sandbox ?? true);
+        } else {
+            // Fallback to config file
+            $this->merchantCode = config('services.duitku.merchant_code');
+            $this->apiKey = config('services.duitku.api_key');
+            $this->callbackUrl = config('services.duitku.callback_url');
+            $this->returnUrl = config('services.duitku.return_url');
+            $this->sandbox = config('services.duitku.sandbox', true);
+        }
 
         $this->baseUrl = $this->sandbox ? 'https://sandbox.duitku.com/webapi/api/merchant' : 'https://passport.duitku.com/webapi/api/merchant';
     }
@@ -114,7 +127,7 @@ class DuitkuService
         $amount = $data['amount'] ?? 0;
         $receivedSignature = $data['signature'] ?? '';
 
-        $signature = hash('sha256', $this->merchantCode . $amount . $merchantOrderId . $this->apiKey);
+        $signature = hash('md5', $this->merchantCode . $amount . $merchantOrderId . $this->apiKey);
 
         return hash_equals($signature, $receivedSignature);
     }
@@ -125,7 +138,7 @@ class DuitkuService
      * @param int $amount
      * @return array
      */
-    public function getPaymentMethods(int $amount = 10000): array
+    public function getPaymentMethods(int $amount): array
     {
         $datetime = date('Y-m-d H:i:s');
         $signature = hash('sha256', $this->merchantCode . $amount . $datetime . $this->apiKey);
@@ -166,6 +179,78 @@ class DuitkuService
             return [
                 'success' => false,
                 'methods' => [],
+            ];
+        }
+    }
+
+    /**
+     * Test connection to Duitku API with custom credentials
+     *
+     * @param string $merchantCode
+     * @param string $apiKey
+     * @param bool $sandbox
+     * @return array
+     */
+    public function testConnection(string $apiKey, string $merchantCode, bool $sandbox = true): array
+    {
+        try {
+            // Determine base URL
+            $baseUrl = $sandbox
+                ? 'https://sandbox.duitku.com/webapi/api/merchant'
+                : 'https://passport.duitku.com/webapi/api/merchant';
+
+            // Generate timestamp
+            $timestamp = date('Y-m-d H:i:s');
+            $amount = 10000;
+
+            // Generate signature for listing payment methods
+            $signature =  hash('sha256', $merchantCode . $amount . $timestamp . $apiKey);
+
+            // Test by getting available payment methods
+            $response = Http::post($baseUrl . '/paymentmethod/getpaymentmethod', [
+                'merchantcode' => $merchantCode,
+                'amount' => $amount,
+                'datetime' => $timestamp,
+                'signature' => $signature,
+            ]);
+
+            if ($response->successful()) {
+                $body = $response->json();
+
+                if (isset($body['paymentFee']) && is_array($body['paymentFee'])) {
+                    return [
+                        'success' => true,
+                        'message' => 'Berhasil terhubung ke Duitku',
+                        'methods_count' => count($body['paymentFee']),
+                        'methods' => $body['paymentFee'],
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'message' => 'Response tidak valid dari Duitku',
+                        'body' => $body,
+                    ];
+                }
+            } else {
+
+                Log::warning('Duitku connection test failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Tidak dapat terhubung ke Duitku',
+                    'status' => $response->status(),
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::error('Duitku connection test failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ];
         }
     }
