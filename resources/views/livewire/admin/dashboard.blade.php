@@ -25,6 +25,18 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         $this->totalRevenue = Order::where('status', 'success')->sum('price');
     }
 
+    public function getStatusBadge($status)
+    {
+        return match ($status) {
+            'pending' => 'yellow',
+            'process' => 'blue',
+            'success' => 'green',
+            'failed' => 'red',
+            'refund' => 'zinc',
+            default => 'zinc',
+        };
+    }
+
     public function loadRecentActivities()
     {
         $this->recentActivities = Order::with(['user', 'game', 'product'])
@@ -51,7 +63,8 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
-                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Users</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Users
+                    </flux:heading>
                     <flux:heading size="2xl" class="mt-2">{{ number_format($totalUsers) }}</flux:heading>
                     <flux:subheading class="text-xs mt-1">Registered members</flux:subheading>
                 </div>
@@ -64,8 +77,10 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
-                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Revenue</flux:heading>
-                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($totalRevenue / 1000, 0) }}K</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Revenue
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($totalRevenue / 1000, 0) }}K
+                    </flux:heading>
                     <flux:subheading class="text-xs mt-1">From successful orders</flux:subheading>
                 </div>
                 <div class="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg">
@@ -77,7 +92,8 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
-                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Orders</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Orders
+                    </flux:heading>
                     <flux:heading size="2xl" class="mt-2">{{ number_format($totalOrders) }}</flux:heading>
                     <flux:subheading class="text-xs mt-1">All time transactions</flux:subheading>
                 </div>
@@ -104,22 +120,25 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                 <flux:table.rows>
                     @forelse ($recentActivities as $activity)
                         <flux:table.row>
-                            <flux:table.cell class="font-mono text-xs">{{ Str::limit($activity->order_code, 8) }}</flux:table.cell>
+                            <flux:table.cell class="font-mono text-xs">{{ Str::limit($activity->order_code, 8) }}
+                            </flux:table.cell>
                             <flux:table.cell>{{ $activity->user->name ?? 'N/A' }}</flux:table.cell>
                             <flux:table.cell>{{ $activity->game->name ?? 'N/A' }}</flux:table.cell>
                             <flux:table.cell>
-                                @if($activity->status === 'success')
-                                    <flux:badge color="green" size="sm">Success</flux:badge>
-                                @elseif($activity->status === 'pending')
-                                    <flux:badge color="yellow" size="sm">Pending</flux:badge>
-                                @else
-                                    <flux:badge color="red" size="sm">Failed</flux:badge>
+                                <flux:badge color="{{ $this->getStatusBadge($activity->status) }}" size="sm">
+                                    {{ ucfirst($activity->status) }}
+                                </flux:badge>
+                                @if ($activity->orderPayment)
+                                    <div class="text-xs text-zinc-500 mt-1">
+                                        {{ ucfirst($activity->orderPayment->status) }}
+                                    </div>
                                 @endif
                             </flux:table.cell>
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="4" class="text-center text-zinc-500">No recent orders</flux:table.cell>
+                            <flux:table.cell colspan="4" class="text-center text-zinc-500">No recent orders
+                            </flux:table.cell>
                         </flux:table.row>
                     @endforelse
                 </flux:table.rows>
@@ -131,13 +150,16 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
             <flux:heading size="lg" class="mb-4">Quick Actions</flux:heading>
 
             <div class="grid grid-cols-2 gap-4">
-                <flux:button href="{{ route('carousel.index') }}" wire:navigate variant="outline" icon="photo" class="justify-start">
+                <flux:button href="{{ route('carousel.index') }}" wire:navigate variant="outline" icon="photo"
+                    class="justify-start">
                     Carousel
                 </flux:button>
-                <flux:button href="{{ route('carousel.create') }}" wire:navigate variant="outline" icon="plus" class="justify-start">
+                <flux:button href="{{ route('carousel.create') }}" wire:navigate variant="outline" icon="plus"
+                    class="justify-start">
                     New Carousel
                 </flux:button>
-                <flux:button href="{{ route('profile.edit') }}" wire:navigate variant="outline" icon="cog" class="justify-start">
+                <flux:button href="{{ route('profile.edit') }}" wire:navigate variant="outline" icon="cog"
+                    class="justify-start">
                     Settings
                 </flux:button>
                 <flux:button wire:click="refreshStats" variant="outline" icon="arrow-path" class="justify-start">

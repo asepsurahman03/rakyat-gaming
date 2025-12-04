@@ -153,12 +153,12 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                             @php
                                 $statusVariant = match($order->status) {
-                                    'pending' => 'warning',
-                                    'process' => 'info',
-                                    'success' => 'success',
-                                    'failed'  => 'danger',
-                                    'refund'  => 'default',
-                                    default   => 'default',
+            'pending' => 'yellow',
+            'process' => 'blue',
+            'success' => 'green',
+            'failed' => 'red',
+            'refund' => 'zinc',
+            default => 'zinc',
                                 };
                             @endphp
 
@@ -259,7 +259,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                             default => 'default',
                                         };
                                     @endphp
-                                    <flux:badge :variant="$payVariant">
+                                    <flux:badge color="$payVariant">
                                         {{ $this->getPaymentStatusText($order->orderPayment->status) }}
                                     </flux:badge>
                                 </div>
@@ -273,11 +273,35 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         </div>
                         @endif
 
-                        @if($order->note)
+                        <!-- Transaction Status Information -->
                         <flux:separator class="my-6" />
-                        <flux:callout variant="info" icon="information-circle">
-                            <strong>Catatan:</strong> {{ $order->note }}
-                        </flux:callout>
+
+                        @if($order->status === 'success')
+                            <flux:callout variant="success" icon="check-circle">
+                                <strong>Transaksi Berhasil!</strong> Pesanan Anda telah berhasil diproses dan dikirim. Silakan cek email atau game Anda.
+                            </flux:callout>
+                        @elseif($order->status === 'process')
+                            <flux:callout variant="info" icon="clock">
+                                <strong>Sedang Diproses</strong> Transaksi Anda sedang dalam proses. Harap tunggu beberapa saat, biasanya 1-5 menit.
+                            </flux:callout>
+                        @elseif($order->status === 'failed')
+                            @php
+                                $noteData = is_string($order->note) ? json_decode($order->note, true) : $order->note;
+                                $errorMessage = $noteData['message'] ?? 'Transaksi gagal diproses';
+                                $responseCode = $noteData['rc'] ?? null;
+                            @endphp
+                            <flux:callout variant="danger" icon="x-circle">
+                                <strong>Transaksi Gagal!</strong> {{ $errorMessage }}
+                                <br><span class="text-sm mt-2 block">Silakan hubungi customer service jika ada pertanyaan atau coba lagi nanti.</span>
+                            </flux:callout>
+                        @elseif($order->status === 'pending')
+                            <flux:callout variant="warning" icon="exclamation-triangle">
+                                <strong>Menunggu Pembayaran</strong> Silakan selesaikan pembayaran Anda untuk melanjutkan pesanan.
+                            </flux:callout>
+                        @elseif($order->status === 'refund')
+                            <flux:callout variant="default" icon="arrow-path">
+                                <strong>Refund</strong> Transaksi telah di-refund. Dana akan dikembalikan sesuai metode pembayaran yang digunakan.
+                            </flux:callout>
                         @endif
 
                         <!-- Actions -->

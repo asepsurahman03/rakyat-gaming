@@ -16,10 +16,10 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
     public function getStatusBadge($status)
     {
         return match ($status) {
-            'pending' => 'warning',
-            'process' => 'info',
-            'success' => 'success',
-            'failed' => 'danger',
+            'pending' => 'yellow',
+            'process' => 'blue',
+            'success' => 'green',
+            'failed' => 'red',
             'refund' => 'zinc',
             default => 'zinc',
         };

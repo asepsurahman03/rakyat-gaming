@@ -12,6 +12,7 @@ class Supplier extends Model
 
     protected $fillable = [
         'name',
+        'username',
         'code',
         'api_url',
         'api_key',

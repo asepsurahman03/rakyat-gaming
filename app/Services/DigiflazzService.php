@@ -83,35 +83,65 @@ class DigiflazzService
     }
 
     /**
+     * Build customer_no based on game requirements
+     * Some games like Mobile Legends need player_id + server_id format
+     *
+     * @param array $dataPlayer
+     * @return string
+     */
+    protected function buildCustomerNo(array $dataPlayer): string
+    {
+        $playerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
+        $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? '';
+
+        // If both player_id and server_id exist, combine them
+        // Format: player_id(server_id) - e.g., "123456789(1234)"
+        if (!empty($playerId) && !empty($serverId)) {
+            return $playerId . $serverId;
+        }
+
+        // Otherwise, just return player_id or user_id
+        return $playerId;
+    }
+
+    /**
      * Topup (prepaid) menggunakan supplier_product code.
      * Returns supplier response (and logs it).
      */
     public function topup(Order $order, SupplierProduct $supplierProduct): array
     {
-        // contoh endpoint topup (sesuaikan)
-        $endpoint = rtrim($this->baseUrl, '/') . '/topup';
+        // Get Digiflazz credentials from supplier or config
+        $username = $this->supplier->username ?? env('DIGIFLAZZ_USERNAME');
 
-        // Get player_id from JSON data_player field
+        // Get player data from JSON data_player field
         $dataPlayer = is_string($order->data_player) ? json_decode($order->data_player, true) : $order->data_player;
-        $customerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? null;
 
+        // Build customer_no based on game requirements
+        // For Mobile Legends and similar games: player_id + server_id (e.g., "123456789(1234)")
+        // For other games: just player_id or user_id
+        $customerId = $this->buildCustomerNo($dataPlayer);
+
+        // Generate signature: md5(username + apiKey + ref_id)
+        $refId = $order->order_code;
+        $sign = md5($username . $this->apiKey . $refId);
+
+        // Build payload according to Digiflazz API documentation
         $payload = [
-            'code' => $supplierProduct->code,
+            'username' => $username,
             'buyer_sku_code' => $supplierProduct->code,
             'customer_no' => $customerId,
-            'qty' => 1,
-            'buyer_price' => $supplierProduct->buyer_price,
-            'ref_id' => $order->order_code,
-            // tambahan parameter sesuai Digiflazz: ref_id/sku/rc etc.
+            'ref_id' => $refId,
+            'sign' => $sign,
         ];
+
+        // Digiflazz transaction endpoint
+        $endpoint = rtrim($this->baseUrl, '/') . '/transaction';
 
         // log request
         DigiflazzLog::create(['order_id' => $order->id, 'request_body' => $payload, 'status' => 'sent']);
-        
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer {$this->apiKey}",
-            'Accept' => 'application/json',
-        ])->post($endpoint, $payload);
+
+        $response = Http::asJson()
+            ->post($endpoint, $payload);
 
         $body = $response->json();
 
@@ -123,25 +153,49 @@ class DigiflazzService
             'status' => $response->ok() ? 'success' : 'failed'
         ]);
 
-        // update order status based on response
-        if ($response->ok() && isset($body['data']) && ($body['data']['status'] ?? null) === 'SUCCESS') {
-            $order->update(['status' => 'success', 'note' => json_encode($body['data'])]);
+        // Check if response is OK and has data
+        if ($response->ok() && isset($body['data'])) {
+            $transactionStatus = strtolower($body['data']['status'] ?? '');
 
-            // Increment FlazzSellProduct sold_count if product is in active FlazzSell
-            $product = $order->product;
-            if ($product) {
-                $flazzSellProduct = $product->activeFlazzSellProduct();
-                if ($flazzSellProduct) {
-                    $flazzSellProduct->incrementSoldCount();
-                }
+            // Handle different transaction statuses
+            switch ($transactionStatus) {
+                case 'sukses':
+                case 'success':
+                    $order->update(['status' => 'success', 'note' => json_encode($body['data'])]);
+
+                    // Increment FlazzSellProduct sold_count if product is in active FlazzSell
+                    $product = $order->product;
+                    if ($product) {
+                        $flazzSellProduct = $product->activeFlazzSellProduct();
+                        if ($flazzSellProduct) {
+                            $flazzSellProduct->incrementSoldCount();
+                        }
+                    }
+
+                    return ['success' => true, 'body' => $body];
+
+                case 'pending':
+                case 'process':
+                    // Transaction is still being processed by Digiflazz
+                    $order->update(['status' => 'process', 'note' => json_encode($body['data'])]);
+                    return ['success' => true, 'body' => $body, 'message' => 'Transaction is being processed'];
+
+                case 'gagal':
+                case 'failed':
+                    // Transaction failed
+                    $order->update(['status' => 'failed', 'note' => json_encode($body['data'])]);
+                    return ['success' => false, 'body' => $body, 'message' => 'Transaction failed'];
+
+                default:
+                    // Unknown status, mark as process and wait for callback
+                    $order->update(['status' => 'process', 'note' => json_encode($body['data'])]);
+                    return ['success' => true, 'body' => $body, 'message' => 'Transaction status: ' . $transactionStatus];
             }
-
-            return ['success' => true, 'body' => $body];
         }
 
-        // fallback: pending/failed
+        // fallback: if response not OK or no data
         $order->update(['status' => 'failed', 'note' => json_encode($body)]);
-        return ['success' => false, 'body' => $body];
+        return ['success' => false, 'body' => $body, 'message' => 'Invalid response from Digiflazz'];
     }
 
     /**

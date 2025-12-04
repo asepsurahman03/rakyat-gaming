@@ -28,11 +28,13 @@ Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
 Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
 Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show');
 
-// Webhooks & Callbacks (No auth required)
+// Webhooks & Callbacks (No auth required, IP restricted)
 Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
+    ->middleware('webhook.ip:digiflazz')
     ->name('webhook.digiflazz');
 
 Route::post('/payment/callback', [PaymentController::class, 'callback'])
+    ->middleware('webhook.ip:duitku')
     ->name('payment.callback');
 
 Route::get('/payment/return', [PaymentController::class, 'return'])

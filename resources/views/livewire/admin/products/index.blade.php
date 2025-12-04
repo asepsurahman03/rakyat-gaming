@@ -167,7 +167,7 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
             </flux:table.columns>
             <flux:table.rows>
                 @forelse($products as $index => $product)
-                    <flux:table.row>
+                    <flux:table.row wire:key="product-{{ $product->id }}">
                         <flux:table.cell>{{ $products->firstItem() + $index }}</flux:table.cell>
                         <flux:table.cell>
                             <div>
@@ -216,9 +216,9 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
                         <flux:table.cell>
                             <div class="flex gap-2 justify-center">
                                 <flux:button wire:navigate href="{{ route('admin.products.edit', $product) }}"
-                                    variant="ghost" size="sm" icon="pencil" />
+                                    variant="ghost" icon="pencil" />
                                 <flux:modal.trigger name="delete-product-{{ $product->id }}">
-                                    <flux:button variant="danger">Delete</flux:button>
+                                    <flux:button variant="danger" icon="trash"></flux:button>
                                 </flux:modal.trigger>
 
                                 <flux:modal name="delete-product-{{ $product->id }}" class="min-w-[22rem]">
