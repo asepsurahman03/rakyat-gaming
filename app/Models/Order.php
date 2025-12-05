@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Order extends Model
 {
@@ -61,6 +62,21 @@ class Order extends Model
     public function orderPayment(): HasOne
     {
         return $this->hasOne(OrderPayment::class);
+    }
+
+    /**
+     * Get the payment gateway through order payment
+     */
+    public function paymentGateway(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            PaymentGateway::class,
+            OrderPayment::class,
+            'order_id', // Foreign key on order_payments table
+            'id', // Foreign key on payment_gateways table
+            'id', // Local key on orders table
+            'payment_gateway_id' // Local key on order_payments table
+        );
     }
 
     /**

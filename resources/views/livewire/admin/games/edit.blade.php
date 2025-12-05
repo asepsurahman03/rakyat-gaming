@@ -3,6 +3,7 @@
 use App\Models\Game;
 use App\Models\Category;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\{Layout, Title};
 use function Livewire\Volt\{state, mount, rules, uses, computed};
@@ -76,6 +77,7 @@ $removeFieldForm = function ($index) {
 $save = function () {
     $validated = $this->validate();
 
+    // Handle image upload
     if ($this->image) {
         // Delete old image
         if ($this->game->image) {
@@ -86,13 +88,14 @@ $save = function () {
         unset($validated['image']);
     }
 
+    // Handle banner upload
     if ($this->banner) {
         // Delete old banner
         if ($this->game->banner) {
             Storage::disk('public')->delete($this->game->banner);
         }
         $validated['banner'] = $this->banner->store('games', 'public');
-    } else {
+    }else {
         unset($validated['banner']);
     }
 
@@ -117,9 +120,8 @@ $save = function () {
             $this->game->fieldForms()->create($fieldForm);
         }
     }
-
+    Flux::toast(heading: 'Game berhasil diupdate!', text: 'Perubahan pada data game telah disimpan ke sistem.', variant: 'success', duration: 3000, position: 'top-right');
     $this->redirect(route('admin.games.index'), navigate: true);
-    session()->flash('success', 'Game berhasil diperbarui');
 };
 
 ?>
@@ -172,7 +174,7 @@ $save = function () {
                     <flux:field>
                         <flux:label>Category <span class="text-red-600">*</span></flux:label>
                         <flux:select wire:model="category_id" placeholder="Pilih category...">
-                            @foreach($this->categories as $category)
+                            @foreach ($this->categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->icon }} {{ $category->name }}</option>
                             @endforeach
                         </flux:select>
@@ -191,7 +193,7 @@ $save = function () {
                 </div>
 
                 <!-- Image -->
-                <div>
+                <div x-data="{ imagePreview: null }">
                     <flux:field>
                         <flux:label>Gambar</flux:label>
 
@@ -204,60 +206,58 @@ $save = function () {
                         @endif
 
                         <input type="file" wire:model="image" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => imagePreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
                             class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="image" />
                         <flux:description>Max 2MB, format: JPG, PNG. Kosongkan jika tidak ingin mengubah.
                         </flux:description>
                     </flux:field>
 
-                    @if ($image)
-                        <div class="mt-2">
-                            <div wire:loading wire:target="image"
-                                class="h-32 flex items-center justify-center border border-dashed rounded-lg">
-                                <flux:icon.arrow-path class="w-6 h-6 animate-spin" />
-                            </div>
-                            <div wire:loading.remove wire:target="image">
-                                <img src="{{ $image->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg"
-                                    alt="Preview">
-                                <flux:description>Preview gambar baru</flux:description>
-                            </div>
-                        </div>
-                    @endif
+                    <div x-show="imagePreview" class="mt-2">
+                        <img :src="imagePreview" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
+                        <flux:description>Preview gambar baru</flux:description>
+                    </div>
                 </div>
 
                 <!-- Banner -->
-                <div>
+                <div x-data="{ bannerPreview: null }">
                     <flux:field>
                         <flux:label>Banner</flux:label>
 
                         @if ($existingBanner && !$banner)
                             <div class="mb-2">
-                                <img src="{{ Storage::url($existingBanner) }}" class="w-full h-32 object-cover rounded-lg"
-                                    alt="Current banner">
+                                <img src="{{ Storage::url($existingBanner) }}"
+                                    class="w-full h-32 object-cover rounded-lg" alt="Current banner">
                                 <flux:description>Banner saat ini</flux:description>
                             </div>
                         @endif
 
                         <input type="file" wire:model="banner" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => bannerPreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
                             class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="banner" />
                         <flux:description>Max 2MB, format: JPG, PNG. Kosongkan jika tidak ingin mengubah.
                         </flux:description>
                     </flux:field>
 
-                    @if ($banner)
-                        <div class="mt-2">
-                            <div wire:loading wire:target="banner"
-                                class="h-32 flex items-center justify-center border border-dashed rounded-lg">
-                                <flux:icon.arrow-path class="w-6 h-6 animate-spin" />
-                            </div>
-                            <div wire:loading.remove wire:target="banner">
-                                <img src="{{ $banner->temporaryUrl() }}" class="w-full h-32 object-cover rounded-lg"
-                                    alt="Preview">
-                                <flux:description>Preview banner baru</flux:description>
-                            </div>
-                        </div>
-                    @endif
+                    <div x-show="bannerPreview" class="mt-2">
+                        <img :src="bannerPreview" class="w-full h-32 object-cover rounded-lg" alt="Preview">
+                        <flux:description>Preview banner baru</flux:description>
+                    </div>
                 </div>
 
                 <!-- Active Status -->
@@ -346,7 +346,8 @@ $save = function () {
             <flux:separator />
 
             <div class="flex gap-2 justify-end">
-                <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost">Batal</flux:button>
+                <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost">Batal
+                </flux:button>
                 <flux:button type="submit" variant="primary">
                     <span wire:loading.remove>Simpan Perubahan</span>
                     <flux:icon.arrow-path wire:loading class="animate-spin" />

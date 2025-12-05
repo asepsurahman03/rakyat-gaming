@@ -80,7 +80,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
     }
 }; ?>
 
-<div class="bg-gradient-to-br from-[#470000] to-[#6d0000] min-h-screen py-12">
+<div class="bg-gradient-to-br from-[#470000] to-[#6d0000] py-12">
     <!-- Hero Section -->
     <div class="container mx-auto px-4 max-w-4xl text-center mb-8">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-yellow-400">

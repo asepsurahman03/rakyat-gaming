@@ -202,17 +202,19 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
             }
 
             /* Smooth crossfade carousel */
+            .carousel-container {
+                position: relative;
+            }
+
             .carousel-slide {
-                position: absolute;
-                inset: 0;
                 opacity: 0;
                 transition: opacity 800ms cubic-bezier(0.4, 0, 0.2, 1);
-                z-index: 1;
+                display: none;
             }
 
             .carousel-slide.active {
                 opacity: 1;
-                z-index: 2;
+                display: block;
             }
         </style>
 
@@ -230,19 +232,19 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                     <div class="relative rounded-2xl neon-inner overflow-hidden bg-zinc-900 dark:bg-zinc-800"
                         x-data="{ currentSlide: @entangle('currentSlide') }" x-cloak>
                         <!-- Carousel Container -->
-                        <div class="relative h-[260px] sm:h-[320px] md:h-[480px] bg-zinc-900">
+                        <div class="relative w-full carousel-container">
                             @foreach ($carousels as $index => $carousel)
                                 <div class="carousel-slide" :class="{ 'active': currentSlide === {{ $index }} }">
-                                    <div class="relative h-full w-full">
+                                    <div class="relative w-full">
                                         @if ($carousel->image_path)
                                             <img src="{{ Storage::url($carousel->image_path) }}"
-                                                alt="{{ $carousel->title }}" class="w-full h-full object-cover">
+                                                alt="{{ $carousel->title }}" class="w-full h-auto">
                                             <div
                                                 class="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-transparent to-transparent">
                                             </div>
                                         @else
                                             <div
-                                                class="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                                                class="w-full aspect-video bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                                     class="w-32 h-32 text-white opacity-50">
@@ -302,7 +304,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         <!-- Hero Placeholder if no carousel -->
         <div class="min-h-[300px] bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
             <div class="text-center max-w-2xl px-4">
-                <flux:heading size="xl" class="text-white mb-3">Top Up Game Termurah & Tercepat</flux:heading>
+                <flux:heading size="xl" class="text-white mb-3">{{ config('app.name') }} - Top Up Game Termurah & Tercepat</flux:heading>
                 <flux:subheading class="text-white/90 mb-4">Ribuan produk digital tersedia</flux:subheading>
                 <flux:button variant="primary">Mulai Belanja</flux:button>
             </div>
@@ -311,7 +313,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
     <!-- FlazzSell Section -->
     @if (count($flazzSellProducts) > 0)
-        <div class="bg-zinc-900 py-20">
+        <div class="bg-zinc-900 py-10 md:py-20">
             <div class="container mx-auto px-4 max-w-7xl">
                 <div class="w-full sm:flex justify-between items-center">
                     <div>
@@ -464,17 +466,20 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
     <div class="bg-gradient-to-br from-[#470000] to-[#6d0000]">
         <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
-        <div class="container mx-auto px-4 max-w-7xl py-20">
+        <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
             <flux:heading size="xl" class="mb-2 text-white">🔥 Game Populer Saat Ini</flux:heading>
             <flux:text class="text-white/90 mb-6">Berdasarkan penjualan terbanyak - Top 8 game favorit para gamers!
             </flux:text>
 
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 @forelse($popularGames as $game)
-                    <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group">
+                    <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
+                        x-data="{ showInfo: false }"
+                        @touchstart="showInfo = true"
+                        @touchend="setTimeout(() => showInfo = false, 2000)">
                         <div
                             class="relative overflow-hidden rounded-lg cursor-pointer transition-shadow duration-300 hover:shadow-xl">
-                            <div class="w-full h-40 bg-zinc-900 overflow-hidden">
+                            <div class="w-full h-28 md:h-50 bg-zinc-900 overflow-hidden">
                                 @if ($game->image)
                                     <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
                                         class="w-full h-full object-cover object-top transform transition duration-500 ease-in-out group-hover:scale-105" />
@@ -489,13 +494,13 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                             <!-- Hover overlay: fades up and reveals name + provider -->
                             <div class="absolute inset-0 flex items-end">
                                 <div
-                                    class="w-full p-3 transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-yellow-400/70 to-transparent">
+                                    class="w-full p-3 transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-yellow-400/70 to-transparent" :class="showInfo && 'translate-y-0 opacity-100'">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="min-w-0">
                                             <h3 class="text-white text-sm font-semibold line-clamp-1">
                                                 {{ $game->name }}</h3>
                                             <p class="text-zinc-200 text-xs line-clamp-1 mt-1">
-                                                {{ $game->provider ?? 'Top Up Game' }}</p>
+                                                {{ $game->provider ?? config('app.name') }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -545,24 +550,15 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
                 @forelse($filteredGames as $game)
                     <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
-                        x-data="{
-                            idx: 0,
-                            interval: null,
-                            start() { if (!this.interval) this.interval = setInterval(() => this.idx = (this.idx + 1) % 2, 1200) },
-                            stop() {
-                                if (this.interval) {
-                                    clearInterval(this.interval);
-                                    this.interval = null;
-                                    this.idx = 0
-                                }
-                            }
-                        }" @mouseenter="start" @mouseleave="stop">
+                        x-data="{ showInfo: false }"
+                        @touchstart="showInfo = true"
+                        @touchend="setTimeout(() => showInfo = false, 2000)">
                         <div
-                            class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl">
+                            class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl" :class="showInfo ? 'border-yellow-400 shadow-xl' : ''">
                             <div class="relative w-full overflow-hidden rounded-xl">
                                 @if ($game->image)
                                     <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
-                                        class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300">
+                                        class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300" :class="showInfo ? 'scale-105' : ''" />
                                 @else
                                     <div
                                         class="w-full aspect-square bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
@@ -573,10 +569,10 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
                             <div class="absolute inset-0 flex items-end pointer-events-none">
                                 <div
-                                    class="w-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg">
+                                    class="w-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg" :class="showInfo && 'translate-y-0 opacity-100'">
                                     <div class="min-h-[2rem]">
                                         <h3 class="text-sm font-semibold text-white">{{ $game->name }}</h3>
-                                        <p class="text-xs text-gray-300 mt-1">{{ $game->provider ?? 'Top Up Game' }}
+                                        <p class="text-xs text-gray-300 mt-1">{{ $game->provider ?? config('app.name') }}
                                         </p>
                                     </div>
                                 </div>
@@ -645,11 +641,6 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                 </div>
             </div>
         @endif
-
-        <!-- Features Section -->
-        <div class="container mx-auto max-w-7xl">
-            <img src="{{ asset('images/RG BORDER WEBSITE.png') }}" alt="bg-animation" class="mx-auto w-full">
-        </div>
     </div>
 
     @push('scripts')

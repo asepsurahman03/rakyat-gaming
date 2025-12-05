@@ -168,7 +168,7 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
                         <flux:description>Pisahkan dengan koma</flux:description>
                     </flux:field>
 
-                    <flux:field>
+                    <flux:field x-data="{ imagePreview: null }">
                         <flux:label>Featured Image</flux:label>
 
                         @if ($existing_image && !$featured_image)
@@ -185,14 +185,21 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
                             </div>
                         @endif
 
-                        <flux:input type="file" wire:model="featured_image" accept="image/*" />
+                        <input type="file" wire:model="featured_image" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => imagePreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="featured_image" />
 
-                        @if ($featured_image)
-                            <div class="mt-2">
-                                <img src="{{ $featured_image->temporaryUrl() }}" class="w-full rounded" alt="Preview">
-                            </div>
-                        @endif
+                        <div x-show="imagePreview" class="mt-2">
+                            <img :src="imagePreview" class="w-full rounded" alt="Preview">
+                        </div>
                     </flux:field>
 
                     <flux:separator />

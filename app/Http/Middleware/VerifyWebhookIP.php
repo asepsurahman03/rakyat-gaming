@@ -27,8 +27,14 @@ class VerifyWebhookIP
         ]);
 
         // Allow all IPs in local/development environment
-        if (app()->environment('local')) {
-            Log::info("Local environment - allowing all IPs for {$service}");
+        if (app()->environment('local', 'development')) {
+            Log::info("Local/development environment - allowing all IPs for {$service}");
+            return $next($request);
+        }
+
+        // Allow localhost/127.0.0.1 for testing purposes
+        if (in_array($requestIP, ['127.0.0.1', '::1', 'localhost'])) {
+            Log::info("Localhost access - allowing for testing purposes");
             return $next($request);
         }
 

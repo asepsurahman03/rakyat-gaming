@@ -96,12 +96,12 @@ $save = function () {
                 <!-- Supplier Product -->
                 <flux:field>
                     <flux:label>Produk Supplier <span class="text-red-600">*</span></flux:label>
-                    <flux:select wire:model="supplier_product_id" wire:change="onSupplierProductChange">
+                    <flux:select variant="listbox" searchable wire:model="supplier_product_id" wire:change="onSupplierProductChange">
                         <option value="">Pilih Produk Supplier</option>
                         @foreach ($this->supplierProducts as $sp)
-                            <option value="{{ $sp->id }}">
+                            <flux:select.option value="{{ $sp->id }}">
                                 {{ $sp->product_name }} - Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}
-                            </option>
+                            </flux:select.option>
                         @endforeach
                     </flux:select>
                     <flux:error name="supplier_product_id" />

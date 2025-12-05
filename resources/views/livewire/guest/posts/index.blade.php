@@ -37,7 +37,7 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
     }
 }; ?>
 
-<div class="bg-gradient-to-br from-red-600 to-black">
+<div class="bg-gradient-to-br from-[#470000] to-[#6d0000]">
     <div class=" py-12">
         <div class="container mx-auto px-4 max-w-7xl">
             <flux:heading size="xl" class="text-yellow-500 mb-2">Artikel & Berita</flux:heading>

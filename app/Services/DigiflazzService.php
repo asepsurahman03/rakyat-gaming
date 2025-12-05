@@ -131,6 +131,7 @@ class DigiflazzService
             'buyer_sku_code' => $supplierProduct->code,
             'customer_no' => $customerId,
             'ref_id' => $refId,
+            'testing' => true,
             'sign' => $sign,
         ];
 

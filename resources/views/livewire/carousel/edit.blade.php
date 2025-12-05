@@ -86,7 +86,7 @@ new #[Layout('components.layouts.app'), Title('Edit Carousel')] class extends Co
     <!-- Form -->
     <flux:card>
         <form wire:submit="save">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-data="{ imagePreview: null }">
                 <!-- Left Column - Form Fields -->
                 <div class="space-y-6">
                     <flux:field>
@@ -96,7 +96,16 @@ new #[Layout('components.layouts.app'), Title('Edit Carousel')] class extends Co
                                 <span class="text-red-500">*</span>
                             @endif
                         </flux:label>
-                        <flux:input type="file" wire:model="image" accept="image/*" />
+                        <input type="file" wire:model="image" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => imagePreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:description>Max 2MB (JPG, PNG, GIF)</flux:description>
                         <flux:error name="image" />
                     </flux:field>
@@ -142,33 +151,29 @@ new #[Layout('components.layouts.app'), Title('Edit Carousel')] class extends Co
                                 </div>
                             </div>
                         </flux:field>
-                    @elseif ($image)
+                    @endif
+
+                    <div x-show="imagePreview" style="display: none;">
                         <flux:field>
                             <flux:label>Preview Gambar Baru:</flux:label>
-
-                            {{-- Loader saat Upload --}}
-                            <div wire:loading wire:target="image" class="h-64 flex items-center justify-center border border-dashed rounded-lg">
-                                <div class="text-center">
-                                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                                    <flux:subheading class="mt-4">Loading preview...</flux:subheading>
-                                </div>
-                            </div>
-
-                            {{-- Preview Gambar --}}
-                            <div wire:loading.remove wire:target="image" class="rounded-lg overflow-hidden border-2 border-zinc-200 dark:border-zinc-700">
-                                <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="w-full h-auto" />
+                            <div class="rounded-lg overflow-hidden border-2 border-zinc-200 dark:border-zinc-700">
+                                <img :src="imagePreview" alt="Preview" class="w-full h-auto" />
                             </div>
                         </flux:field>
-                    @else
-                        <flux:field>
-                            <flux:label>Preview:</flux:label>
-                            <div class="rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 h-64 flex items-center justify-center">
-                                <div class="text-center text-zinc-400">
-                                    <flux:icon.photo class="size-16 mx-auto mb-2" />
-                                    <flux:subheading>No image</flux:subheading>
+                    </div>
+
+                    @if (!$carousel->image_path)
+                        <div x-show="!imagePreview">
+                            <flux:field>
+                                <flux:label>Preview:</flux:label>
+                                <div class="rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 h-64 flex items-center justify-center">
+                                    <div class="text-center text-zinc-400">
+                                        <flux:icon.photo class="size-16 mx-auto mb-2" />
+                                        <flux:subheading>No image</flux:subheading>
+                                    </div>
                                 </div>
-                            </div>
-                        </flux:field>
+                            </flux:field>
+                        </div>
                     @endif
                 </div>
             </div>

@@ -10,11 +10,11 @@ new #[Layout('components.layouts.guest'), Title('leaderBoard - Top Up Game Termu
 
 <div>
     <div x-data="leaderboard()" x-init="init()"
-        class="max-w-7xl mx-auto min-h-screen flex flex-col items-center justify-start py-10 space-y-6">
+        class="max-w-7xl mx-auto flex flex-col items-center justify-start py-10 space-y-6">
         <!-- Hero Section -->
         <div class="py-12">
             <div class="container mx-auto px-4 max-w-4xl text-center">
-                <div class="text-gray-800 text-center">
+                <div class="text-center">
                     <!-- Large SVG trophy icon for leaderboard -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-28 h-28 md:w-36 md:h-36 mx-auto text-yellow-400 drop-shadow-md" viewBox="0 0 64 64" fill="currentColor" role="img" aria-label="Trophy">
                         <title>Trophy</title>
@@ -31,51 +31,54 @@ new #[Layout('components.layouts.guest'), Title('leaderBoard - Top Up Game Termu
                         <!-- accent: small star for leaderboard -->
                         <path d="M32 18l1.9 3.9 4.3.6-3.1 3 0.7 4.3L32 30l-3.8 2 0.7-4.3-3.1-3 4.3-.6L32 18z" fill="white" opacity="0.9"/>
                     </svg>
-                    <h1 class="text-3xl md:text-4xl font-bold mb-3 text-yellow-400 text-shadow">Leaderboard
-                    </h1>
-                    <p class="text-lg opacity-90 text-gray-300 text-shadow">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptates reiciendis temporibus amet iste sequi neque dicta excepturi ad, ducimus distinctio.</p>
+                    <flux:heading size="xl" class="mb-3 text-yellow-400">Leaderboard</flux:heading>
+                    <flux:subheading class="text-lg text-white/90">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptates reiciendis temporibus amet iste sequi neque dicta excepturi ad, ducimus distinctio.</flux:subheading>
                 </div>
             </div>
         </div>
 
         <div class="w-full md:w-3/4 lg:w-2/3">
-
-
-            <div class="bg-white shadow rounded overflow-hidden">
+            <flux:card>
                 <template x-for="(b,index) in buyers" :key="b.id">
-                    <div class="flex items-center gap-4 px-4 py-3 border-b last:border-b-0"
-                        :class="{ 'bg-green-50': b.movedUp, 'bg-red-50': b.movedDown }">
-                        <div class="w-10 text-right font-semibold text-gray-700">
-                            <span x-text="index + 1"></span>
+                    <div class="flex items-center gap-4 px-4 py-3 border-b last:border-b-0 dark:border-zinc-700"
+                        :class="{ 'bg-green-50 dark:bg-green-900/20': b.movedUp, 'bg-red-50 dark:bg-red-900/20': b.movedDown }">
+                        <div class="w-10 text-right">
+                            <span class="inline-flex items-center justify-center px-2 py-1 text-sm font-bold rounded"
+                                :class="index < 3 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300'"
+                                x-text="index + 1"></span>
                         </div>
 
                         <div class="flex-1">
                             <div class="flex items-baseline justify-between">
                                 <div>
-                                    <div class="font-medium text-gray-800" x-text="b.name"></div>
-                                    <div class="text-xs text-gray-500" x-text="'#' + b.id + ' · ' + b.tag"></div>
+                                    <div class="font-medium text-base" x-text="b.name"></div>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        <span x-text="'#' + b.id + ' · ' + b.tag"></span>
+                                    </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="text-sm text-gray-500">Transaksi: <span x-text="b.txCount"></span></div>
-                                    <div class="text-xs text-gray-400" x-text="b.lastTime"></div>
+                                    <div class="text-sm text-zinc-600 dark:text-zinc-400">
+                                        Transaksi: <span x-text="b.txCount"></span>
+                                    </div>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-500" x-text="b.lastTime"></div>
                                 </div>
                             </div>
 
-                            <div class="text-sm text-gray-600 mt-1">
-                                Terakhir: <span class="font-medium text-gray-800" x-text="b.lastItem"></span>
+                            <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                                Terakhir: <span class="font-medium text-zinc-800 dark:text-zinc-200" x-text="b.lastItem"></span>
                             </div>
                         </div>
 
                         <div class="w-36 text-right">
                             <div class="text-lg font-bold" x-text="formatCurrency(b.totalSpent)"></div>
                             <div class="text-sm"
-                                :class="b.movedUp ? 'text-green-600' : (b.movedDown ? 'text-red-600' : 'text-gray-500')">
+                                :class="b.movedUp ? 'text-green-600 dark:text-green-400' : (b.movedDown ? 'text-red-600 dark:text-red-400' : 'text-zinc-500')">
                                 <span x-text="b.deltaText"></span>
                             </div>
                         </div>
                     </div>
                 </template>
-            </div>
+            </flux:card>
         </div>
     </div>
 

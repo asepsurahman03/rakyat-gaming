@@ -60,8 +60,13 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
             'APP_MAINTENANCE' => $this->maintenance_mode ? 'true' : 'false',
             'MAINTENANCE_MESSAGE' => $this->maintenance_message,
         ]);
-
-        session()->flash('message', 'Application settings updated successfully!');
+        Flux::toast(
+            heading: 'Settings saved successfully!',
+            text: 'Application settings have been updated.',
+            variant: 'success',
+            duration: 3000,
+            position: 'top-right',
+        );
 
         // Reload settings
         $this->loadSettings();
@@ -93,7 +98,13 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
         \Artisan::call('cache:clear');
         \Artisan::call('view:clear');
 
-        session()->flash('message', 'Cache cleared successfully!');
+        Flux::toast(
+            heading: 'Cache cleared successfully!',
+            text: 'Application cache has been cleared.',
+            variant: 'success',
+            duration: 3000,
+            position: 'top-right',
+        );
         $this->loadSettings();
     }
 }; ?>

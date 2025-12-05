@@ -143,13 +143,12 @@ new #[Layout('components.layouts.user'), Title('Dashboard - Client')] class exte
                     <flux:table.column>Waktu</flux:table.column>
                     <flux:table.column>Total</flux:table.column>
                     <flux:table.column>Status</flux:table.column>
-                    <flux:table.column class="text-center">Detail</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @foreach ($todayOrders as $order)
                         <flux:table.row>
                             <flux:table.cell>
-                                <div class="font-mono text-sm">#{{ $order->order_number }}</div>
+                                <div class="font-mono text-sm">#{{ $order->order_code }}</div>
                             </flux:table.cell>
                             <flux:table.cell>
                                 <div>
@@ -167,11 +166,6 @@ new #[Layout('components.layouts.user'), Title('Dashboard - Client')] class exte
                                 <flux:badge :color="$this->getStatusColor($order->status)" size="sm">
                                     {{ $this->getStatusText($order->status) }}
                                 </flux:badge>
-                            </flux:table.cell>
-                            <flux:table.cell class="text-center">
-                                <flux:button href="{{ route('user.transactions') }}" wire:navigate size="sm" variant="ghost">
-                                    Lihat Detail
-                                </flux:button>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach

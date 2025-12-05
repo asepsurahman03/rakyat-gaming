@@ -73,9 +73,15 @@ $save = function () {
     foreach ($this->fieldForms as $fieldForm) {
         $game->fieldForms()->create($fieldForm);
     }
+    Flux::toast(
+        heading: 'Game berhasil ditambahkan!',
+        text: 'Data game baru telah disimpan ke sistem.',
+        variant: 'success',
+        duration: 3000,
+        position: 'top-right',
+    );
 
     $this->redirect(route('admin.games.index'), navigate: true);
-    session()->flash('success', 'Game berhasil ditambahkan');
 };
 
 ?>
@@ -147,57 +153,50 @@ $save = function () {
                 </div>
 
                 <!-- Image -->
-                <div>
+                <div x-data="{ imagePreview: null }">
                     <flux:field>
-    <flux:label>Gambar</flux:label>
+                        <flux:label>Gambar</flux:label>
 
-    <flux:input.file
-        wire:model.live="image"
-        accept="image/*"
-    />
+                        <input type="file" wire:model="image" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => imagePreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
 
-    <flux:error name="image" />
-</flux:field>
+                        <flux:error name="image" />
+                    </flux:field>
 
-@if ($image)
-    <div class="mt-2">
-        @if ($image instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
-            <img src="{{ $image->temporaryUrl() }}" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
-        @endif
-    </div>
-@endif
-
+                    <div x-show="imagePreview" class="mt-2">
+                        <img :src="imagePreview" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
+                    </div>
                 </div>
 
                 <!-- Banner -->
-                <div>
+                <div x-data="{ bannerPreview: null }">
                     <flux:field>
                         <flux:label>Banner</flux:label>
                         <input type="file" wire:model="banner" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => bannerPreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
                             class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="banner" />
                         <flux:description>Max 2MB, format: JPG, PNG</flux:description>
                     </flux:field>
 
-                    @if ($banner)
-                        <div class="mt-2">
-                            <div wire:loading wire:target="banner"
-                                class="h-32 flex items-center justify-center border border-dashed rounded-lg">
-                                <flux:icon.arrow-path class="w-6 h-6 animate-spin" />
-                            </div>
-                            <div wire:loading.remove wire:target="banner">
-                                @if (method_exists($banner, 'temporaryUrl'))
-                                    <img src="{{ $banner->temporaryUrl() }}" class="w-full h-32 object-cover rounded-lg"
-                                        alt="Preview">
-                                @else
-                                    <div
-                                        class="w-full h-32 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-                                        <flux:icon.photo class="w-8 h-8 text-zinc-400" />
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @endif
+                    <div x-show="bannerPreview" class="mt-2">
+                        <img :src="bannerPreview" class="w-full h-32 object-cover rounded-lg" alt="Preview">
+                    </div>
                 </div>
 
                 <!-- Active Status -->

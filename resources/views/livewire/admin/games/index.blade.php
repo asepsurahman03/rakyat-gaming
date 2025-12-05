@@ -18,8 +18,14 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
 
     public function delete(Game $game)
     {
-        // $game->delete();
-        Flux::toast(heading: 'Changes saved.', text: 'You can always update this in your settings.');
+        $game->delete();
+        Flux::toast(
+            heading: 'Game berhasil dihapus!',
+            text: 'Data game telah dihapus dari sistem.',
+            variant: 'success',
+            duration: 3000,
+            position: 'top-right',
+        );
     }
 
     public function with(): array
@@ -54,7 +60,7 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         @forelse($games as $game)
-            <flux:card>
+            <flux:card wire:key="game-{{ $game->id }}">
                 <div class="aspect-square rounded-lg overflow-hidden mb-4">
                     @if ($game->image)
                         <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
@@ -82,15 +88,34 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
                     </flux:badge>
                 </div>
 
-                <div class="flex gap-2 mt-4">
+                <div class="grid grid-cols-2 gap-2 mt-4">
                     <flux:button href="{{ route('admin.games.edit', $game) }}" wire:navigate size="sm"
                         variant="primary" class="flex-1">
                         Edit
                     </flux:button>
-                    <flux:button wire:click="delete({{ $game->id }})" wire:confirm="Yakin ingin menghapus game ini?"
-                        size="sm" variant="danger" class="flex-1">
-                        Hapus
-                    </flux:button>
+                    <flux:modal.trigger name="delete-game-{{ $game->id }}" class="flex-1">
+                        <flux:button size="sm" variant="danger">
+                            Hapus
+                        </flux:button>
+                    </flux:modal.trigger>
+
+                    <flux:modal name="delete-game-{{ $game->id }}" title="Hapus Game">
+                        <div class="space-y-6">
+                            <div class="text-red-500">
+                                <flux:icon.info class="w-12 h-12 mx-auto mb-4" />
+                                <flux:heading size="lg" class="text-center">Peringatan!</flux:heading>
+                                <flux:text>Apakah kamu yakin ingin menghapus game {{ $game->name }}? Tindakan ini akan menghapus seluruh data yang terkait pada game {{ $game->name }} dan akan terhapus secara permanen.</flux:text>
+                        </div>
+                        <div class="mt-6 flex justify-end gap-2">
+                            <flux:spacer />
+                            <flux:modal.close>
+                                <flux:button variant="ghost">Batal</flux:button>
+                            </flux:modal.close>
+                            <flux:modal.close>
+                                <flux:button variant="danger" wire:click="delete({{ $game->id }})">Hapus</flux:button>
+                            </flux:modal.close>
+                        </div>
+                    </flux:modal>
                 </div>
             </flux:card>
         @empty

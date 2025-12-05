@@ -16,15 +16,13 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
     {
         $userId = auth()->id();
 
-        $query = Order::where('user_id', $userId)
-            ->with(['product.game', 'paymentGateway']);
+        $query = Order::where('user_id', $userId)->with(['product.game', 'paymentGateway']);
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('order_number', 'like', "%{$this->search}%")
-                    ->orWhereHas('product', function ($q2) {
-                        $q2->where('name', 'like', "%{$this->search}%");
-                    });
+                $q->where('order_number', 'like', "%{$this->search}%")->orWhereHas('product', function ($q2) {
+                    $q2->where('name', 'like', "%{$this->search}%");
+                });
             });
         }
 
@@ -41,8 +39,7 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                     $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
                     break;
                 case 'month':
-                    $query->whereMonth('created_at', now()->month)
-                        ->whereYear('created_at', now()->year);
+                    $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
                     break;
             }
         }
@@ -139,7 +136,8 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                 <div>
                     <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Total Pengeluaran
                     </flux:heading>
-                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($totalSpent / 1000, 0) }}K</flux:heading>
+                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($totalSpent / 1000, 0) }}K
+                    </flux:heading>
                     <flux:subheading class="text-xs mt-1">Semua waktu</flux:subheading>
                 </div>
                 <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
@@ -203,7 +201,7 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                 @forelse($orders as $order)
                     <flux:table.row>
                         <flux:table.cell>
-                            <div class="font-mono text-sm">#{{ $order->order_number }}</div>
+                            <div class="font-mono text-sm">#{{ $order->order_code }}</div>
                         </flux:table.cell>
                         <flux:table.cell>
                             <div>
@@ -218,7 +216,8 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge color="zinc" size="sm">{{ $order->paymentGateway->name ?? 'N/A' }}</flux:badge>
+                            <flux:badge color="zinc" size="sm">{{ $order->paymentGateway->name ?? 'N/A' }}
+                            </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>
                             <span class="font-semibold">Rp {{ number_format($order->price, 0, ',', '.') }}</span>
@@ -237,36 +236,47 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                                 <div class="space-y-6">
                                     <div>
                                         <flux:heading size="lg">Detail Transaksi</flux:heading>
-                                        <flux:subheading>Order #{{ $order->order_number }}</flux:subheading>
+                                        <flux:subheading>Order #{{ $order->order_code }}</flux:subheading>
                                     </div>
 
                                     <div class="space-y-4">
-                                        <div class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                                        <div
+                                            class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
                                             <span class="text-sm text-zinc-600 dark:text-zinc-400">Game</span>
                                             <span class="font-semibold">{{ $order->product->game->name }}</span>
                                         </div>
 
-                                        <div class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                                        <div
+                                            class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
                                             <span class="text-sm text-zinc-600 dark:text-zinc-400">Produk</span>
                                             <span class="font-semibold">{{ $order->product->name }}</span>
                                         </div>
 
-                                        <div class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                                        <div
+                                            class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
                                             <span class="text-sm text-zinc-600 dark:text-zinc-400">Tanggal</span>
-                                            <span class="font-semibold">{{ $order->created_at->format('d M Y H:i') }}</span>
+                                            <span
+                                                class="font-semibold">{{ $order->created_at->format('d M Y H:i') }}</span>
                                         </div>
 
-                                        <div class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
-                                            <span class="text-sm text-zinc-600 dark:text-zinc-400">Metode Pembayaran</span>
-                                            <span class="font-semibold">{{ $order->paymentGateway->name ?? 'N/A' }}</span>
+                                        <div
+                                            class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                                            <span class="text-sm text-zinc-600 dark:text-zinc-400">Metode
+                                                Pembayaran</span>
+                                            <span
+                                                class="font-semibold">{{ $order->paymentGateway->name ?? 'N/A' }}</span>
                                         </div>
 
-                                        <div class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
-                                            <span class="text-sm text-zinc-600 dark:text-zinc-400">Total Pembayaran</span>
-                                            <span class="font-semibold text-lg">Rp {{ number_format($order->price, 0, ',', '.') }}</span>
+                                        <div
+                                            class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                                            <span class="text-sm text-zinc-600 dark:text-zinc-400">Total
+                                                Pembayaran</span>
+                                            <span class="font-semibold text-lg">Rp
+                                                {{ number_format($order->price, 0, ',', '.') }}</span>
                                         </div>
 
-                                        <div class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                                        <div
+                                            class="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-700">
                                             <span class="text-sm text-zinc-600 dark:text-zinc-400">Status</span>
                                             <flux:badge :color="$this->getStatusColor($order->status)">
                                                 {{ $this->getStatusText($order->status) }}
@@ -279,7 +289,8 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                                                 <div class="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 space-y-2">
                                                     @foreach (json_decode($order->additional_data, true) as $key => $value)
                                                         <div class="flex justify-between">
-                                                            <span class="text-sm text-zinc-600 dark:text-zinc-400">{{ $key }}</span>
+                                                            <span
+                                                                class="text-sm text-zinc-600 dark:text-zinc-400">{{ $key }}</span>
                                                             <span class="font-semibold">{{ $value }}</span>
                                                         </div>
                                                     @endforeach

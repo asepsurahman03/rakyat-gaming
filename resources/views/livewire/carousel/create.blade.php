@@ -71,8 +71,8 @@ new #[Layout('components.layouts.app'), Title('Tambah Carousel')] class extends 
 
     <!-- Form -->
     <flux:card>
-        <form wire:submit="save" >
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form wire:submit="save">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" x-data="{ imagePreview: null }">
                 <!-- Left Column - Form Fields -->
                 <div class="space-y-6">
                     <flux:field>
@@ -83,14 +83,18 @@ new #[Layout('components.layouts.app'), Title('Tambah Carousel')] class extends 
 
                     <flux:field>
                         <flux:label>Gambar Carousel <span class="text-red-500">*</span></flux:label>
-                                        <input type="file" wire:model="image" accept="image/*"
-                    class="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-neutral-100 file:text-neutral-700 hover:file:bg-neutral-200 dark:file:bg-neutral-800 dark:file:text-neutral-300 dark:hover:file:bg-neutral-700" />
+                        <input type="file" wire:model="image" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => imagePreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
+                            class="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-neutral-100 file:text-neutral-700 hover:file:bg-neutral-200 dark:file:bg-neutral-800 dark:file:text-neutral-300 dark:hover:file:bg-neutral-700" />
                         <flux:description>Max size 2MB</flux:description>
                         <flux:error name="image" />
-
-                        @if ($image)
-                            <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="w-full h-auto object-cover" />
-                        @endif
                     </flux:field>
 
                     <flux:field>
@@ -102,24 +106,16 @@ new #[Layout('components.layouts.app'), Title('Tambah Carousel')] class extends 
 
                 <!-- Right Column - Image Preview -->
                 <div>
-                    @if ($image)
+                    <div x-show="imagePreview" style="display: none;">
                         <flux:field>
                             <flux:label>Preview Image:</flux:label>
-
-                            {{-- Loader saat Upload --}}
-                            <div wire:loading wire:target="image" class="h-64 flex items-center justify-center border border-dashed rounded-lg">
-                                <div class="text-center">
-                                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                                    <flux:subheading class="mt-4">Uploading...</flux:subheading>
-                                </div>
-                            </div>
-
-                            {{-- Preview Gambar --}}
-                            <div wire:loading.remove wire:target="image" class="rounded-lg overflow-hidden border-2 border-zinc-200 dark:border-zinc-700">
-                                <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="w-full h-auto object-cover" />
+                            <div class="rounded-lg overflow-hidden border-2 border-zinc-200 dark:border-zinc-700">
+                                <img :src="imagePreview" alt="Preview" class="w-full h-auto object-cover" />
                             </div>
                         </flux:field>
-                    @else
+                    </div>
+
+                    <div x-show="!imagePreview">
                         <flux:field>
                             <flux:label>Preview:</flux:label>
                             <div class="rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 h-64 flex items-center justify-center">
@@ -129,7 +125,7 @@ new #[Layout('components.layouts.app'), Title('Tambah Carousel')] class extends 
                                 </div>
                             </div>
                         </flux:field>
-                    @endif
+                    </div>
                 </div>
             </div>
 

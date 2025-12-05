@@ -90,7 +90,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 
             $duitkuService = app(DuitkuService::class);
             $result = $duitkuService->getPaymentMethods((int) $price);
-            
+
             if ($result['success']) {
                 $this->paymentMethods = collect($result['methods'])->toArray();
             }
@@ -230,7 +230,6 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 class="w-32 h-32 rounded-lg object-cover">
             <div class="flex-1">
                 <flux:heading size="xl">{{ $game->name }}</flux:heading>
-                <flux:subheading class="mt-2">{{ $game->description }}</flux:subheading>
                 <flux:badge class="mt-3" color="indigo">{{ $game->provider }}</flux:badge>
             </div>
         </div>
@@ -381,7 +380,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             @endif
 
             <!-- Regular Products -->
-            <flux:card>
+            <flux:card class="mb-4">
                 <flux:heading size="lg" class="mb-4">Pilih Nominal</flux:heading>
 
                 @if ($products->isEmpty())
@@ -417,6 +416,13 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                         @endforeach
                     </div>
                 @endif
+            </flux:card>
+
+            <flux:card class="mb-4 hidden md:block">
+                <flux:heading>Deskripsi {{ $game->name }}</flux:heading>
+                <flux:text class="whitespace-pre-line">
+                    {{ $game->description }}
+                </flux:text>
             </flux:card>
         </div>
 
