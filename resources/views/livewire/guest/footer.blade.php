@@ -10,7 +10,7 @@ new class extends Component {
     {
         $this->settings = [
             'site_name' => config('app.name', 'Rakyat Gaming'),
-            'site_description' => env('SITE_DESCRIPTION', 'Platform top up game terpercaya dan termurah di Indonesia'),
+            'site_description' => env('APP_DESCRIPTION', 'Platform top up game terpercaya dan termurah di Indonesia'),
             'facebook' => env('SOCIAL_FACEBOOK', '#'),
             'instagram' => env('SOCIAL_INSTAGRAM', '#'),
             'twitter' => env('SOCIAL_TWITTER', '#'),
@@ -34,7 +34,7 @@ new class extends Component {
                 <div class="space-y-4">
                     <div>
                         <img src="{{ asset('images/logo-rkgame-animation.gif') }}" alt="logo" class="h-12 md:h-20 w-auto">
-                        <p class="text-sm opacity-70 mt-2">{{ $settings['site_description'] }}</p>
+                        <p class="text-sm opacity-70 mt-2 text-justify">{{ $settings['site_description'] }}</p>
                     </div>
                     <div class="flex gap-3">
                         @if ($settings['facebook'] && $settings['facebook'] !== '#')
