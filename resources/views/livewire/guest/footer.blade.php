@@ -9,15 +9,15 @@ new class extends Component {
     public function mount()
     {
         $this->settings = [
-            'site_name' => Setting::get('site_name', config('app.name', 'Warung Gaming')),
-            'site_description' => Setting::get('site_description', 'Platform top-up game terpercaya'),
-            'contact_email' => Setting::get('contact_email', 'info@warunggaming.com'),
-            'contact_phone' => Setting::get('contact_phone', '+62 812-3456-7890'),
-            'contact_whatsapp' => Setting::get('contact_whatsapp', '+62 812-3456-7890'),
-            'address' => Setting::get('address', 'Jakarta, Indonesia'),
-            'facebook' => Setting::get('facebook', '#'),
-            'instagram' => Setting::get('instagram', '#'),
-            'twitter' => Setting::get('twitter', '#'),
+            'site_name' => config('app.name', 'Rakyat Gaming'),
+            'site_description' => env('SITE_DESCRIPTION', 'Platform top up game terpercaya dan termurah di Indonesia'),
+            'facebook' => env('SOCIAL_FACEBOOK', '#'),
+            'instagram' => env('SOCIAL_INSTAGRAM', '#'),
+            'twitter' => env('SOCIAL_TWITTER', '#'),
+            'contact_email' => env('CONTACT_EMAIL', 'info@rakyatgaming.com'),
+            'contact_phone' => env('CONTACT_PHONE', '+62 812-3456-7890'),
+            'contact_whatsapp' => env('CONTACT_WHATSAPP', '+62 812-3456-7890'),
+            'address' => env('CONTACT_ADDRESS', 'Jakarta, Indonesia'),
         ];
     }
 }; ?>
@@ -33,7 +33,7 @@ new class extends Component {
                 <!-- Brand Section -->
                 <div class="space-y-4">
                     <div>
-                        <h3 class="text-2xl font-bold text-primary">{{ $settings['site_name'] }}</h3>
+                        <img src="{{ asset('images/logo-rkgame-animation.gif') }}" alt="logo" class="h-12 md:h-20 w-auto">
                         <p class="text-sm opacity-70 mt-2">{{ $settings['site_description'] }}</p>
                     </div>
                     <div class="flex gap-3">
