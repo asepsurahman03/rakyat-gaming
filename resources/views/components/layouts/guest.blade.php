@@ -26,13 +26,13 @@
                             <template x-if="selected === 'en'">
                                 <span class="flex items-center gap-2">
                                     <img src="{{ asset('images/eng.png') }}" alt="English" class="w-5 h-5 rounded-sm" />
-                                    <span class="hidden md:inline text-sm font-medium">English</span>
+                                    <span class="hidden md:inline text-sm font-medium">Eng</span>
                                 </span>
                             </template>
                             <template x-if="selected === 'id'">
                                 <span class="flex items-center gap-2">
                                     <img src="{{ asset('images/ind.png') }}" alt="Indonesia" class="w-5 h-5 rounded-sm" />
-                                    <span class="hidden md:inline text-sm font-medium">Indonesia</span>
+                                    <span class="hidden md:inline text-sm font-medium">Ind</span>
                                 </span>
                             </template>
                             <svg class="w-4 h-4 ml-1" :class="{ 'rotate-180': open }" fill="none"
