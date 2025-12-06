@@ -231,6 +231,21 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             <div class="flex-1">
                 <flux:heading size="xl">{{ $game->name }}</flux:heading>
                 <flux:badge class="mt-3" color="indigo">{{ $game->provider }}</flux:badge>
+                <flux:spacer class="my-6" />
+                <div class="flex gap-2">
+                    <div class="flex gap-0.5 items-center">
+                        <flux:icon.zap class="w-5 h-5 text-yellow-400 animate-pulse" />
+                        <span class="text-xs">Proses Cepat</span>
+                    </div>
+                    <div class="flex gap-0.5 items-center">
+                        <flux:icon.messages-square class="w-5 h-5 text-yellow-400 animate-pulse" />
+                        <span class="text-xs">Layanan Chat 24/7</span>
+                    </div>
+                    <div class="flex gap-0.5 items-center">
+                        <flux:icon.credit-card class="w-5 h-5 text-yellow-400 animate-pulse" />
+                        <span class="text-xs">Pembayaran Aman!</span>
+                    </div>
+                </div>
             </div>
         </div>
     </flux:card>
@@ -419,7 +434,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             </flux:card>
 
             <flux:card class="mb-4 hidden md:block">
-                <flux:heading>Deskripsi {{ $game->name }}</flux:heading>
+                <flux:heading class="mb-4">Deskripsi {{ $game->name }}</flux:heading>
                 <flux:text class="whitespace-pre-line">
                     {{ $game->description }}
                 </flux:text>
@@ -452,6 +467,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             <flux:input type="text" wire:model="whatsapp"
                                 placeholder="81234567890" />
                         </flux:input.group>
+                        <flux:error name="whatsapp" />
                         <flux:text class="text-xs text-zinc-300 mt-1 flex">
                             <flux:icon.triangle-alert variant="outline" class="w-4 h-4 text-yellow-600 inline" />
                             Tulis tanpa angka 0 di depan. Contoh: 81234567890

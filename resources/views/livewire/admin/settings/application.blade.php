@@ -23,7 +23,7 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
 
     public function loadSettings()
     {
-        $this->app_name = config('app.name', 'Warung Gaming');
+        $this->app_name = config('app.name', 'Rakyat Gaming');
         $this->app_url = config('app.url');
         $this->app_description = env('APP_DESCRIPTION', '');
         $this->contact_email = env('CONTACT_EMAIL', '');
@@ -134,7 +134,7 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
             <div class="space-y-6 mt-6">
                 <flux:field>
                     <flux:label>Application Name <span class="text-red-500">*</span></flux:label>
-                    <flux:input wire:model="app_name" placeholder="Warung Gaming" />
+                    <flux:input wire:model="app_name" placeholder="Rakyat Gaming" />
                     <flux:error name="app_name" />
                 </flux:field>
 

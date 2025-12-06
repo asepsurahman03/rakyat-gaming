@@ -41,16 +41,16 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
             ->with(['flazzSellProducts.product.game'])
             ->get();
 
-        $event = $activeEvents
-            ->filter(function ($e) {
-                return isset($e->start_at) && $e->start_at->gt(now());
-            })
-            ->sortBy('start_at')
-            ->first() ?? $activeEvents->first();
+        $event =
+            $activeEvents
+                ->filter(function ($e) {
+                    return isset($e->start_at) && $e->start_at->gt(now());
+                })
+                ->sortBy('start_at')
+                ->first() ?? $activeEvents->first();
         if ($event) {
             $this->timeRemaining = $event->getTimeRemaining();
             $this->event = $event;
-
         }
 
         // Collect all products from all active events
@@ -304,7 +304,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         <!-- Hero Placeholder if no carousel -->
         <div class="min-h-[300px] bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
             <div class="text-center max-w-2xl px-4">
-                <flux:heading size="xl" class="text-white mb-3">{{ config('app.name') }} - Top Up Game Termurah & Tercepat</flux:heading>
+                <flux:heading size="xl" class="text-white mb-3">{{ config('app.name') }} - Top Up Game Termurah &
+                    Tercepat</flux:heading>
                 <flux:subheading class="text-white/90 mb-4">Ribuan produk digital tersedia</flux:subheading>
                 <flux:button variant="primary">Mulai Belanja</flux:button>
             </div>
@@ -321,7 +322,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                             <flux:icon.fire class="w-8 h-8 text-red-500 animate-pulse" />
                             <flux:heading size="xl" class="text-white">Flash Sale - Diskon Terbatas!</flux:heading>
                         </div>
-                        <flux:text class="text-white/90 mb-6">Buruan ambil sebelum kehabisan - Harga spesial cuma hari ini!
+                        <flux:text class="text-white/90 mb-6">Buruan ambil sebelum kehabisan - Harga spesial cuma hari
+                            ini!
                         </flux:text>
                     </div>
                     <!-- Countdown Timer -->
@@ -379,7 +381,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                             $discountedPrice = $flazzSellProduct->getDiscountedPrice();
                             $timeRemaining = $event->getTimeRemaining();
                         @endphp
-                        <a href="{{ route('game.detail', $product->game->slug) }}" wire:navigate class="group flex-shrink-0 w-[280px] sm:w-[320px] snap-start">
+                        <a href="{{ route('game.detail', $product->game->slug) }}" wire:navigate
+                            class="group flex-shrink-0 w-[280px] sm:w-[320px] snap-start">
                             <div
                                 class="relative border-2 border-red-400 dark:border-red-600 rounded-xl overflow-hidden hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300 h-full">
 
@@ -397,7 +400,9 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                     @endif
 
                                     <!-- Dark Gradient Overlay -->
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                                    </div>
 
                                     <!-- Event Badge -->
                                     <div class="absolute top-3 right-3 z-10">
@@ -431,8 +436,10 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                                 <span class="text-xs text-zinc-300 line-through drop-shadow-lg">
                                                     Rp {{ number_format($product->selling_price, 0, ',', '.') }}
                                                 </span>
-                                                <span class="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full font-semibold shadow-lg">
-                                                    Hemat {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
+                                                <span
+                                                    class="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full font-semibold shadow-lg">
+                                                    Hemat
+                                                    {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
                                                 </span>
                                             </div>
                                             <div class="text-2xl font-bold text-yellow-400 drop-shadow-lg">
@@ -445,7 +452,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                             <div class="bg-black/40 backdrop-blur-sm rounded-lg p-2">
                                                 <div class="flex items-center justify-between text-xs mb-1">
                                                     <span class="text-white font-medium">Stok tersisa:</span>
-                                                    <span class="font-bold text-orange-400">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}/{{ $flazzSellProduct->quota }}</span>
+                                                    <span
+                                                        class="font-bold text-orange-400">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}/{{ $flazzSellProduct->quota }}</span>
                                                 </div>
                                                 <div class="w-full bg-zinc-700 rounded-full h-2">
                                                     <div class="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all shadow-lg"
@@ -474,8 +482,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 @forelse($popularGames as $game)
                     <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
-                        x-data="{ showInfo: false }"
-                        @touchstart="showInfo = true"
+                        x-data="{ showInfo: false }" @touchstart="showInfo = true"
                         @touchend="setTimeout(() => showInfo = false, 2000)">
                         <div
                             class="relative overflow-hidden rounded-lg cursor-pointer transition-shadow duration-300 hover:shadow-xl">
@@ -493,8 +500,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
                             <!-- Hover overlay: fades up and reveals name + provider -->
                             <div class="absolute inset-0 flex items-end">
-                                <div
-                                    class="w-full p-3 transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-yellow-400/70 to-transparent" :class="showInfo && 'translate-y-0 opacity-100'">
+                                <div class="w-full p-3 transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-yellow-400/70 to-transparent"
+                                    :class="showInfo && 'translate-y-0 opacity-100'">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="min-w-0">
                                             <h3 class="text-white text-sm font-semibold line-clamp-1">
@@ -550,15 +557,15 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
                 @forelse($filteredGames as $game)
                     <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
-                        x-data="{ showInfo: false }"
-                        @touchstart="showInfo = true"
+                        x-data="{ showInfo: false }" @touchstart="showInfo = true"
                         @touchend="setTimeout(() => showInfo = false, 2000)">
-                        <div
-                            class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl" :class="showInfo ? 'border-yellow-400 shadow-xl' : ''">
+                        <div class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl"
+                            :class="showInfo ? 'border-yellow-400 shadow-xl' : ''">
                             <div class="relative w-full overflow-hidden rounded-xl">
                                 @if ($game->image)
                                     <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
-                                        class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300" :class="showInfo ? 'scale-105' : ''" />
+                                        class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                                        :class="showInfo ? 'scale-105' : ''" />
                                 @else
                                     <div
                                         class="w-full aspect-square bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
@@ -568,11 +575,12 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                             </div>
 
                             <div class="absolute inset-0 flex items-end pointer-events-none">
-                                <div
-                                    class="w-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg" :class="showInfo && 'translate-y-0 opacity-100'">
+                                <div class="w-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg"
+                                    :class="showInfo && 'translate-y-0 opacity-100'">
                                     <div class="min-h-[2rem]">
                                         <h3 class="text-sm font-semibold text-white">{{ $game->name }}</h3>
-                                        <p class="text-xs text-gray-300 mt-1">{{ $game->provider ?? config('app.name') }}
+                                        <p class="text-xs text-gray-300 mt-1">
+                                            {{ $game->provider ?? config('app.name') }}
                                         </p>
                                     </div>
                                 </div>
@@ -642,33 +650,33 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
             </div>
         @endif
     </div>
+</div>
 
-    @push('scripts')
-        @vite('resources/js/particles.js')
-        <script>
-            // Use window object to ensure single instance across page lifecycle
-            if (!window.particleSystemInitialized) {
-                window.particleSystemInitialized = false;
-                window.particleSystemInstance = null;
+@assets
+    @vite('resources/js/particles.js')
+@endassets
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wait a bit for the canvas to be ready
+        setTimeout(() => {
+            const canvas = document.getElementById('particleCanvas');
+            if (!canvas) {
+                console.error('Particle canvas not found');
+                return;
             }
 
-            function initParticles() {
-                // Prevent multiple initialization
-                if (window.particleSystemInitialized) {
-                    console.log('Particles already initialized, skipping...');
-                    return;
-                }
+            console.log('Initializing particle system...');
 
-                const canvas = document.getElementById('particleCanvas');
-                if (!canvas) {
-                    console.log('Canvas not found');
-                    return;
-                }
+            // Check if ParticleSystem is available
+            if (typeof ParticleSystem === 'undefined') {
+                console.error('ParticleSystem class not loaded');
+                return;
+            }
 
-                console.log('Initializing particles...');
-
-                // Initialize particle system with golden theme
-                window.particleSystemInstance = new ParticleSystem('particleCanvas', {
+            // Initialize particle system with golden theme
+            try {
+                const particleSystem = new ParticleSystem('particleCanvas', {
                     particleCount: 80,
                     particleColor: 'rgba(255, 215, 0, 0.7)', // Golden color
                     particleSize: {
@@ -682,16 +690,10 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                     shapes: ['circle', 'star', 'diamond'],
                     glow: true
                 });
-
-                window.particleSystemInitialized = true;
+                console.log('Particles initialized successfully');
+            } catch (error) {
+                console.error('Error initializing particles:', error);
             }
-
-            // Initialize on DOM load
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initParticles);
-            } else {
-                // DOM already loaded
-                initParticles();
-            }
-        </script>
-    @endpush
+        }, 100);
+    });
+</script>

@@ -1,6 +1,6 @@
 <x-layouts.auth title="Welcome Back!">
     <div class="text-center mb-6">
-        <p class="text-sm text-zinc-100">Sign in to continue to Warung Gaming</p>
+        <p class="text-sm text-zinc-100">Sign in to continue to Rakyat Gaming</p>
     </div>
 
     <form method="POST" action="{{ route('login.store') }}" class="space-y-6">
