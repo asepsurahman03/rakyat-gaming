@@ -43,6 +43,10 @@ return [
     'submit' => 'Kirim',
     'close' => 'Tutup',
     'back' => 'Kembali',
+    'view_all' => 'Lihat Semua',
+    'view_details' => 'Lihat Detail',
+    'buy_now' => 'Beli Sekarang',
+    'order_now' => 'Pesan Sekarang',
 
     // Admin Menu
     'carousel' => 'Carousel',
@@ -73,6 +77,7 @@ return [
     'error' => 'Terjadi kesalahan!',
     'confirm_delete' => 'Apakah Anda yakin ingin menghapus?',
     'no_data' => 'Tidak ada data',
+    'loading' => 'Memuat...',
 
     // Validation
     'required' => 'Field ini wajib diisi',
@@ -90,7 +95,143 @@ return [
     'theme' => 'Tema',
     'language' => 'Bahasa',
 
-    //auth
-    'login' => 'masuk',
-    'logout' => 'keluar',
+    // Welcome Page
+    'welcome_title' => 'Top Up Game Termurah & Tercepat',
+    'flash_sale' => 'Flash Sale',
+    'coming_soon' => 'Segera Hadir',
+    'flash_sale_description' => 'Jangan lewatkan penawaran spesial kami! Diskon hingga 50%',
+    'popular_games' => 'Game Populer',
+    'all_games' => 'Semua Game',
+    'search_game' => 'Cari game...',
+    'search_game_placeholder' => 'Cari game favorit Anda...',
+    'latest_articles' => 'Artikel Terbaru',
+    'read_more' => 'Baca Selengkapnya',
+    'products_available' => 'produk tersedia',
+    'discount' => 'Diskon',
+    'original_price' => 'Harga Normal',
+    'flash_price' => 'Harga Flash',
+    'stock_left' => 'Tersisa',
+    'sold' => 'Terjual',
+    'ends_in' => 'Berakhir dalam',
+
+    // Leaderboard
+    'leaderboard_title' => 'Leaderboard Penjualan',
+    'leaderboard_subtitle' => 'Lihat top 10 pembeli dengan transaksi terbesar dan dapatkan inspirasi untuk transaksi berikutnya!',
+    'weekly' => 'Seminggu',
+    'monthly' => 'Sebulan',
+    'all_time' => 'Keseluruhan',
+    'total_transactions' => 'Total Transaksi',
+    'total_sales' => 'Total Penjualan',
+    'active_buyers' => 'Pembeli Aktif',
+    'rank' => 'Rank',
+    'buyer' => 'Pembeli',
+    'total_spent' => 'Total Belanja',
+    'transactions' => 'Transaksi',
+    'last_item' => 'Item Terakhir',
+    'time' => 'Waktu',
+    'leaderboard_footer' => 'Data diperbarui secara real-time setiap ada transaksi baru',
+
+    // Transaction Check
+    'check_transaction_title' => 'Cek Status Transaksi',
+    'check_transaction_subtitle' => 'Masukkan kode unik transaksi Anda untuk melihat detail dan status pesanan',
+    'transaction_code' => 'Kode Transaksi',
+    'transaction_code_placeholder' => 'Masukkan kode transaksi Anda',
+    'check_status' => 'Cek Status',
+    'transaction_details' => 'Detail Transaksi',
+    'order_id' => 'ID Pesanan',
+    'order_date' => 'Tanggal Pesanan',
+    'payment_status' => 'Status Pembayaran',
+    'payment_method' => 'Metode Pembayaran',
+    'total_amount' => 'Total Pembayaran',
+    'transaction_not_found' => 'Transaksi tidak ditemukan',
+    'transaction_not_found_desc' => 'Pastikan kode transaksi yang Anda masukkan benar',
+
+    // Calculator
+    'calculator_title' => 'Kalkulator Game',
+    'calculator_subtitle' => 'Hitung kebutuhan Anda dengan mudah',
+    'magic_wheel' => 'Magic Wheel',
+    'zodiac_calculator' => 'Kalkulator Zodiak',
+    'winrate_calculator' => 'Kalkulator Winrate',
+    'select_calculator' => 'Pilih Kalkulator',
+
+    // Posts
+    'all_articles' => 'Semua Artikel',
+    'popular_articles' => 'Artikel Populer',
+    'latest_posts' => 'Postingan Terbaru',
+    'search_articles' => 'Cari artikel...',
+    'filter_by_game' => 'Filter berdasarkan game',
+    'all_categories' => 'Semua Kategori',
+    'views' => 'views',
+    'published_at' => 'Dipublikasikan',
+    'written_by' => 'Ditulis oleh',
+    'share_article' => 'Bagikan Artikel',
+    'about_game' => 'Tentang Game',
+    'related_articles' => 'Artikel Terkait',
+    'no_articles' => 'Tidak ada artikel',
+    'no_articles_desc' => 'Belum ada artikel yang dipublikasikan',
+
+    // Game Detail
+    'select_product' => 'Pilih Produk',
+    'user_id' => 'User ID',
+    'server_id' => 'Server ID',
+    'zone_id' => 'Zone ID',
+    'payment_method' => 'Metode Pembayaran',
+    'select_payment' => 'Pilih Metode Pembayaran',
+    'order_summary' => 'Ringkasan Pesanan',
+    'product_name' => 'Nama Produk',
+    'product_price' => 'Harga Produk',
+    'admin_fee' => 'Biaya Admin',
+    'total_payment' => 'Total Pembayaran',
+    'process_order' => 'Proses Pesanan',
+    'contact_info' => 'Informasi Kontak',
+    'whatsapp_number' => 'Nomor WhatsApp',
+    'whatsapp_placeholder' => 'Contoh: 08123456789',
+
+    // Checkout
+    'checkout_title' => 'Checkout',
+    'confirm_payment' => 'Konfirmasi Pembayaran',
+    'pay_now' => 'Bayar Sekarang',
+    'payment_instructions' => 'Instruksi Pembayaran',
+    'complete_payment' => 'Selesaikan pembayaran dalam',
+    'minutes' => 'menit',
+
+    // Footer
+    'about_us' => 'Tentang Kami',
+    'about_us_desc' => 'Platform top up game terpercaya dengan harga terbaik dan proses tercepat di Indonesia',
+    'quick_links' => 'Tautan Cepat',
+    'contact_us' => 'Hubungi Kami',
+    'follow_us' => 'Ikuti Kami',
+    'copyright' => 'Hak Cipta',
+    'all_rights_reserved' => 'Semua hak dilindungi',
+
+    // Chat Widget
+    'chat_with_us' => 'Chat dengan Kami',
+    'type_message' => 'Ketik pesan...',
+    'send' => 'Kirim',
+    'online' => 'Online',
+    'offline' => 'Offline',
+    'customer_support' => 'Customer Support',
+
+    // Time
+    'minutes_ago' => 'menit yang lalu',
+    'hours_ago' => 'jam yang lalu',
+    'days_ago' => 'hari yang lalu',
+    'just_now' => 'baru saja',
+
+    // Status
+    'pending' => 'Menunggu',
+    'processing' => 'Diproses',
+    'completed' => 'Selesai',
+    'failed' => 'Gagal',
+    'cancelled' => 'Dibatalkan',
+
+    // Common
+    'or' => 'atau',
+    'and' => 'dan',
+    'with' => 'dengan',
+    'from' => 'dari',
+    'to' => 'ke',
+    'at' => 'pada',
+    'in' => 'dalam',
+    'for' => 'untuk',
 ];

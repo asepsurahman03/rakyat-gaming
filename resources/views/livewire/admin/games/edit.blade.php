@@ -10,7 +10,7 @@ use function Livewire\Volt\{state, mount, rules, uses, computed};
 
 uses([WithFileUploads::class]);
 
-state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => []]);
+state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => [], 'autoGenerateSlug' => false]);
 
 $categories = computed(fn() => Category::where('is_active', true)->orderBy('sort_order')->get());
 
@@ -60,6 +60,23 @@ $generateSlug = function () {
     $this->slug = Str::slug($this->name);
 };
 
+$toggleAutoSlug = function () {
+    $this->autoGenerateSlug = !$this->autoGenerateSlug;
+    if ($this->autoGenerateSlug && $this->name) {
+        $this->slug = Str::slug($this->name);
+    }
+};
+
+$updated = function ($property) {
+    if ($property === 'name' && $this->autoGenerateSlug) {
+        $this->slug = Str::slug($this->name);
+    }
+
+    if ($property === 'slug') {
+        $this->autoGenerateSlug = false;
+    }
+};
+
 $addFieldForm = function () {
     $this->fieldForms[] = [
         'label' => '',
@@ -95,7 +112,7 @@ $save = function () {
             Storage::disk('public')->delete($this->game->banner);
         }
         $validated['banner'] = $this->banner->store('games', 'public');
-    }else {
+    } else {
         unset($validated['banner']);
     }
 
@@ -126,85 +143,152 @@ $save = function () {
 
 ?>
 
-<div class="space-y-6">
-    <div class="flex items-center gap-4">
-        <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost" size="sm" icon="arrow-left">
-            Kembali
-        </flux:button>
-        <div>
-            <flux:heading size="xl">Edit Game</flux:heading>
-            <flux:subheading>Edit informasi game</flux:subheading>
-        </div>
+<div>
+    <div class="mb-6">
+        <flux:heading size="xl">Edit Game</flux:heading>
+        <flux:subheading>Edit informasi game {{ $game->name }}</flux:subheading>
     </div>
 
-    <flux:card>
-        <form wire:submit="save" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Name -->
-                <div class="md:col-span-2">
-                    <flux:field>
-                        <flux:label>Nama Game <span class="text-red-600">*</span></flux:label>
-                        <flux:input wire:model.live="name" wire:change="generateSlug"
-                            placeholder="e.g., Mobile Legends" />
+    <form wire:submit="save">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <flux:card>
+                    <flux:field class="mb-4">
+                        <flux:label>Nama Game</flux:label>
+                        <flux:input wire:model.live="name" placeholder="e.g., Mobile Legends" />
                         <flux:error name="name" />
                     </flux:field>
-                </div>
 
-                <!-- Slug -->
-                <div>
-                    <flux:field>
-                        <flux:label>Slug <span class="text-red-600">*</span></flux:label>
-                        <flux:input wire:model="slug" placeholder="mobile-legends" />
+                    <flux:field class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <flux:label>Slug URL</flux:label>
+                            <button type="button" wire:click="toggleAutoSlug"
+                                class="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                                {{ $autoGenerateSlug ? '🔓 Edit Manual' : '🔒 Auto Generate' }}
+                            </button>
+                        </div>
+                        <flux:input wire:model.live="slug" placeholder="mobile-legends" :readonly="$autoGenerateSlug"
+                            class="{{ $autoGenerateSlug ? 'bg-zinc-50 dark:bg-zinc-900 text-zinc-500' : '' }}" />
                         <flux:error name="slug" />
-                        <flux:description>URL: /game/{{ $slug ?: 'slug-here' }}</flux:description>
+                        <flux:description>
+                            @if ($autoGenerateSlug)
+                                ✨ Slug otomatis dibuat dari nama game
+                            @else
+                                ✏️ Mode manual: Edit slug sesuai keinginan
+                            @endif
+                        </flux:description>
                     </flux:field>
-                </div>
 
-                <!-- Provider -->
-                <div>
-                    <flux:field>
-                        <flux:label>Provider <span class="text-red-600">*</span></flux:label>
+                    <flux:field class="mb-4">
+                        <flux:label>Provider</flux:label>
                         <flux:input wire:model="provider" placeholder="e.g., Moonton" />
                         <flux:error name="provider" />
                     </flux:field>
-                </div>
 
-                <!-- Category -->
-                <div class="md:col-span-2">
-                    <flux:field>
-                        <flux:label>Category <span class="text-red-600">*</span></flux:label>
+                    <flux:field class="mb-4">
+                        <flux:label>Deskripsi</flux:label>
+                        <flux:textarea wire:model="description" rows="4"
+                            placeholder="Deskripsi singkat tentang game..." />
+                        <flux:error name="description" />
+                    </flux:field>
+                </flux:card>
+
+                <!-- Field Forms Section -->
+                <flux:card>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <flux:heading size="lg">Form Input Game</flux:heading>
+                            <flux:subheading>Field yang dibutuhkan untuk topup game ini</flux:subheading>
+                        </div>
+                        <flux:button type="button" wire:click="addFieldForm" size="sm" icon="plus">
+                            Tambah Field
+                        </flux:button>
+                    </div>
+
+                    @if (count($fieldForms) > 0)
+                        <div class="space-y-3">
+                            @foreach ($fieldForms as $index => $fieldForm)
+                                <div
+                                    class="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-sm font-medium">Field #{{ $index + 1 }}</span>
+                                        <button type="button" wire:click="removeFieldForm({{ $index }})"
+                                            class="text-red-600 hover:text-red-700 text-sm">
+                                            <flux:icon.trash class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <flux:field>
+                                            <flux:label>Label</flux:label>
+                                            <flux:input wire:model="fieldForms.{{ $index }}.label"
+                                                placeholder="e.g., User ID" size="sm" />
+                                            <flux:error name="fieldForms.{{ $index }}.label" />
+                                        </flux:field>
+
+                                        <flux:field>
+                                            <flux:label>Name (Field ID)</flux:label>
+                                            <flux:input wire:model="fieldForms.{{ $index }}.name"
+                                                placeholder="e.g., user_id" size="sm" />
+                                            <flux:error name="fieldForms.{{ $index }}.name" />
+                                        </flux:field>
+
+                                        <flux:field>
+                                            <flux:label>Tipe Input</flux:label>
+                                            <flux:select wire:model="fieldForms.{{ $index }}.type"
+                                                size="sm">
+                                                <option value="text">Text</option>
+                                                <option value="number">Number</option>
+                                                <option value="email">Email</option>
+                                                <option value="tel">Phone</option>
+                                                <option value="textarea">Textarea</option>
+                                            </flux:select>
+                                            <flux:error name="fieldForms.{{ $index }}.type" />
+                                        </flux:field>
+
+                                        <flux:field>
+                                            <flux:label>Wajib Diisi?</flux:label>
+                                            <div class="flex items-center gap-3 mt-2">
+                                                <flux:checkbox
+                                                    wire:model="fieldForms.{{ $index }}.is_required" />
+                                                <span
+                                                    class="text-sm">{{ $fieldForm['is_required'] ? 'Ya' : 'Tidak' }}</span>
+                                            </div>
+                                        </flux:field>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-8 text-zinc-500">
+                            <p class="text-sm">Belum ada field form. Klik "Tambah Field" untuk menambahkan.</p>
+                        </div>
+                    @endif
+                </flux:card>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <flux:card>
+                    <flux:field class="mb-4">
+                        <flux:label>Category</flux:label>
                         <flux:select wire:model="category_id" placeholder="Pilih category...">
                             @foreach ($this->categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->icon }} {{ $category->name }}</option>
+                                <option value="{{ $category->id }}">{{ $category->icon }} {{ $category->name }}
+                                </option>
                             @endforeach
                         </flux:select>
                         <flux:error name="category_id" />
                     </flux:field>
-                </div>
 
-                <!-- Description -->
-                <div class="md:col-span-2">
-                    <flux:field>
-                        <flux:label>Deskripsi</flux:label>
-                        <flux:textarea wire:model="description" placeholder="Deskripsi singkat tentang game..."
-                            rows="3" />
-                        <flux:error name="description" />
-                    </flux:field>
-                </div>
-
-                <!-- Image -->
-                <div x-data="{ imagePreview: null }">
-                    <flux:field>
-                        <flux:label>Gambar</flux:label>
-
-                        @if ($existingImage && !$image)
-                            <div class="mb-2">
-                                <img src="{{ Storage::url($existingImage) }}" class="w-32 h-32 object-cover rounded-lg"
-                                    alt="Current image">
-                                <flux:description>Gambar saat ini</flux:description>
+                    <flux:field class="mb-4" x-data="{ imagePreview: null }" x-init="imagePreview = @js($existingImage ? asset('storage/' . $existingImage) : null)">
+                        <flux:label>Gambar Game</flux:label>
+                        @if($existingImage)
+                            <div class="mb-2 p-2 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-700">
+                                <p class="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Gambar saat ini:</p>
+                                <img src="{{ asset('storage/' . $existingImage) }}" class="w-32 rounded" alt="Current Image">
                             </div>
                         @endif
-
                         <input type="file" wire:model="image" accept="image/*"
                             @change="
                                 const file = $event.target.files[0];
@@ -216,29 +300,21 @@ $save = function () {
                             "
                             class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="image" />
-                        <flux:description>Max 2MB, format: JPG, PNG. Kosongkan jika tidak ingin mengubah.
-                        </flux:description>
+                        <flux:description>Upload gambar baru untuk mengubah</flux:description>
+                        <div x-show="imagePreview && imagePreview !== @js($existingImage ? asset('storage/' . $existingImage) : null)" class="mt-2">
+                            <p class="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Preview gambar baru:</p>
+                            <img :src="imagePreview" class="w-32 rounded" alt="New Preview">
+                        </div>
                     </flux:field>
 
-                    <div x-show="imagePreview" class="mt-2">
-                        <img :src="imagePreview" class="w-32 h-32 object-cover rounded-lg" alt="Preview">
-                        <flux:description>Preview gambar baru</flux:description>
-                    </div>
-                </div>
-
-                <!-- Banner -->
-                <div x-data="{ bannerPreview: null }">
-                    <flux:field>
-                        <flux:label>Banner</flux:label>
-
-                        @if ($existingBanner && !$banner)
-                            <div class="mb-2">
-                                <img src="{{ Storage::url($existingBanner) }}"
-                                    class="w-full h-32 object-cover rounded-lg" alt="Current banner">
-                                <flux:description>Banner saat ini</flux:description>
+                    <flux:field class="mb-4" x-data="{ bannerPreview: null }" x-init="bannerPreview = @js($existingBanner ? asset('storage/' . $existingBanner) : null)">
+                        <flux:label>Banner Game</flux:label>
+                        @if($existingBanner)
+                            <div class="mb-2 p-2 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-700">
+                                <p class="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Banner saat ini:</p>
+                                <img src="{{ asset('storage/' . $existingBanner) }}" class="w-full rounded" alt="Current Banner">
                             </div>
                         @endif
-
                         <input type="file" wire:model="banner" accept="image/*"
                             @change="
                                 const file = $event.target.files[0];
@@ -250,109 +326,32 @@ $save = function () {
                             "
                             class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="banner" />
-                        <flux:description>Max 2MB, format: JPG, PNG. Kosongkan jika tidak ingin mengubah.
-                        </flux:description>
-                    </flux:field>
-
-                    <div x-show="bannerPreview" class="mt-2">
-                        <img :src="bannerPreview" class="w-full h-32 object-cover rounded-lg" alt="Preview">
-                        <flux:description>Preview banner baru</flux:description>
-                    </div>
-                </div>
-
-                <!-- Active Status -->
-                <div>
-                    <flux:field>
-                        <div class="flex items-center gap-3">
-                            <flux:switch wire:model="is_active" />
-                            <flux:label>{{ $is_active ? 'Aktif' : 'Nonaktif' }}</flux:label>
+                        <flux:description>Max 2MB, format: JPG, PNG. Upload banner baru untuk mengubah</flux:description>
+                        <div x-show="bannerPreview && bannerPreview !== @js($existingBanner ? asset('storage/' . $existingBanner) : null)" class="mt-2">
+                            <p class="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Preview banner baru:</p>
+                            <img :src="bannerPreview" class="w-full rounded" alt="New Preview">
                         </div>
                     </flux:field>
-                </div>
-            </div>
 
-            <flux:separator />
+                    <flux:separator class="mb-4" />
 
-            <!-- Field Forms Section -->
-            <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <flux:heading size="lg">Form Input Game</flux:heading>
-                        <flux:subheading>Tambahkan field input yang diperlukan untuk pembelian produk game ini
-                        </flux:subheading>
+                    <flux:field class="mb-4">
+                        <div class="flex items-center gap-3">
+                            <flux:checkbox wire:model="is_active" />
+                            <flux:label>Aktifkan Game</flux:label>
+                        </div>
+                    </flux:field>
+                </flux:card>
+
+                <flux:card>
+                    <div class="flex gap-2">
+                        <flux:button type="submit" variant="primary">Update</flux:button>
+                        <flux:button href="{{ route('admin.games.index') }}" wire:navigate variant="ghost">Batal
+                        </flux:button>
                     </div>
-                    <flux:button type="button" wire:click="addFieldForm" size="sm" icon="plus">
-                        Tambah Field
-                    </flux:button>
-                </div>
-
-                @if (count($fieldForms) > 0)
-                    <div class="space-y-4">
-                        @foreach ($fieldForms as $index => $fieldForm)
-                            <flux:card class="bg-zinc-50 dark:bg-zinc-900">
-                                <div class="flex items-center justify-between mb-3">
-                                    <flux:heading size="sm">Field #{{ $index + 1 }}</flux:heading>
-                                    <flux:button type="button" wire:click="removeFieldForm({{ $index }})"
-                                        variant="ghost" size="xs" icon="trash" class="text-red-600" />
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <flux:field>
-                                        <flux:label>Label <span class="text-red-600">*</span></flux:label>
-                                        <flux:input wire:model="fieldForms.{{ $index }}.label"
-                                            placeholder="e.g., User ID" size="sm" />
-                                        <flux:error name="fieldForms.{{ $index }}.label" />
-                                    </flux:field>
-
-                                    <flux:field>
-                                        <flux:label>Name (Field ID) <span class="text-red-600">*</span></flux:label>
-                                        <flux:input wire:model="fieldForms.{{ $index }}.name"
-                                            placeholder="e.g., user_id" size="sm" />
-                                        <flux:error name="fieldForms.{{ $index }}.name" />
-                                    </flux:field>
-
-                                    <flux:field>
-                                        <flux:label>Tipe Input <span class="text-red-600">*</span></flux:label>
-                                        <flux:select wire:model="fieldForms.{{ $index }}.type" size="sm">
-                                            <option value="text">Text</option>
-                                            <option value="number">Number</option>
-                                            <option value="email">Email</option>
-                                            <option value="tel">Phone</option>
-                                            <option value="textarea">Textarea</option>
-                                        </flux:select>
-                                        <flux:error name="fieldForms.{{ $index }}.type" />
-                                    </flux:field>
-
-                                    <flux:field>
-                                        <flux:label>Wajib Diisi?</flux:label>
-                                        <div class="flex items-center gap-3">
-                                            <flux:checkbox wire:model="fieldForms.{{ $index }}.is_required" />
-                                            <span
-                                                class="text-sm">{{ $fieldForm['is_required'] ? 'Ya' : 'Tidak' }}</span>
-                                        </div>
-                                    </flux:field>
-                                </div>
-                            </flux:card>
-                        @endforeach
-                    </div>
-                @else
-                    <flux:callout.heading variant="info" icon="information-circle">
-                        <flux:callout.heading class="flex gap-2 @max-md:flex-col items-start">
-                            Belum ada field form. Klik "Tambah Field" untuk menambahkan field input.
-                        </flux:callout.heading>
-                        </flux:callout>
-                @endif
+                </flux:card>
             </div>
-
-            <flux:separator />
-
-            <div class="flex gap-2 justify-end">
-                <flux:button wire:navigate href="{{ route('admin.games.index') }}" variant="ghost">Batal
-                </flux:button>
-                <flux:button type="submit" variant="primary">
-                    <span wire:loading.remove>Simpan Perubahan</span>
-                    <flux:icon.arrow-path wire:loading class="animate-spin" />
-                </flux:button>
-            </div>
-        </form>
-    </flux:card>
+        </div>
+    </form>
 </div>
+

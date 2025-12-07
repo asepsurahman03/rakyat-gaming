@@ -36,6 +36,8 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
     #[Validate('boolean')]
     public $is_published = false;
 
+    public $autoGenerateSlug = false;
+
     public function mount(Post $post)
     {
         $this->post = $post;
@@ -58,7 +60,15 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
 
     public function updatedTitle()
     {
-        if (empty($this->slug)) {
+        if ($this->autoGenerateSlug) {
+            $this->slug = Str::slug($this->title);
+        }
+    }
+
+    public function toggleAutoSlug()
+    {
+        $this->autoGenerateSlug = !$this->autoGenerateSlug;
+        if ($this->autoGenerateSlug && !empty($this->title)) {
             $this->slug = Str::slug($this->title);
         }
     }
@@ -106,7 +116,13 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
             'published_at' => $this->is_published && !$this->post->published_at ? now() : $this->post->published_at,
         ]);
 
-        Flux::toast('Artikel berhasil diupdate!');
+        Flux::toast(
+            heading: 'Artikel berhasil diupdate!',
+            text: 'Data artikel telah diperbarui di sistem.',
+            variant: 'success',
+            duration: 3000,
+            position: 'top-right',
+        );
 
         return $this->redirect(route('admin.posts.index'), navigate: true);
     }
@@ -130,9 +146,27 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
                     </flux:field>
 
                     <flux:field>
-                        <flux:label>Slug</flux:label>
-                        <flux:input wire:model="slug" placeholder="url-artikel" />
+                        <div class="flex items-center justify-between mb-2">
+                            <flux:label>Slug URL</flux:label>
+                            <button type="button"
+                                    wire:click="toggleAutoSlug"
+                                    class="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                                {{ $autoGenerateSlug ? '🔓 Edit Manual' : '🔒 Auto Generate' }}
+                            </button>
+                        </div>
+                        <flux:input
+                            wire:model="slug"
+                            placeholder="url-artikel"
+                            :readonly="$autoGenerateSlug"
+                            class="{{ $autoGenerateSlug ? 'bg-zinc-50 dark:bg-zinc-900 text-zinc-500' : '' }}" />
                         <flux:error name="slug" />
+                        <flux:description>
+                            @if ($autoGenerateSlug)
+                                ✨ Slug otomatis dibuat dari judul
+                            @else
+                                ✏️ Mode manual: Slug tidak akan berubah saat judul diubah
+                            @endif
+                        </flux:description>
                     </flux:field>
 
                     <flux:field>
@@ -143,7 +177,7 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
 
                     <flux:field>
                         <flux:label>Konten</flux:label>
-                        <flux:textarea wire:model="content" rows="15" placeholder="Tulis konten artikel di sini..." />
+                        <flux:editor wire:model="content" rows="15" placeholder="Tulis konten artikel di sini..." />
                         <flux:error name="content" />
                     </flux:field>
                 </flux:card>
@@ -173,7 +207,7 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
 
                         @if ($existing_image && !$featured_image)
                             <div class="mb-2 relative">
-                                <img src="{{ Storage::url($existing_image) }}" class="w-full rounded" alt="Current">
+                                <img src="{{ Storage::url($existing_image) }}" class="w-32 rounded" alt="Current">
                                 <flux:button
                                     type="button"
                                     size="sm"
@@ -198,22 +232,23 @@ new #[Layout('components.layouts.app'), Title('Edit Artikel')] class extends Com
                         <flux:error name="featured_image" />
 
                         <div x-show="imagePreview" class="mt-2">
-                            <img :src="imagePreview" class="w-full rounded" alt="Preview">
+                            <img :src="imagePreview" class="w-32 rounded" alt="Preview">
                         </div>
                     </flux:field>
 
-                    <flux:separator />
+                    <flux:separator class="mb-4" />
 
-                    <flux:field>
-                        <flux:checkbox wire:model="is_published">
-                            <flux:label>Publikasikan</flux:label>
-                        </flux:checkbox>
+                    <flux:field class="mb-4">
+                        <div class="flex items-center gap-3">
+                            <flux:checkbox wire:model="is_published" />
+                            <flux:label>Publikasikan Sekarang</flux:label>
+                        </div>
                     </flux:field>
                 </flux:card>
 
                 <flux:card>
                     <div class="flex gap-2">
-                        <flux:button type="submit" variant="primary" class="flex-1">Update</flux:button>
+                        <flux:button type="submit" variant="primary">Update</flux:button>
                         <flux:button href="{{ route('admin.posts.index') }}" wire:navigate variant="ghost">Batal</flux:button>
                     </div>
                 </flux:card>

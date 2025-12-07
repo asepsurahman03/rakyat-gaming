@@ -73,19 +73,23 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
                     @endif
                 </div>
 
-                <flux:heading size="sm">{{ $game->name }}</flux:heading>
-                <flux:subheading class="text-xs">{{ $game->provider }}</flux:subheading>
+                <div class="flex justify-between items-center">
+                    <flux:heading size="sm">{{ $game->name }}</flux:heading>
+                    <flux:subheading class="text-xs">{{ $game->provider }}</flux:subheading>
+                </div>
 
-                @if($game->category)
-                    <div class="mt-1">
-                        <flux:badge color="zinc" size="sm">{{ $game->category->icon }} {{ $game->category->name }}</flux:badge>
+                <div class="flex gap-4 items-center">
+                    @if($game->category)
+                        <div class="mt-1">
+                            <flux:badge color="zinc" size="sm">{{ $game->category->icon }} {{ $game->category->name }}</flux:badge>
+                        </div>
+                    @endif
+
+                    <div class="mt-2">
+                        <flux:badge :color="$game->is_active ? 'green' : 'red'" size="sm">
+                            {{ $game->is_active ? 'Aktif' : 'Nonaktif' }}
+                        </flux:badge>
                     </div>
-                @endif
-
-                <div class="mt-2">
-                    <flux:badge :color="$game->is_active ? 'green' : 'red'" size="sm">
-                        {{ $game->is_active ? 'Aktif' : 'Nonaktif' }}
-                    </flux:badge>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 mt-4">

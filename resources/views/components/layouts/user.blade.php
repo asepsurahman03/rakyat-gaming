@@ -1,7 +1,7 @@
 <x-layouts.guest>
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4">
         <div class="flex w-full min-h-screen">
-            <flux:sidebar sticky stashable class="w-64 p-4 ">
+            <flux:sidebar sticky stashable class="w-64 p-4">
                 <nav class="space-y-1" aria-label="Sidebar">
                     <a href="{{ route('user.dashboard') }}"
                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('user.dashboard') ? 'bg-yellow-400 text-zinc-50' : 'text-zinc-200 hover:text-gray-600 hover:bg-gray-50' }}" wire:navigate>
@@ -28,7 +28,8 @@
                     </form>
                 </nav>
             </flux:sidebar>
-            <div class="flex-1 p-6">
+
+            <div class="flex-1 p-4 sm:p-6 pb-20 lg:pb-6">
                 {{ $slot }}
             </div>
         </div>

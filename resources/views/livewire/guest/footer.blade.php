@@ -75,33 +75,33 @@ new class extends Component {
 
                 <!-- Quick Links -->
                 <div>
-                    <h4 class="font-bold text-lg mb-4">Quick Links</h4>
+                    <h4 class="font-bold text-lg mb-4">{{ __('messages.quick_links') }}</h4>
                     <ul class="space-y-2">
                         <li><a href="{{ url('/') }}" wire:navigate
-                                class="link link-hover opacity-70 hover:opacity-100">Home</a></li>
+                                class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.home') }}</a></li>
                         <li><a href="{{ route('cek-transaksi') }}" wire:navigate
-                                class="link link-hover opacity-70 hover:opacity-100">Cek Transaksi</a></li>
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">Cara Order</a></li>
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">FAQ</a></li>
+                                class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.check_transaction') }}</a></li>
+                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.artikel') }}</a></li>
+                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.calculator') }}</a></li>
                     </ul>
                 </div>
 
                 <!-- Products -->
                 <div>
-                    <h4 class="font-bold text-lg mb-4">Produk</h4>
+                    <h4 class="font-bold text-lg mb-4">{{ __('messages.products') }}</h4>
                     <ul class="space-y-2">
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">Top Up Mobile Legends</a>
+                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">Mobile Legends</a>
                         </li>
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">Top Up Free Fire</a></li>
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">Top Up PUBG Mobile</a>
+                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">Free Fire</a></li>
+                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">PUBG Mobile</a>
                         </li>
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">Lihat Semua Game</a></li>
+                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.all_games') }}</a></li>
                     </ul>
                 </div>
 
                 <!-- Contact Info -->
                 <div>
-                    <h4 class="font-bold text-lg mb-4">Hubungi Kami</h4>
+                    <h4 class="font-bold text-lg mb-4">{{ __('messages.contact_us') }}</h4>
                     <ul class="space-y-3">
                         <li class="flex items-start gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary flex-shrink-0 mt-0.5"
@@ -161,7 +161,7 @@ new class extends Component {
 
             <div class="flex w-full justify-between border-t border-gray-700 mt-10 pt-6">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm opacity-70">
-                    <p>&copy; 2025 {{ $settings['site_name'] }}. All rights reserved.</p>
+                    <p>&copy; 2025 {{ $settings['site_name'] }}. {{ __('messages.all_rights_reserved') }}.</p>
                 </div>
             </div>
         </div>

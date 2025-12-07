@@ -320,10 +320,9 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <flux:icon.fire class="w-8 h-8 text-red-500 animate-pulse" />
-                            <flux:heading size="xl" class="text-white">Flash Sale - Diskon Terbatas!</flux:heading>
+                            <flux:heading size="xl" class="text-white">{{ __('messages.flash_sale') }} - {{ __('messages.discount') }}!</flux:heading>
                         </div>
-                        <flux:text class="text-white/90 mb-6">Buruan ambil sebelum kehabisan - Harga spesial cuma hari
-                            ini!
+                        <flux:text class="text-white/90 mb-6">{{ __('messages.flash_sale_description') }}
                         </flux:text>
                     </div>
                     <!-- Countdown Timer -->
@@ -475,8 +474,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     <div class="bg-gradient-to-br from-[#470000] to-[#6d0000]">
         <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
         <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
-            <flux:heading size="xl" class="mb-2 text-white">🔥 Game Populer Saat Ini</flux:heading>
-            <flux:text class="text-white/90 mb-6">Berdasarkan penjualan terbanyak - Top 8 game favorit para gamers!
+            <flux:heading size="xl" class="mb-2 text-white">🔥 {{ __('messages.popular_games') }}</flux:heading>
+            <flux:text class="text-white/90 mb-6">{{ __('messages.search_game_placeholder') }}
             </flux:text>
 
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -525,9 +524,9 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         </div>
 
         {{-- Section Semua Game --}}
-        <div class="container mx-auto px-4 max-w-7xl">
-            <flux:heading size="xl" class="mb-2 text-white">Semua Game</flux:heading>
-            <flux:text class="text-gray-300 mb-6">Pilih game favoritmu dan mulai top up sekarang!</flux:text>
+        <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
+            <flux:heading size="xl" class="mb-2 text-white">{{ __('messages.all_games') }}</flux:heading>
+            <flux:text class="text-gray-300 mb-6">{{ __('messages.search_game_placeholder') }}</flux:text>
 
             <!-- Horizontal Scrollable Filter -->
             <div class="mb-8" x-data="{ filterGameId: @entangle('filterGameId') }">
@@ -536,7 +535,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                         :class="filterGameId === '' ? 'bg-yellow-400 text-white' :
                             'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700'"
                         class="px-3 py-2.5 rounded-lg font-medium whitespace-nowrap transition flex-shrink-0">
-                        Semua Game
+                        {{ __('messages.all_games') }}
                     </button>
                     @foreach ($allGames as $game)
                         <button @click="filterGameId = '{{ $game->id }}'"
@@ -596,18 +595,18 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                 @endforelse
             </div>
         </div>
-        <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
 
+        <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
         @if (count($latestPosts) > 0)
-            <div class="container mx-auto px-4 max-w-7xl">
+            <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <flux:heading size="xl" class="text-white mb-2">Artikel Terbaru</flux:heading>
-                        <flux:text class="text-white/90">Tips, trik, dan berita seputar game</flux:text>
+                        <flux:heading size="xl" class="text-white mb-2">{{ __('messages.latest_articles') }}</flux:heading>
+                        <flux:text class="text-white/90">{{ __('messages.read_more') }}</flux:text>
                     </div>
                     <flux:button href="{{ route('guest.posts.index') }}" wire:navigate variant="primary"
                         class="text-white hover:bg-white/10">
-                        Lihat Semua
+                        {{ __('messages.view_all') }}
                     </flux:button>
                 </div>
 

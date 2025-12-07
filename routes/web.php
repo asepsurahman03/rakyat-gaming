@@ -3,6 +3,7 @@
 use App\Http\Controllers\DigiflazzController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
@@ -14,6 +15,42 @@ Route::get('/lang/{locale}', function ($locale) {
     }
     return redirect()->back();
 })->name('lang.switch');
+
+// API Search Games
+Route::get('/api/search-games', function (Illuminate\Http\Request $request) {
+    $query = $request->input('q', '');
+
+    if (strlen($query) < 2) {
+        return response()->json(['games' => []]);
+    }
+
+    try {
+        $games = \App\Models\Game::with('category')
+            ->where('is_active', true)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%')
+                  ->orWhereHas('category', function($subQuery) use ($query) {
+                      $subQuery->where('name', 'like', '%' . $query . '%');
+                  });
+            })
+            ->orderBy('name', 'asc')
+            ->limit(10)
+            ->get()
+            ->map(function($game) {
+                return [
+                    'id' => $game->id,
+                    'name' => $game->name,
+                    'slug' => $game->slug,
+                    'category' => $game->category ? $game->category->name : 'Game',
+                    'image_url' => $game->image ? Storage::url($game->image) : asset('images/placeholder-game.png'),
+                ];
+            });
+
+        return response()->json(['games' => $games, 'count' => $games->count()]);
+    } catch (\Exception $e) {
+        return response()->json(['games' => [], 'error' => $e->getMessage()], 500);
+    }
+});
 
 Volt::route('/', 'guest.welcome')->name('home');
 Volt::route('cek-transaksi', 'guest.cek-transaksi')->name('cek-transaksi');
@@ -97,6 +134,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Volt::route('carousel/create', 'carousel.create')->name('carousel.create');
     Volt::route('carousel/{carousel}/edit', 'carousel.edit')->name('carousel.edit');
 
+    // Live Chat Management
+    Volt::route('admin/chat', 'admin.chat.index')->name('admin.chat.index');
+
     // Settings
     Volt::route('admin/settings/application', 'admin.settings.application')->name('admin.settings.application');
     Volt::route('admin/settings/suppliers', 'admin.settings.suppliers')->name('admin.settings.suppliers');
@@ -123,3 +163,4 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 });
+

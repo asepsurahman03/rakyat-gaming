@@ -75,7 +75,7 @@ new #[Layout('components.layouts.guest'), Title('Kalkulator Magic Wheel - Rakyat
 
             <!-- Calculate Button -->
             <div class="mb-4">
-                <flux:button wire:click="calculate" variant="primary" icon="calculator" class="w-full">
+                <flux:button wire:click="calculate" variant="primary" class="w-full">
                     Hitung Diamond
                 </flux:button>
             </div>

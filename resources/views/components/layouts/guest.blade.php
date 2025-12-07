@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
 
 <head>
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-gradient-to-bl from-[#7E0000] to-[#470000] font-sans antialiased">
+<body class="min-h-screen bg-gradient-to-bl from-[#7E0000] to-[#470000] font-sans antialiased dark">
     <!-- Navbar -->
     <div class="bg-black border-b border-zinc-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4">
@@ -15,8 +15,98 @@
                     <img src="{{ asset('images/logo-rkgame-animation.gif') }}" alt="logo" class="h-12 md:h-16 w-auto">
                 </a>
 
-                <flux:input class="hidden md:block w-full" icon="magnifying-glass"
-                    placeholder="{{ __('messages.search_orders') }}" />
+                <!-- Game Search with Autocomplete -->
+                <div x-data="{
+                    searchQuery: '',
+                    showResults: false,
+                    searchResults: [],
+                    loading: false,
+                    async searchGames() {
+                        if (this.searchQuery.length < 2) {
+                            this.searchResults = [];
+                            this.showResults = false;
+                            return;
+                        }
+
+                        this.loading = true;
+                        this.showResults = true;
+                        try {
+                            const response = await fetch(`/api/search-games?q=${encodeURIComponent(this.searchQuery)}`);
+                            const data = await response.json();
+                            this.searchResults = data.games || [];
+                            console.log('Search results:', this.searchResults);
+                        } catch (error) {
+                            console.error('Search error:', error);
+                            this.searchResults = [];
+                        } finally {
+                            this.loading = false;
+                        }
+                    },
+                    goToGame(slug) {
+                        this.showResults = false;
+                        window.location.href = `/game/${slug}`;
+                    }
+                }"
+                @click.away="showResults = false"
+                class="hidden md:block w-full relative">
+                    <div class="relative">
+                        <flux:input
+                            x-model="searchQuery"
+                            @input.debounce.300ms="searchGames()"
+                            @focus="if (searchQuery.length >= 2) { searchGames(); }"
+                            icon="magnifying-glass"
+                            placeholder="{{ __('messages.search_orders') }}"
+                            class="w-full" />
+
+                        <!-- Loading indicator -->
+                        <div x-show="loading" x-cloak class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg class="animate-spin h-4 w-4 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Search Results Dropdown -->
+                    <div x-show="showResults && searchResults.length > 0"
+                        x-cloak
+                        x-transition:enter="transition ease-out duration-100"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-75"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl overflow-hidden z-[100] max-h-96 overflow-y-auto">
+                        <template x-for="game in searchResults" :key="game.id">
+                            <button
+                                type="button"
+                                @click="goToGame(game.slug)"
+                                class="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left border-b border-zinc-200 dark:border-zinc-700 last:border-b-0">
+                                <img :src="game.image_url" :alt="game.name" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-sm text-zinc-900 dark:text-zinc-100" x-text="game.name"></div>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-400" x-text="game.category"></div>
+                                </div>
+                                <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+                    </div>
+
+                    <!-- No Results -->
+                    <div x-show="showResults && searchResults.length === 0 && searchQuery.length >= 2 && !loading"
+                        x-cloak
+                        x-transition
+                        class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl p-4 z-[100]">
+                        <div class="text-center text-sm text-zinc-500 dark:text-zinc-400">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            Tidak ada game ditemukan untuk "<span x-text="searchQuery"></span>"
+                        </div>
+                    </div>
+                </div>
 
                 <div class="flex items-center gap-2">
                     <!-- Language Selector with Flags -->
@@ -75,8 +165,85 @@
 
             <!-- Mobile Search (visible on small screens) -->
             <div class="md:hidden pb-2">
-                <flux:input class="w-full text-sm" icon="magnifying-glass"
-                    placeholder="{{ __('messages.search_orders') }}" />
+                <div x-data="{
+                    searchQuery: '',
+                    showResults: false,
+                    searchResults: [],
+                    loading: false,
+                    async searchGames() {
+                        if (this.searchQuery.length < 2) {
+                            this.searchResults = [];
+                            this.showResults = false;
+                            return;
+                        }
+
+                        this.loading = true;
+                        this.showResults = true;
+                        try {
+                            const response = await fetch(`/api/search-games?q=${encodeURIComponent(this.searchQuery)}`);
+                            const data = await response.json();
+                            this.searchResults = data.games || [];
+                        } catch (error) {
+                            console.error('Search error:', error);
+                            this.searchResults = [];
+                        } finally {
+                            this.loading = false;
+                        }
+                    },
+                    goToGame(slug) {
+                        this.showResults = false;
+                        window.location.href = `/game/${slug}`;
+                    }
+                }"
+                @click.away="showResults = false"
+                class="relative">
+                    <div class="relative">
+                        <flux:input
+                            x-model="searchQuery"
+                            @input.debounce.300ms="searchGames()"
+                            @focus="if (searchQuery.length >= 2) { searchGames(); }"
+                            icon="magnifying-glass"
+                            placeholder="{{ __('messages.search_orders') }}"
+                            class="w-full text-sm" />
+
+                        <div x-show="loading" x-cloak class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg class="animate-spin h-4 w-4 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div x-show="showResults && searchResults.length > 0"
+                        x-cloak
+                        x-transition
+                        class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl overflow-hidden z-[100] max-h-96 overflow-y-auto">
+                        <template x-for="game in searchResults" :key="game.id">
+                            <button
+                                type="button"
+                                @click="goToGame(game.slug)"
+                                class="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left border-b border-zinc-200 dark:border-zinc-700 last:border-b-0">
+                                <img :src="game.image_url" :alt="game.name" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-sm text-zinc-900 dark:text-zinc-100" x-text="game.name"></div>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-400" x-text="game.category"></div>
+                                </div>
+                                <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </template>
+                    </div>
+
+                    <div x-show="showResults && searchResults.length === 0 && searchQuery.length >= 2 && !loading"
+                        x-cloak
+                        x-transition
+                        class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-xl p-4 z-[100]">
+                        <div class="text-center text-xs text-zinc-500 dark:text-zinc-400">
+                            Tidak ada game ditemukan
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Desktop Navigation -->
@@ -326,6 +493,9 @@
 
     <!-- Footer -->
     @livewire('guest.footer')
+
+    <!-- Live Chat Widget -->
+    @livewire('guest.chat-widget')
 
     @fluxScripts()
     @persist('toast')

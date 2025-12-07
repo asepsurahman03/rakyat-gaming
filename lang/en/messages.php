@@ -9,7 +9,7 @@ return [
     'logout' => 'Logout',
     'profile' => 'Profile',
     'settings' => 'Settings',
-    'history_transaction' => 'History Transaction',
+    'history_transaction' => 'Transaction History',
 
     // Guest Navigation
     'check_transaction' => 'Check Transaction',
@@ -43,6 +43,10 @@ return [
     'submit' => 'Submit',
     'close' => 'Close',
     'back' => 'Back',
+    'view_all' => 'View All',
+    'view_details' => 'View Details',
+    'buy_now' => 'Buy Now',
+    'order_now' => 'Order Now',
 
     // Admin Menu
     'carousel' => 'Carousel',
@@ -73,6 +77,7 @@ return [
     'error' => 'An error occurred!',
     'confirm_delete' => 'Are you sure you want to delete?',
     'no_data' => 'No data available',
+    'loading' => 'Loading...',
 
     // Validation
     'required' => 'This field is required',
@@ -89,4 +94,144 @@ return [
     'appearance' => 'Appearance',
     'theme' => 'Theme',
     'language' => 'Language',
+
+    // Welcome Page
+    'welcome_title' => 'Cheapest & Fastest Game Top Up',
+    'flash_sale' => 'Flash Sale',
+    'coming_soon' => 'Coming Soon',
+    'flash_sale_description' => 'Don\'t miss our special offers! Up to 50% discount',
+    'popular_games' => 'Popular Games',
+    'all_games' => 'All Games',
+    'search_game' => 'Search game...',
+    'search_game_placeholder' => 'Search your favorite game...',
+    'latest_articles' => 'Latest Articles',
+    'read_more' => 'Read More',
+    'products_available' => 'products available',
+    'discount' => 'Discount',
+    'original_price' => 'Original Price',
+    'flash_price' => 'Flash Price',
+    'stock_left' => 'Left',
+    'sold' => 'Sold',
+    'ends_in' => 'Ends in',
+
+    // Leaderboard
+    'leaderboard_title' => 'Sales Leaderboard',
+    'leaderboard_subtitle' => 'See top 10 buyers with the biggest transactions and get inspiration for your next transaction!',
+    'weekly' => 'Weekly',
+    'monthly' => 'Monthly',
+    'all_time' => 'All Time',
+    'total_transactions' => 'Total Transactions',
+    'total_sales' => 'Total Sales',
+    'active_buyers' => 'Active Buyers',
+    'rank' => 'Rank',
+    'buyer' => 'Buyer',
+    'total_spent' => 'Total Spent',
+    'transactions' => 'Transactions',
+    'last_item' => 'Last Item',
+    'time' => 'Time',
+    'leaderboard_footer' => 'Data updated in real-time with every new transaction',
+
+    // Transaction Check
+    'check_transaction_title' => 'Check Transaction Status',
+    'check_transaction_subtitle' => 'Enter your unique transaction code to view order details and status',
+    'transaction_code' => 'Transaction Code',
+    'transaction_code_placeholder' => 'Enter your transaction code',
+    'check_status' => 'Check Status',
+    'transaction_details' => 'Transaction Details',
+    'order_id' => 'Order ID',
+    'order_date' => 'Order Date',
+    'payment_status' => 'Payment Status',
+    'payment_method' => 'Payment Method',
+    'total_amount' => 'Total Amount',
+    'transaction_not_found' => 'Transaction not found',
+    'transaction_not_found_desc' => 'Make sure the transaction code you entered is correct',
+
+    // Calculator
+    'calculator_title' => 'Game Calculator',
+    'calculator_subtitle' => 'Calculate your needs easily',
+    'magic_wheel' => 'Magic Wheel',
+    'zodiac_calculator' => 'Zodiac Calculator',
+    'winrate_calculator' => 'Winrate Calculator',
+    'select_calculator' => 'Select Calculator',
+
+    // Posts
+    'all_articles' => 'All Articles',
+    'popular_articles' => 'Popular Articles',
+    'latest_posts' => 'Latest Posts',
+    'search_articles' => 'Search articles...',
+    'filter_by_game' => 'Filter by game',
+    'all_categories' => 'All Categories',
+    'views' => 'views',
+    'published_at' => 'Published',
+    'written_by' => 'Written by',
+    'share_article' => 'Share Article',
+    'about_game' => 'About Game',
+    'related_articles' => 'Related Articles',
+    'no_articles' => 'No articles',
+    'no_articles_desc' => 'No articles published yet',
+
+    // Game Detail
+    'select_product' => 'Select Product',
+    'user_id' => 'User ID',
+    'server_id' => 'Server ID',
+    'zone_id' => 'Zone ID',
+    'payment_method' => 'Payment Method',
+    'select_payment' => 'Select Payment Method',
+    'order_summary' => 'Order Summary',
+    'product_name' => 'Product Name',
+    'product_price' => 'Product Price',
+    'admin_fee' => 'Admin Fee',
+    'total_payment' => 'Total Payment',
+    'process_order' => 'Process Order',
+    'contact_info' => 'Contact Information',
+    'whatsapp_number' => 'WhatsApp Number',
+    'whatsapp_placeholder' => 'Example: 08123456789',
+
+    // Checkout
+    'checkout_title' => 'Checkout',
+    'confirm_payment' => 'Confirm Payment',
+    'pay_now' => 'Pay Now',
+    'payment_instructions' => 'Payment Instructions',
+    'complete_payment' => 'Complete payment within',
+    'minutes' => 'minutes',
+
+    // Footer
+    'about_us' => 'About Us',
+    'about_us_desc' => 'Trusted game top up platform with the best prices and fastest process in Indonesia',
+    'quick_links' => 'Quick Links',
+    'contact_us' => 'Contact Us',
+    'follow_us' => 'Follow Us',
+    'copyright' => 'Copyright',
+    'all_rights_reserved' => 'All rights reserved',
+
+    // Chat Widget
+    'chat_with_us' => 'Chat with Us',
+    'type_message' => 'Type a message...',
+    'send' => 'Send',
+    'online' => 'Online',
+    'offline' => 'Offline',
+    'customer_support' => 'Customer Support',
+
+    // Time
+    'minutes_ago' => 'minutes ago',
+    'hours_ago' => 'hours ago',
+    'days_ago' => 'days ago',
+    'just_now' => 'just now',
+
+    // Status
+    'pending' => 'Pending',
+    'processing' => 'Processing',
+    'completed' => 'Completed',
+    'failed' => 'Failed',
+    'cancelled' => 'Cancelled',
+
+    // Common
+    'or' => 'or',
+    'and' => 'and',
+    'with' => 'with',
+    'from' => 'from',
+    'to' => 'to',
+    'at' => 'at',
+    'in' => 'in',
+    'for' => 'for',
 ];

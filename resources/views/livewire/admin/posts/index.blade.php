@@ -17,8 +17,7 @@ new class extends Component {
     {
         $query = Post::with(['game', 'author'])
             ->when($this->search, function ($q) {
-                $q->where('title', 'like', '%' . $this->search . '%')
-                    ->orWhere('content', 'like', '%' . $this->search . '%');
+                $q->where('title', 'like', '%' . $this->search . '%')->orWhere('content', 'like', '%' . $this->search . '%');
             })
             ->when($this->gameFilter, function ($q) {
                 $q->where('game_id', $this->gameFilter);
@@ -72,13 +71,15 @@ new class extends Component {
 <div>
     <div class="mb-6 flex items-center justify-between">
         <flux:heading size="xl">Artikel</flux:heading>
-        <flux:button href="{{ route('admin.posts.create') }}" wire:navigate icon="plus">Tambah Artikel</flux:button>
+        <flux:button href="{{ route('admin.posts.create') }}" variant="primary" wire:navigate icon="plus">Tambah Artikel
+        </flux:button>
     </div>
 
     <flux:card class="mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-                <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari artikel..." icon="magnifying-glass" />
+                <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari artikel..."
+                    icon="magnifying-glass" />
             </div>
             <div>
                 <flux:select wire:model.live="gameFilter" placeholder="Semua Game">
@@ -105,14 +106,14 @@ new class extends Component {
 
             <flux:table.rows>
                 @forelse ($posts as $post)
-                    <flux:table.row :key="$post->id">
+                    <flux:table.row wire:key="$post->id">
                         <flux:table.cell>
                             @if ($post->featured_image)
-                                <img src="{{ Storage::url($post->featured_image) }}"
-                                     alt="{{ $post->title }}"
-                                     class="w-16 h-16 object-cover rounded">
+                                <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}"
+                                    class="w-16 h-16 object-cover rounded">
                             @else
-                                <div class="w-16 h-16 bg-zinc-200 dark:bg-zinc-700 rounded flex items-center justify-center">
+                                <div
+                                    class="w-16 h-16 bg-zinc-200 dark:bg-zinc-700 rounded flex items-center justify-center">
                                     <x-icon name="document-text" class="w-6 h-6 text-zinc-400" />
                                 </div>
                             @endif
@@ -139,18 +140,36 @@ new class extends Component {
                         <flux:table.cell>
                             <div class="flex items-center gap-2">
                                 <flux:button size="sm" variant="ghost"
-                                             wire:click="togglePublish({{ $post->id }})"
-                                             :icon="$post->is_published ? 'eye-slash' : 'eye'">
+                                    wire:click="togglePublish({{ $post->id }})"
+                                    :icon="$post->is_published ? 'eye-slash' : 'eye'">
                                 </flux:button>
                                 <flux:button size="sm" variant="ghost"
-                                             href="{{ route('admin.posts.edit', $post) }}"
-                                             wire:navigate icon="pencil">
+                                    href="{{ route('admin.posts.edit', $post) }}" wire:navigate icon="pencil">
                                 </flux:button>
-                                <flux:button size="sm" variant="danger"
-                                             wire:click="delete({{ $post->id }})"
-                                             wire:confirm="Yakin ingin menghapus artikel ini?"
-                                             icon="trash">
-                                </flux:button>
+                                <flux:modal.trigger name="delete-post-{{ $post->id }}">
+                                    <flux:button icon="trash" variant="danger"></flux:button>
+                                </flux:modal.trigger>
+                                <flux:modal name="delete-post-{{ $post->id }}" class="w-[22rem]">
+                                    <div class="space-y-6 ">
+                                        <div>
+                                            <flux:heading>
+                                                Delete Article
+                                            </flux:heading>
+                                            <flux:text>Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat
+                                                dibatalkan.</flux:text>
+                                        </div>
+                                        <div class="mt-6 flex justify-end gap-3">
+                                            <flux:modal.close>
+                                                <flux:button variant="ghost">Batal
+                                            </flux:modal.close>
+                                            <flux:modal.close>
+                                            </flux:button>
+                                            <flux:button wire:click="delete({{ $post->id }})" variant="danger">
+                                                Hapus</flux:button>
+                                            </flux:modal.close>
+                                        </div>
+                                    </div>
+                                </flux:modal>
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

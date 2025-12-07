@@ -62,7 +62,7 @@ new #[Layout('components.layouts.user'), Title('Dashboard - Client')] class exte
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
@@ -136,41 +136,66 @@ new #[Layout('components.layouts.user'), Title('Dashboard - Client')] class exte
                 </flux:button>
             </div>
         @else
-            <flux:table>
-                <flux:table.columns>
-                    <flux:table.column>Order ID</flux:table.column>
-                    <flux:table.column>Game & Produk</flux:table.column>
-                    <flux:table.column>Waktu</flux:table.column>
-                    <flux:table.column>Total</flux:table.column>
-                    <flux:table.column>Status</flux:table.column>
-                </flux:table.columns>
-                <flux:table.rows>
-                    @foreach ($todayOrders as $order)
-                        <flux:table.row>
-                            <flux:table.cell>
-                                <div class="font-mono text-sm">#{{ $order->order_code }}</div>
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                <div>
-                                    <div class="font-semibold">{{ $order->product->game->name }}</div>
-                                    <div class="text-sm text-zinc-500">{{ $order->product->name }}</div>
-                                </div>
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                <div class="text-sm">{{ $order->created_at->format('H:i') }}</div>
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                <span class="font-semibold">Rp {{ number_format($order->price, 0, ',', '.') }}</span>
-                            </flux:table.cell>
-                            <flux:table.cell>
-                                <flux:badge :color="$this->getStatusColor($order->status)" size="sm">
-                                    {{ $this->getStatusText($order->status) }}
-                                </flux:badge>
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @endforeach
-                </flux:table.rows>
-            </flux:table>
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+                <flux:table>
+                    <flux:table.columns>
+                        <flux:table.column>Order ID</flux:table.column>
+                        <flux:table.column>Game & Produk</flux:table.column>
+                        <flux:table.column>Waktu</flux:table.column>
+                        <flux:table.column>Total</flux:table.column>
+                        <flux:table.column>Status</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach ($todayOrders as $order)
+                            <flux:table.row>
+                                <flux:table.cell>
+                                    <div class="font-mono text-sm">#{{ $order->order_code }}</div>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <div>
+                                        <div class="font-semibold">{{ $order->product->game->name }}</div>
+                                        <div class="text-sm text-zinc-500">{{ $order->product->name }}</div>
+                                    </div>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <div class="text-sm">{{ $order->created_at->format('H:i') }}</div>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <span class="font-semibold">Rp {{ number_format($order->price, 0, ',', '.') }}</span>
+                                </flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:badge :color="$this->getStatusColor($order->status)" size="sm">
+                                        {{ $this->getStatusText($order->status) }}
+                                    </flux:badge>
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden space-y-3">
+                @foreach ($todayOrders as $order)
+                    <div class="bg-zinc-800 rounded-lg p-4 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-mono text-xs text-zinc-400">#{{ $order->order_code }}</div>
+                                <div class="font-semibold text-sm mt-1">{{ $order->product->game->name }}</div>
+                                <div class="text-xs text-zinc-400">{{ $order->product->name }}</div>
+                            </div>
+                            <flux:badge :color="$this->getStatusColor($order->status)" size="sm">
+                                {{ $this->getStatusText($order->status) }}
+                            </flux:badge>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-zinc-700">
+                            <span class="text-xs text-zinc-400">{{ $order->created_at->format('H:i') }}</span>
+                            <span class="font-semibold text-sm">Rp {{ number_format($order->price, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
 
             <div class="mt-4 text-center">
                 <flux:button href="{{ route('user.transactions') }}" wire:navigate variant="ghost">

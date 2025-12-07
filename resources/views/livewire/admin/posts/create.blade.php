@@ -33,6 +33,8 @@ new #[Layout('components.layouts.app'), Title('Tambah Artikel')] class extends C
     #[Validate('boolean')]
     public $is_published = false;
 
+    public $autoGenerateSlug = true;
+
     public function mount()
     {
         //
@@ -47,7 +49,15 @@ new #[Layout('components.layouts.app'), Title('Tambah Artikel')] class extends C
 
     public function updatedTitle()
     {
-        if (empty($this->slug)) {
+        if ($this->autoGenerateSlug) {
+            $this->slug = Str::slug($this->title);
+        }
+    }
+
+    public function toggleAutoSlug()
+    {
+        $this->autoGenerateSlug = !$this->autoGenerateSlug;
+        if ($this->autoGenerateSlug && !empty($this->title)) {
             $this->slug = Str::slug($this->title);
         }
     }
@@ -79,7 +89,13 @@ new #[Layout('components.layouts.app'), Title('Tambah Artikel')] class extends C
             'published_at' => $this->is_published ? now() : null,
         ]);
 
-        Flux::toast('Artikel berhasil dibuat!');
+        Flux::toast(
+            heading: 'Artikel berhasil ditambahkan!',
+            text: 'Data artikel baru telah disimpan ke sistem.',
+            variant: 'success',
+            duration: 3000,
+            position: 'top-right',
+        );
 
         return $this->redirect(route('admin.posts.index'), navigate: true);
     }
@@ -103,10 +119,27 @@ new #[Layout('components.layouts.app'), Title('Tambah Artikel')] class extends C
                     </flux:field>
 
                     <flux:field class="mb-4">
-                        <flux:label>Slug</flux:label>
-                        <flux:input wire:model="slug" placeholder="url-artikel" />
+                        <div class="flex items-center justify-between mb-2">
+                            <flux:label>Slug URL</flux:label>
+                            <button type="button"
+                                    wire:click="toggleAutoSlug"
+                                    class="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                                {{ $autoGenerateSlug ? '🔓 Edit Manual' : '🔒 Auto Generate' }}
+                            </button>
+                        </div>
+                        <flux:input
+                            wire:model="slug"
+                            placeholder="auto-generate-dari-judul"
+                            :readonly="$autoGenerateSlug"
+                            class="{{ $autoGenerateSlug ? 'bg-zinc-50 dark:bg-zinc-900 text-zinc-500' : '' }}" />
                         <flux:error name="slug" />
-                        <flux:description>Biarkan kosong untuk generate otomatis dari judul</flux:description>
+                        <flux:description>
+                            @if ($autoGenerateSlug)
+                                ✨ Slug otomatis dibuat dari judul
+                            @else
+                                ✏️ Mode manual: Edit slug sesuai keinginan
+                            @endif
+                        </flux:description>
                     </flux:field>
 
                     <flux:field class="mb-4">
@@ -117,7 +150,7 @@ new #[Layout('components.layouts.app'), Title('Tambah Artikel')] class extends C
 
                     <flux:field class="mb-4">
                         <flux:label>Konten</flux:label>
-                        <flux:textarea wire:model="content" rows="15"
+                        <flux:editor wire:model="content" rows="15"
                             placeholder="Tulis konten artikel di sini..." />
                         <flux:error name="content" />
                     </flux:field>
@@ -157,7 +190,7 @@ new #[Layout('components.layouts.app'), Title('Tambah Artikel')] class extends C
                             class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="featured_image" />
                         <div x-show="imagePreview" class="mt-2">
-                            <img :src="imagePreview" class="w-full rounded" alt="Preview">
+                            <img :src="imagePreview" class="w-32 rounded" alt="Preview">
                         </div>
                     </flux:field>
 

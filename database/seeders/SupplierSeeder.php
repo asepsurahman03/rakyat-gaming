@@ -13,6 +13,7 @@ class SupplierSeeder extends Seeder
     public function run(): void
     {
         Supplier::create([
+            'username' => 'hihuxeoQ47Gg',
             'name' => 'Digiflazz',
             'code' => 'digiflazz',
             'api_url' => config('services.digiflazz.url', 'https://api.digiflazz.com/v1'),

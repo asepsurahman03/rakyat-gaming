@@ -45,12 +45,11 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
     }
 }; ?>
 
-<div>
+<div class="bg-gradient-to-bl from-[#7E0000] to-[#470000] py-12">
     <!-- Hero Section -->
-    <div class="bg-gradient-to-br from-indigo-600 to-purple-600 py-12">
-        <div class="container mx-auto px-4 max-w-7xl">
+        <div class="container mx-auto px-4 max-w-7xl mb-4 md:mb-6">
             <div class="mb-4">
-                <flux:badge color="white" size="lg">{{ $post->game->name }}</flux:badge>
+                <flux:badge color="yellow" size="lg">{{ $post->game->name }}</flux:badge>
             </div>
             <flux:heading size="2xl" class="text-white mb-4">{{ $post->title }}</flux:heading>
 
@@ -63,16 +62,10 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                     <x-icon name="calendar" class="w-4 h-4" />
                     <span>{{ $post->published_at->format('d M Y') }}</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <x-icon name="eye" class="w-4 h-4" />
-                    <span>{{ number_format($post->views) }} views</span>
-                </div>
             </div>
         </div>
-    </div>
 
     <!-- Content Section -->
-    <div class="bg-white dark:bg-zinc-900 py-12">
         <div class="container mx-auto px-4 max-w-7xl">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Content -->
@@ -85,8 +78,16 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                             </div>
                         @endif
 
-                        <div class="prose prose-zinc dark:prose-invert max-w-none">
-                            {!! nl2br(e($post->content)) !!}
+                        <div class="prose prose-zinc dark:prose-invert max-w-none
+                            [&>p]:mb-4
+                            [&>h1]:mt-6 [&>h1]:mb-4
+                            [&>h2]:mt-6 [&>h2]:mb-4
+                            [&>h3]:mt-6 [&>h3]:mb-4
+                            [&>ul]:my-4 [&>ul]:list-disc [&>ul]:pl-8 [&>ul]:space-y-2
+                            [&>ol]:my-4 [&>ol]:list-decimal [&>ol]:pl-8 [&>ol]:space-y-2
+                            [&>ul>li]:ml-0 [&>ol>li]:ml-0
+                            [&_ul]:list-disc [&_ol]:list-decimal">
+                            {!! $post->content !!}
                         </div>
 
                         @if ($post->tags && count($post->tags) > 0)
@@ -101,7 +102,7 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
 
                     <!-- Share Buttons -->
                     <flux:card class="mt-6">
-                        <flux:heading size="sm" class="mb-4">Bagikan Artikel</flux:heading>
+                        <flux:heading size="sm" class="mb-4">{{ __('messages.share_article') }}</flux:heading>
                         <div class="flex flex-wrap gap-3">
                             <!-- Facebook -->
                             <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($shareUrl) }}"
@@ -151,7 +152,7 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                 <div class="space-y-6">
                     <!-- Game Info -->
                     <flux:card>
-                        <flux:heading size="sm" class="mb-4">Tentang Game</flux:heading>
+                        <flux:heading size="sm" class="mb-4">{{ __('messages.about_game') }}</flux:heading>
                         @if ($post->game->image)
                             <img src="{{ Storage::url($post->game->image) }}" alt="{{ $post->game->name }}"
                                 class="w-full rounded-lg mb-3">
@@ -162,17 +163,17 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                         @endif
                         <flux:button href="{{ route('game.detail', $post->game->slug) }}" wire:navigate
                             variant="primary" class="w-full mt-4">
-                            Lihat Game
+                            {{ __('messages.view_details') }}
                         </flux:button>
                     </flux:card>
 
                     <!-- Related Posts -->
                     @if ($relatedPosts->count() > 0)
                         <flux:card>
-                            <flux:heading size="sm" class="mb-4">Artikel Terkait</flux:heading>
+                            <flux:heading size="sm" class="mb-4">{{ __('messages.related_articles') }}</flux:heading>
                             <div class="space-y-4">
                                 @foreach ($relatedPosts as $related)
-                                    <a href="{{ route('posts.show', $related->slug) }}" wire:navigate
+                                    <a href="{{ route('guest.posts.show', $related->slug) }}" wire:navigate
                                         class="block group">
                                         <div class="flex gap-3">
                                             @if ($related->featured_image)
@@ -186,7 +187,7 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                                             @endif
                                             <div class="flex-1 min-w-0">
                                                 <div
-                                                    class="text-sm font-medium line-clamp-2 group-hover:text-indigo-600 transition">
+                                                    class="text-sm font-medium line-clamp-2 group-hover:text-yellow-600 transition">
                                                     {{ $related->title }}
                                                 </div>
                                                 <div class="text-xs text-zinc-500 mt-1">
@@ -205,5 +206,4 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                 </div>
             </div>
         </div>
-    </div>
 </div>
