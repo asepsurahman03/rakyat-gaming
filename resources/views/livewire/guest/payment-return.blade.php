@@ -76,7 +76,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
     }
 }; ?>
 
-<div class="bg-gradient-to-br from-[#470000] to-[#6d0000] py-12">
+<div class="py-12">
     <!-- Hero Section -->
     <div class="container mx-auto px-4 max-w-4xl text-center mb-8">
         @if($order && $order->orderPayment && $order->orderPayment->status === 'paid')

@@ -90,7 +90,7 @@ new #[Layout('components.layouts.app'), Title('Categories')] class extends Compo
 
             <flux:table.rows>
                 @forelse($categories as $category)
-                    <flux:table.row>
+                    <flux:table.row key="category-{{ $category->id }}">
                         <flux:table.cell class="text-2xl">{{ $category->icon }}</flux:table.cell>
                         <flux:table.cell>
                             <div class="font-medium">{{ $category->name }}</div>
@@ -114,26 +114,47 @@ new #[Layout('components.layouts.app'), Title('Categories')] class extends Compo
                         </flux:table.cell>
                         <flux:table.cell>
                             <div class="flex gap-2">
-                                <flux:button 
-                                    wire:click="toggleStatus({{ $category->id }})" 
-                                    size="sm" 
+                                <flux:button
+                                    wire:click="toggleStatus({{ $category->id }})"
+                                    size="sm"
                                     variant="ghost"
                                     :icon="$category->is_active ? 'eye-slash' : 'eye'">
                                 </flux:button>
-                                <flux:button 
-                                    href="{{ route('admin.categories.edit', $category) }}" 
-                                    wire:navigate 
-                                    size="sm" 
-                                    variant="primary">
-                                    Edit
+                                <flux:button
+                                    href="{{ route('admin.categories.edit', $category) }}"
+                                    wire:navigate
+                                    size="sm"
+                                    variant="primary" icon="pencil">
                                 </flux:button>
-                                <flux:button 
-                                    wire:click="delete({{ $category->id }})" 
-                                    wire:confirm="Yakin ingin menghapus category ini?"
-                                    size="sm" 
-                                    variant="danger">
-                                    Hapus
-                                </flux:button>
+                                <flux:modal.trigger name="delete-category-{{ $category->id }}">
+                                    <flux:button
+                                        size="sm"
+                                        variant="danger" icon="trash">
+                                    </flux:button>
+                                </flux:modal.trigger>
+                                <flux:modal name="delete-category-{{ $category->id }}">
+                                        <div class="space-y-6 max-w-[32rem]">
+                                            <div class="space-y-4">
+                                                <flux:heading size="lg">Hapus Category</flux:heading>
+                                                <flux:subheading>Apakah Anda yakin ingin menghapus category
+                                                    <strong>{{ $category->name }}</strong>? Tindakan ini tidak dapat
+                                                    dibatalkan.</flux:subheading>
+                                            </div>
+                                            <div class="flex gap-3 justify-end">
+                                                <flux:modal.close>
+                                                    <flux:button variant="ghost" class="flex-1">Batal</flux:button>
+                                                </flux:modal.close>
+                                                <flux:modal.close>
+                                                    <flux:button
+                                                        wire:click="delete({{ $category->id }})"
+                                                        variant="danger"
+                                                        class="flex-1">
+                                                        Hapus
+                                                    </flux:button>
+                                                </flux:modal.close>
+                                            </div>
+                                        </div>
+                                </flux:modal>
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

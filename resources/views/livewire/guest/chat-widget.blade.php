@@ -68,6 +68,7 @@ new class extends Component {
             ->count();
     }
 
+    #[On('toggle-chat')]
     public function toggleChat()
     {
         if (!auth()->check()) {
@@ -168,24 +169,7 @@ new class extends Component {
 }; ?>
 
 <div x-data x-init="setInterval(() => { @this.call('loadUnreadCount'); }, 3000)">
-    <!-- Chat Button (Always visible) -->
-    <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
-        @if (!$isOpen)
-            <button wire:click="toggleChat"
-                class="bg-yellow-400 text-white rounded-full p-3 sm:p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                @if($unreadCount > 0)
-                    <span
-                        class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center font-bold animate-pulse">
-                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                    </span>
-                @endif
-            </button>
-        @endif
-    </div>
+    <!-- Chat Button removed - now controlled by dropdown menu in guest layout -->
 
     <!-- Chat Window (Only for authenticated users) -->
     @if (auth()->check() && $isOpen)

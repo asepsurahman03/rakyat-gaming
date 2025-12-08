@@ -68,7 +68,7 @@ new #[Layout('components.layouts.app'), Title('Edit Category')] class extends Co
             'sort_order' => $this->sort_order,
         ]);
 
-        Flux::toast(variant: 'success', heading: 'Berhasil!', text: 'Category berhasil diperbarui.');
+        Flux::toast(variant: 'success', heading: 'Berhasil!', text: 'Category berhasil diperbarui.', duration: 3000, position: 'top-right');
 
         return $this->redirect(route('admin.categories.index'), navigate: true);
     }

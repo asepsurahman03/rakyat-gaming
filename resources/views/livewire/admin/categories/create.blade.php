@@ -43,7 +43,7 @@ new #[Layout('components.layouts.app'), Title('Create Category')] class extends 
             'sort_order' => $this->sort_order,
         ]);
 
-        Flux::toast(variant: 'success', heading: 'Berhasil!', text: 'Category berhasil ditambahkan.');
+        Flux::toast(variant: 'success', heading: 'Berhasil!', text: 'Category berhasil ditambahkan.', duration: 3000, position: 'top-right');
 
         return $this->redirect(route('admin.categories.index'), navigate: true);
     }

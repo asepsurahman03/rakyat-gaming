@@ -159,7 +159,7 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                         @endif
                         <flux:heading size="md" class="mb-2">{{ $post->game->name }}</flux:heading>
                         @if ($post->game->description)
-                            <flux:subheading size="sm">{{ $post->game->description }}</flux:subheading>
+                            <flux:subheading size="sm" class="text-justify">{{ $post->game->description }}</flux:subheading>
                         @endif
                         <flux:button href="{{ route('game.detail', $post->game->slug) }}" wire:navigate
                             variant="primary" class="w-full mt-4">
@@ -178,7 +178,7 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
                                         <div class="flex gap-3">
                                             @if ($related->featured_image)
                                                 <img src="{{ Storage::url($related->featured_image) }}"
-                                                    alt="{{ $related->title }}" class="w-20 h-20 object-cover rounded">
+                                                    alt="{{ $related->title }}" class="w-20 object-cover rounded">
                                             @else
                                                 <div
                                                     class="w-20 h-20 bg-zinc-200 dark:bg-zinc-700 rounded flex items-center justify-center shrink-0">

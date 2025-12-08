@@ -13,7 +13,7 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
 
 <div>
     <div x-data="leaderboard()" x-init="init()"
-        class="bg-gradient-to-bl from-[#7E0000] to-[#470000] min-h-screen py-12">
+        class="min-h-screen py-12">
         <div class="container mx-auto px-4 max-w-7xl">
             <!-- Hero Section -->
             <div class="text-center mb-12">

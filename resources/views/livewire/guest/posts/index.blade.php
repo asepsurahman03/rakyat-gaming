@@ -38,7 +38,7 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
         $popularPosts = Post::with(['game', 'author'])
             ->published()
             ->orderBy('views', 'desc')
-            ->limit(4)
+            ->limit(6)
             ->get();
 
         // Artikel Terbaru
@@ -72,8 +72,8 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
     }
 }; ?>
 
-<div class="bg-gradient-to-br from-[#470000] to-[#6d0000]">
-    <div class="mb-4 md:mb-6 py-6">
+<div>
+    <div class="py-6">
         <div class="container mx-auto px-4 max-w-7xl">
             <flux:heading size="xl" class="text-yellow-500 mb-2">{{ __('messages.artikel') }}</flux:heading>
             <flux:subheading class="text-white/90">{{ __('messages.search_articles') }}</flux:subheading>
@@ -105,14 +105,14 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
                         <div>
                             @php $featuredPost = $popularPosts->first(); @endphp
                             <a href="{{ route('guest.posts.show', $featuredPost->slug) }}" wire:navigate class="group block h-full">
-                                <flux:card class="h-full hover:shadow-xl transition-shadow group-hover:border-yellow-400">
+                                <flux:card class="hover:shadow-xl transition-shadow group-hover:border-yellow-400">
                                     @if ($featuredPost->featured_image)
-                                        <div class="aspect-video overflow-hidden rounded-lg">
+                                        <div class="w-full aspect-[3/4] overflow-hidden rounded-lg">
                                             <img src="{{ Storage::url($featuredPost->featured_image) }}" alt="{{ $featuredPost->title }}"
-                                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                                class="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-300">
                                         </div>
                                     @else
-                                        <div class="aspect-video bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center">
+                                        <div class="w-full aspect-[3/4] bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center">
                                             <x-icon name="document-text" class="w-16 h-16 text-white opacity-50" />
                                         </div>
                                     @endif
@@ -144,29 +144,29 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
 
                         <!-- Column 2: Posts #2, #3, #4 (Horizontal Layout) -->
                         <div class="space-y-4">
-                            @foreach($popularPosts->skip(1)->take(3) as $post)
+                            @foreach($popularPosts->skip(1)->take(6) as $post)
                                 <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group block">
                                     <flux:card class="hover:shadow-xl transition-shadow group-hover:border-yellow-400">
                                         <div class="flex gap-4">
                                             <!-- Image -->
                                             @if ($post->featured_image)
-                                                <div class="flex-shrink-0 w-28 h-28 overflow-hidden rounded-lg">
+                                                <div class="flex-shrink-0 w-24 overflow-hidden rounded-lg">
                                                     <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}"
                                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                                 </div>
                                             @else
-                                                <div class="flex-shrink-0 w-28 h-28 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                                                <div class="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
                                                     <x-icon name="document-text" class="w-8 h-8 text-white opacity-50" />
                                                 </div>
                                             @endif
 
                                             <!-- Content -->
-                                            <div class="flex-1 min-w-0 py-2">
-                                                <div class="flex items-center gap-2 mb-2">
+                                            <div class="w-full py-2">
+                                                <div class="gap-2 mb-2">
                                                     <flux:badge size="sm" color="yellow">{{ $post->game->name }}</flux:badge>
                                                 </div>
-
                                                 <flux:heading size="sm" class="line-clamp-2 mb-2">{{ $post->title }}</flux:heading>
+
                                                 <div class="sm:flex items-center justify-between text-xs text-zinc-500">
                                                     <flux:text class="mb-1.5 text-yellow-400">{{ $post->author->name }}</flux:text>
                                                     <span>{{ $post->published_at->diffForHumans() }}</span>
@@ -196,13 +196,13 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
                         <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group">
                             <flux:card class="h-full hover:shadow-xl transition-shadow group-hover:border-yellow-400">
                                 @if ($post->featured_image)
-                                    <div class="aspect-video overflow-hidden rounded-t-lg">
+                                    <div class="w-full aspect-[3/4] overflow-hidden rounded-t-lg">
                                         <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}"
                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                     </div>
                                 @else
                                     <div
-                                        class="aspect-video bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center">
+                                        class="w-full aspect-[3/4] bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center">
                                         <x-icon name="document-text" class="w-16 h-16 text-white opacity-50" />
                                     </div>
                                 @endif

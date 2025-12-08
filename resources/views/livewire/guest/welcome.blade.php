@@ -12,7 +12,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     public $searchQuery = '';
     public $categories = [];
     public $allGames = [];
-    public $filterGameId = '';
+    public $filterCategoryId = null;
     public $latestPosts = [];
     public $flazzSellProducts = [];
     public $loading = false;
@@ -25,6 +25,12 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         $this->loadFlazzSellProducts();
         $this->loadPopularGames();
         $this->loadCategories();
+
+        // Set default filter ke category pertama
+        if (count($this->categories) > 0) {
+            $this->filterCategoryId = $this->categories[0]->id;
+        }
+
         $this->loadAllGames();
         $this->loadLatestPosts();
     }
@@ -90,17 +96,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     public function loadCategories()
     {
         $this->loading = true;
-        // Get unique game names for category display
-        $this->categories = Game::where('is_active', true)
-            ->withCount([
-                'products' => function ($query) {
-                    $query->where('is_active', true);
-                },
-            ])
-            ->having('products_count', '>', 0)
-            ->orderBy('name', 'asc')
-            ->limit(8)
-            ->get();
+        // Get all active categories
+        $this->categories = \App\Models\Category::where('is_active', true)->orderBy('name', 'asc')->get();
         $this->loading = false;
     }
 
@@ -126,8 +123,30 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         $this->latestPosts = \App\Models\Post::with(['game', 'author'])
             ->published()
             ->latest()
-            ->limit(3)
+            ->limit(4)
             ->get();
+    }
+
+    public function setFilter($categoryId)
+    {
+        $this->filterCategoryId = $categoryId;
+    }
+
+    public function getFilteredProducts()
+    {
+        $query = Game::where('is_active', true)
+            ->withCount([
+                'products' => function ($q) {
+                    $q->where('is_active', true);
+                },
+            ])
+            ->having('products_count', '>', 0);
+
+        if ($this->filterCategoryId !== null && $this->filterCategoryId !== '') {
+            $query->where('category_id', $this->filterCategoryId);
+        }
+
+        return $query->orderBy('name', 'asc')->get();
     }
 
     public function nextSlide()
@@ -320,7 +339,8 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                     <div>
                         <div class="flex items-center gap-3 mb-2">
                             <flux:icon.fire class="w-8 h-8 text-red-500 animate-pulse" />
-                            <flux:heading size="xl" class="text-white">{{ __('messages.flash_sale') }} - {{ __('messages.discount') }}!</flux:heading>
+                            <flux:heading size="xl" class="text-white">{{ __('messages.flash_sale') }} -
+                                {{ __('messages.discount') }}!</flux:heading>
                         </div>
                         <flux:text class="text-white/90 mb-6">{{ __('messages.flash_sale_description') }}
                         </flux:text>
@@ -471,184 +491,175 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         </div>
     @endif
 
-    <div class="bg-gradient-to-br from-[#470000] to-[#6d0000]">
-        <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
-        <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
-            <flux:heading size="xl" class="mb-2 text-white">🔥 {{ __('messages.popular_games') }}</flux:heading>
-            <flux:text class="text-white/90 mb-6">{{ __('messages.search_game_placeholder') }}
-            </flux:text>
+    <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
+    <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
+        <flux:heading size="xl" class="mb-2 text-white">🔥 {{ __('messages.popular_games') }}</flux:heading>
+        <flux:text class="text-white/90 mb-6">{{ __('messages.search_game_placeholder') }}
+        </flux:text>
 
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                @forelse($popularGames as $game)
-                    <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
-                        x-data="{ showInfo: false }" @touchstart="showInfo = true"
-                        @touchend="setTimeout(() => showInfo = false, 2000)">
-                        <div
-                            class="relative overflow-hidden rounded-lg cursor-pointer transition-shadow duration-300 hover:shadow-xl">
-                            <div class="w-full h-28 md:h-50 bg-zinc-900 overflow-hidden">
-                                @if ($game->image)
-                                    <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
-                                        class="w-full h-full object-cover object-top transform transition duration-500 ease-in-out group-hover:scale-105" />
-                                @else
-                                    <div
-                                        class="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-                                        <x-icon name="puzzle-piece" class="w-16 h-16 text-white opacity-50" />
-                                    </div>
-                                @endif
-                            </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            @forelse($popularGames as $game)
+                <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
+                    x-data="{ showInfo: false }" @touchstart="showInfo = true"
+                    @touchend="setTimeout(() => showInfo = false, 2000)">
+                    <div
+                        class="relative overflow-hidden rounded-lg cursor-pointer transition-shadow duration-300 hover:shadow-xl">
+                        <div class="w-full h-28 md:h-50 bg-zinc-900 overflow-hidden">
+                            @if ($game->image)
+                                <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
+                                    class="w-full h-full object-cover object-top transform transition duration-500 ease-in-out group-hover:scale-105" />
+                            @else
+                                <div
+                                    class="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                                    <x-icon name="puzzle-piece" class="w-16 h-16 text-white opacity-50" />
+                                </div>
+                            @endif
+                        </div>
 
-                            <!-- Hover overlay: fades up and reveals name + provider -->
-                            <div class="absolute inset-0 flex items-end">
-                                <div class="w-full p-3 transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-yellow-400/70 to-transparent"
-                                    :class="showInfo && 'translate-y-0 opacity-100'">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <div class="min-w-0">
-                                            <h3 class="text-white text-sm font-semibold line-clamp-1">
-                                                {{ $game->name }}</h3>
-                                            <p class="text-zinc-200 text-xs line-clamp-1 mt-1">
-                                                {{ $game->provider ?? config('app.name') }}</p>
-                                        </div>
+                        <!-- Hover overlay: fades up and reveals name + provider -->
+                        <div class="absolute inset-0 flex items-end">
+                            <div class="w-full p-3 transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 bg-gradient-to-t from-yellow-400/70 to-transparent"
+                                :class="showInfo && 'translate-y-0 opacity-100'">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <h3 class="text-white text-sm font-semibold line-clamp-1">
+                                            {{ $game->name }}</h3>
+                                        <p class="text-zinc-200 text-xs line-clamp-1 mt-1">
+                                            {{ $game->provider ?? config('app.name') }}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </a>
-                @empty
-                    <div class="col-span-full text-center py-12">
-                        <x-icon name="puzzle-piece" class="w-16 h-16 text-white/30 mx-auto mb-4" />
-                        <flux:heading size="md" class="text-white mb-2">Belum Ada Game Populer</flux:heading>
-                        <flux:subheading class="text-white/80">Game akan segera ditambahkan</flux:subheading>
                     </div>
-                @endforelse
-            </div>
+                </a>
+            @empty
+                <div class="col-span-full text-center py-12">
+                    <x-icon name="puzzle-piece" class="w-16 h-16 text-white/30 mx-auto mb-4" />
+                    <flux:heading size="md" class="text-white mb-2">Belum Ada Game Populer</flux:heading>
+                    <flux:subheading class="text-white/80">Game akan segera ditambahkan</flux:subheading>
+                </div>
+            @endforelse
         </div>
-
-        {{-- Section Semua Game --}}
-        <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
-            <flux:heading size="xl" class="mb-2 text-white">{{ __('messages.all_games') }}</flux:heading>
-            <flux:text class="text-gray-300 mb-6">{{ __('messages.search_game_placeholder') }}</flux:text>
-
-            <!-- Horizontal Scrollable Filter -->
-            <div class="mb-8" x-data="{ filterGameId: @entangle('filterGameId') }">
-                <div class="flex gap-2 overflow-x-auto pb-4 hide-scrollbar">
-                    <button @click="filterGameId = ''"
-                        :class="filterGameId === '' ? 'bg-yellow-400 text-white' :
-                            'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700'"
-                        class="px-3 py-2.5 rounded-lg font-medium whitespace-nowrap transition flex-shrink-0">
-                        {{ __('messages.all_games') }}
-                    </button>
-                    @foreach ($allGames as $game)
-                        <button @click="filterGameId = '{{ $game->id }}'"
-                            :class="filterGameId === '{{ $game->id }}' ? 'bg-yellow-400 text-white' :
-                                'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700'"
-                            class="px-3 py-2.5 rounded-lg font-medium whitespace-nowrap transition flex-shrink-0">
-                            {{ $game->name }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Games Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                @php
-                    $filteredGames = $filterGameId ? $allGames->where('id', $filterGameId) : $allGames;
-                @endphp
-
-                @forelse($filteredGames as $game)
-                    <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
-                        x-data="{ showInfo: false }" @touchstart="showInfo = true"
-                        @touchend="setTimeout(() => showInfo = false, 2000)">
-                        <div class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl"
-                            :class="showInfo ? 'border-yellow-400 shadow-xl' : ''">
-                            <div class="relative w-full overflow-hidden rounded-xl">
-                                @if ($game->image)
-                                    <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
-                                        class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300"
-                                        :class="showInfo ? 'scale-105' : ''" />
-                                @else
-                                    <div
-                                        class="w-full aspect-square bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                                        <x-icon name="puzzle-piece" class="w-12 text-white opacity-50" />
-                                    </div>
-                                @endif
-                            </div>
-
-                            <div class="absolute inset-0 flex items-end pointer-events-none">
-                                <div class="w-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg"
-                                    :class="showInfo && 'translate-y-0 opacity-100'">
-                                    <div class="min-h-[2rem]">
-                                        <h3 class="text-sm font-semibold text-white">{{ $game->name }}</h3>
-                                        <p class="text-xs text-gray-300 mt-1">
-                                            {{ $game->provider ?? config('app.name') }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                @empty
-                    <div class="col-span-full text-center py-12">
-                        <x-icon name="puzzle-piece" class="w-16 h-16 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
-                        <flux:heading size="md" class="mb-2">Game Tidak Ditemukan</flux:heading>
-                        <flux:subheading class="text-zinc-500">Coba filter game lain</flux:subheading>
-                    </div>
-                @endforelse
-            </div>
-        </div>
-
-        <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
-        @if (count($latestPosts) > 0)
-            <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <flux:heading size="xl" class="text-white mb-2">{{ __('messages.latest_articles') }}</flux:heading>
-                        <flux:text class="text-white/90">{{ __('messages.read_more') }}</flux:text>
-                    </div>
-                    <flux:button href="{{ route('guest.posts.index') }}" wire:navigate variant="primary"
-                        class="text-white hover:bg-white/10">
-                        {{ __('messages.view_all') }}
-                    </flux:button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    @foreach ($latestPosts as $post)
-                        <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group">
-                            <div
-                                class="hover:shadow-2xl shadow-yellow-400 hover:border hover:border-yellow-400 rounded-xl transition-all duration-300 h-full">
-                                @if ($post->featured_image)
-                                    <div class="aspect-video overflow-hidden rounded-t-xl">
-                                        <img src="{{ Storage::url($post->featured_image) }}"
-                                            alt="{{ $post->title }}"
-                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                                    </div>
-                                @else
-                                    <div
-                                        class="aspect-video bg-gradient-to-br from-zinc-700 to-zinc-900 rounded-t-lg flex items-center justify-center">
-                                        <x-icon name="document-text" class="w-16 h-16 text-white opacity-30" />
-                                    </div>
-                                @endif
-
-                                <div class="p-4 bg-zinc-900 rounded-b-xl flex flex-col justify-between">
-                                    <flux:heading size="sm" class="line-clamp-2 mb-2 text-yellow-400 transition">
-                                        {{ $post->title }}
-                                    </flux:heading>
-
-                                    @if ($post->excerpt)
-                                        <flux:subheading size="sm" class="line-clamp-2 mb-3">
-                                            {{ $post->excerpt }}</flux:subheading>
-                                    @endif
-
-                                    <div class="flex items-center justify-between text-xs text-zinc-500">
-                                        <span>{{ $post->published_at->diffForHumans() }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif
     </div>
+
+    {{-- Section Semua Game --}}
+    <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
+        <flux:heading size="xl" class="mb-2 text-white">{{ __('messages.all_games') }}</flux:heading>
+        <flux:text class="text-gray-300 mb-6">Pilih kategori untuk melihat produk game</flux:text>
+
+        <!-- Horizontal Scrollable Filter -->
+        <div class="mb-8">
+            <div class="flex gap-2 overflow-x-auto pb-4 hide-scrollbar">
+                @foreach ($categories as $category)
+                    <button wire:click="setFilter({{ $category->id }})"
+                        class="px-4 py-2.5 rounded-lg font-medium whitespace-nowrap transition flex-shrink-0 text-sm {{ $filterCategoryId == $category->id ? 'bg-yellow-400 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
+                        {{ $category->name }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            @php
+                $filteredProducts = $this->getFilteredProducts();
+            @endphp
+
+            @forelse($filteredProducts as $game)
+                <a href="{{ route('game.detail', $game->slug) }}" wire:navigate class="group"
+                    x-data="{ showInfo: false }" @touchstart="showInfo = true"
+                    @touchend="setTimeout(() => showInfo = false, 2000)">
+                    <div class="relative transition-all duration-300 cursor-pointer border-2 border-transparent group-hover:border-yellow-400 group-hover:shadow-xl rounded-xl"
+                        :class="showInfo ? 'border-yellow-400 shadow-xl' : ''">
+                        <div class="relative w-full overflow-hidden rounded-xl">
+                            @if ($game->image)
+                                <img src="{{ Storage::url($game->image) }}" alt="{{ $game->name }}"
+                                    class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                                    :class="showInfo ? 'scale-105' : ''" />
+                            @else
+                                <div
+                                    class="w-full aspect-square bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                                    <x-icon name="puzzle-piece" class="w-12 text-white opacity-50" />
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="absolute inset-0 flex items-end pointer-events-none">
+                            <div class="w-full p-3 flex items-end transition-all duration-300 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 pointer-events-auto bg-gradient-to-t from-yellow-400 to-transparent rounded-b-lg"
+                                :class="showInfo && 'translate-y-0 opacity-100'">
+                                <div class="min-h-[2rem]">
+                                    <h3 class="text-sm font-semibold text-white">{{ $game->name }}</h3>
+                                    <p class="text-xs text-gray-300 mt-1">
+                                        {{ $game->provider ?? config('app.name') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            @empty
+                <div class="col-span-full text-center py-12">
+                    <x-icon name="puzzle-piece" class="w-16 h-16 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
+                    <flux:heading size="md" class="mb-2 text-white">Game Tidak Ditemukan</flux:heading>
+                    <flux:subheading class="text-zinc-400">Coba pilih kategori lain</flux:subheading>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
+    @if (count($latestPosts) > 0)
+        <div class="container mx-auto p-4 md:p-6 max-w-7xl mb-10 md:mb-20">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <flux:heading size="xl" class="text-white mb-2">{{ __('messages.latest_articles') }}
+                    </flux:heading>
+                    <flux:text class="text-white/90">{{ __('messages.read_more') }}</flux:text>
+                </div>
+                <flux:button href="{{ route('guest.posts.index') }}" wire:navigate variant="primary"
+                    class="text-white hover:bg-white/10">
+                    {{ __('messages.view_all') }}
+                </flux:button>
+            </div>
+
+            <div class="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+                @foreach ($latestPosts as $post)
+                    <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate
+                        class="group flex-shrink-0 w-72 md:98 snap-start">
+                        <div
+                            class="hover:shadow-lg shadow-yellow-400 hover:border-2 hover:border-yellow-400 rounded-xl transition-all duration-300 h-full">
+                            @if ($post->featured_image)
+                                <div class="w-full aspect-[3/4] overflow-hidden rounded-t-xl">
+                                    <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}"
+                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                </div>
+                            @else
+                                <div
+                                    class="w-full aspect-[3/4] bg-gradient-to-br from-zinc-700 to-zinc-900 rounded-t-lg flex items-center justify-center">
+                                    <x-icon name="document-text" class="w-16 h-16 text-white opacity-30" />
+                                </div>
+                            @endif
+
+                            <div class="p-4 bg-zinc-900 rounded-b-xl flex flex-col justify-between">
+                                <flux:heading size="sm" class="line-clamp-2 mb-2 text-yellow-400 transition">
+                                    {{ $post->title }}
+                                </flux:heading>
+
+                                @if ($post->excerpt)
+                                    <flux:subheading size="sm" class="line-clamp-2 mb-3">
+                                        {{ $post->excerpt }}</flux:subheading>
+                                @endif
+
+                                <div class="flex items-center justify-between text-xs text-zinc-500">
+                                    <span>{{ $post->published_at->diffForHumans() }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
 </div>
 
 @assets

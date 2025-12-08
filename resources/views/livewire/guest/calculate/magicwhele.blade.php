@@ -41,7 +41,7 @@ new #[Layout('components.layouts.guest'), Title('Kalkulator Magic Wheel - Rakyat
     }
 }; ?>
 
-<div class="bg-gradient-to-br from-[#470000] to-[#6d0000] py-12 px-4">
+<div class="py-12 px-4">
     <div class="max-w-2xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-8">
