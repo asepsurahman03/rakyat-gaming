@@ -105,7 +105,7 @@ return [
     'search_game' => 'Cari game...',
     'search_game_placeholder' => 'Cari game favorit Anda...',
     'latest_articles' => 'Artikel Terbaru',
-    'read_more' => 'Baca Selengkapnya',
+    'read_more' => 'Dapatkan informasi terbaru seputar game dan tips menarik di artikel kami untuk meningkatkan pengalaman bermain Anda. serta berita terkini mengenai promosi dan event spesial dari Rakyat Gaming.',
     'products_available' => 'produk tersedia',
     'discount' => 'Diskon',
     'original_price' => 'Harga Normal',

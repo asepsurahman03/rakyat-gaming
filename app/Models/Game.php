@@ -43,6 +43,14 @@ class Game extends Model
     }
 
     /**
+     * Get all product groups for this game
+     */
+    public function productGroups(): HasMany
+    {
+        return $this->hasMany(ProductGroup::class)->orderBy('sort_order');
+    }
+
+    /**
      * Get all orders for this game
      */
     public function orders(): HasMany

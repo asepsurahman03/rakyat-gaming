@@ -10,7 +10,7 @@ use function Livewire\Volt\{state, mount, rules, uses, computed};
 
 uses([WithFileUploads::class]);
 
-state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => [], 'autoGenerateSlug' => false]);
+state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => [], 'productGroups' => [], 'autoGenerateSlug' => false]);
 
 $categories = computed(fn() => Category::where('is_active', true)->orderBy('sort_order')->get());
 
@@ -37,6 +37,18 @@ mount(function (Game $game) {
             ];
         })
         ->toArray();
+
+    // Load existing product groups
+    $this->productGroups = $game->productGroups
+        ->map(function ($group) {
+            return [
+                'id' => $group->id,
+                'name' => $group->name,
+                'is_active' => $group->is_active,
+                'sort_order' => $group->sort_order,
+            ];
+        })
+        ->toArray();
 });
 
 rules(
@@ -53,6 +65,8 @@ rules(
         'fieldForms.*.name' => 'required|string|max:255',
         'fieldForms.*.type' => 'required|in:text,number,email,tel,textarea',
         'fieldForms.*.is_required' => 'boolean',
+        'productGroups.*.name' => 'required|string|max:100',
+        'productGroups.*.is_active' => 'boolean',
     ],
 );
 
@@ -89,6 +103,62 @@ $addFieldForm = function () {
 $removeFieldForm = function ($index) {
     unset($this->fieldForms[$index]);
     $this->fieldForms = array_values($this->fieldForms);
+};
+
+$addProductGroup = function () {
+    $this->productGroups[] = [
+        'name' => '',
+        'is_active' => true,
+        'sort_order' => count($this->productGroups),
+    ];
+};
+
+$removeProductGroup = function ($index) {
+    unset($this->productGroups[$index]);
+    $this->productGroups = array_values($this->productGroups);
+    // Update sort orders
+    foreach ($this->productGroups as $i => $group) {
+        $this->productGroups[$i]['sort_order'] = $i;
+    }
+};
+
+$moveGroupUp = function ($index) {
+    if ($index > 0) {
+        $temp = $this->productGroups[$index];
+        $this->productGroups[$index] = $this->productGroups[$index - 1];
+        $this->productGroups[$index - 1] = $temp;
+
+        // Update sort orders
+        foreach ($this->productGroups as $i => $group) {
+            $this->productGroups[$i]['sort_order'] = $i;
+        }
+    }
+};
+
+$moveGroupDown = function ($index) {
+    if ($index < count($this->productGroups) - 1) {
+        $temp = $this->productGroups[$index];
+        $this->productGroups[$index] = $this->productGroups[$index + 1];
+        $this->productGroups[$index + 1] = $temp;
+
+        // Update sort orders
+        foreach ($this->productGroups as $i => $group) {
+            $this->productGroups[$i]['sort_order'] = $i;
+        }
+    }
+};
+
+$swapGroups = function ($fromIndex, $toIndex) {
+    if ($fromIndex !== $toIndex && isset($this->productGroups[$fromIndex]) && isset($this->productGroups[$toIndex])) {
+        $temp = $this->productGroups[$fromIndex];
+        $this->productGroups[$fromIndex] = $this->productGroups[$toIndex];
+        $this->productGroups[$toIndex] = $temp;
+
+        // Update sort orders
+        foreach ($this->productGroups as $i => $group) {
+            $this->productGroups[$i]['sort_order'] = $i;
+        }
+    }
 };
 
 $save = function () {
@@ -137,6 +207,26 @@ $save = function () {
             $this->game->fieldForms()->create($fieldForm);
         }
     }
+
+    // Sync product groups
+    $existingGroupIds = collect($this->productGroups)->pluck('id')->filter();
+    $this->game->productGroups()->whereNotIn('id', $existingGroupIds)->delete();
+
+    foreach ($this->productGroups as $productGroup) {
+        if (isset($productGroup['id'])) {
+            $this->game
+                ->productGroups()
+                ->where('id', $productGroup['id'])
+                ->update([
+                    'name' => $productGroup['name'],
+                    'is_active' => $productGroup['is_active'],
+                    'sort_order' => $productGroup['sort_order'],
+                ]);
+        } else {
+            $this->game->productGroups()->create($productGroup);
+        }
+    }
+
     Flux::toast(heading: 'Game berhasil diupdate!', text: 'Perubahan pada data game telah disimpan ke sistem.', variant: 'success', duration: 3000, position: 'top-right');
     $this->redirect(route('admin.games.index'), navigate: true);
 };
@@ -262,6 +352,99 @@ $save = function () {
                     @else
                         <div class="text-center py-8 text-zinc-500">
                             <p class="text-sm">Belum ada field form. Klik "Tambah Field" untuk menambahkan.</p>
+                        </div>
+                    @endif
+                </flux:card>
+
+                <!-- Product Groups Section -->
+                <flux:card>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <flux:heading size="lg">Product Groups</flux:heading>
+                            <flux:subheading>Kelompokkan produk game (contoh: Populer, Instan, Promo)</flux:subheading>
+                        </div>
+                        <flux:button type="button" wire:click="addProductGroup" size="sm" icon="plus">
+                            Tambah Group
+                        </flux:button>
+                    </div>
+
+                    @if (count($productGroups) > 0)
+                        <div class="space-y-3"
+                             x-data="{
+                                 dragging: null,
+                                 dragover: null,
+                                 startDrag(index) {
+                                     this.dragging = index;
+                                 },
+                                 endDrag() {
+                                     this.dragging = null;
+                                     this.dragover = null;
+                                 },
+                                 dragOver(index, event) {
+                                     event.preventDefault();
+                                     this.dragover = index;
+                                 },
+                                 drop(index) {
+                                     if (this.dragging !== null && this.dragging !== index) {
+                                         $wire.swapGroups(this.dragging, index);
+                                     }
+                                     this.endDrag();
+                                 }
+                             }">
+                            @foreach ($productGroups as $index => $group)
+                                <div class="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-move transition-all"
+                                     draggable="true"
+                                     @dragstart="startDrag({{ $index }})"
+                                     @dragend="endDrag()"
+                                     @dragover="dragOver({{ $index }}, $event)"
+                                     @drop="drop({{ $index }})"
+                                     :class="{
+                                         'opacity-50': dragging === {{ $index }},
+                                         'border-blue-500 border-2': dragover === {{ $index }} && dragging !== {{ $index }}
+                                     }">
+                                    <div class="flex items-start gap-3">
+                                        <!-- Drag Handle -->
+                                        <div class="mt-2 text-zinc-400 pointer-events-none">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                                            </svg>
+                                        </div>
+
+                                        <div class="flex-1">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <span class="text-sm font-medium">Group #{{ $index + 1 }}</span>
+                                                <button type="button" wire:click="removeProductGroup({{ $index }})"
+                                                    class="text-red-600 hover:text-red-700 text-sm">
+                                                    <flux:icon.trash class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <flux:field>
+                                                    <flux:label>Nama Group</flux:label>
+                                                    <flux:input wire:model="productGroups.{{ $index }}.name"
+                                                        placeholder="e.g., Produk Populer" size="sm" />
+                                                    <flux:error name="productGroups.{{ $index }}.name" />
+                                                </flux:field>
+
+                                                <flux:field>
+                                                    <flux:label>Status</flux:label>
+                                                    <div class="flex items-center gap-3 mt-2">
+                                                        <flux:checkbox wire:model="productGroups.{{ $index }}.is_active" />
+                                                        <span class="text-sm">{{ $group['is_active'] ? 'Aktif' : 'Nonaktif' }}</span>
+                                                    </div>
+                                                </flux:field>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <flux:description class="mt-3">
+                            💡 Drag & drop untuk mengubah urutan tampilan group
+                        </flux:description>
+                    @else
+                        <div class="text-center py-8 text-zinc-500">
+                            <p class="text-sm">Belum ada product group. Klik "Tambah Group" untuk menambahkan.</p>
                         </div>
                     @endif
                 </flux:card>

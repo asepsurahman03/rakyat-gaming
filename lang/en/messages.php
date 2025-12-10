@@ -105,7 +105,7 @@ return [
     'search_game' => 'Search game...',
     'search_game_placeholder' => 'Search your favorite game...',
     'latest_articles' => 'Latest Articles',
-    'read_more' => 'Read More',
+    'read_more' => 'Stay updated with the latest game news and interesting tips in our articles to enhance your gaming experience, as well as the latest news on promotions and special events from Rakyat Gaming.',
     'products_available' => 'products available',
     'discount' => 'Discount',
     'original_price' => 'Original Price',

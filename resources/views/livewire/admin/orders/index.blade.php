@@ -101,6 +101,7 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
                 <flux:table.column>Tanggal</flux:table.column>
                 <flux:table.column>Customer</flux:table.column>
                 <flux:table.column>Game / Produk</flux:table.column>
+                <flux:table.column>Type</flux:table.column>
                 <flux:table.column>Harga</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column>Aksi</flux:table.column>
@@ -126,6 +127,13 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
                         <flux:table.cell>
                             <div class="text-sm font-semibold">{{ $order->game->name ?? '-' }}</div>
                             <div class="text-xs text-zinc-500">{{ $order->product->name ?? '-' }}</div>
+                        </flux:table.cell>
+                        <flux:table.cell class="font-semibold">
+                            @if ($order->product->product_type === 'manual')
+                                <flux:badge color="purple" size="sm" icon="cube">Manual</flux:badge>
+                            @else
+                                <flux:badge color="indigo" size="sm" icon="link">Digiflazz</flux:badge>
+                            @endif
                         </flux:table.cell>
                         <flux:table.cell class="font-semibold">Rp {{ number_format($order->price, 0, ',', '.') }}</flux:table.cell>
                         <flux:table.cell>

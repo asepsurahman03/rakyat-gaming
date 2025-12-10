@@ -10,12 +10,62 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
     public $totalUsers = 0;
     public $totalRevenue = 0;
     public $totalOrders = 0;
+    public $totalDigiflazzOrders = 0;
+    public $totalManualOrders = 0;
+    public $digiflazzRevenue = 0;
+    public $manualRevenue = 0;
+    public $digiflazzBalance = 0;
     public $recentActivities = [];
 
     public function mount()
     {
         $this->loadStats();
         $this->loadRecentActivities();
+        $this->loadDigiflazzBalance();
+    }
+
+    public function loadDigiflazzBalance()
+    {
+        try {
+            $supplier = \App\Models\Supplier::where('code', 'digiflazz')->first();
+
+            if (!$supplier) {
+                $this->digiflazzBalance = 0;
+                return;
+            }
+
+            $username = $supplier->username ?? env('DIGIFLAZZ_USERNAME');
+            $apiKey = $supplier->api_key ?? env('DIGIFLAZZ_API_KEY');
+            $apiUrl = $supplier->api_url ?? env('DIGIFLAZZ_URL');
+
+            // Generate signature: md5(username + apiKey + depo)
+            $sign = md5($username . $apiKey . 'depo');
+
+            $payload = [
+                'username' => $username,
+                'cmd' => 'deposit',
+                'sign' => $sign,
+            ];
+
+            $endpoint = rtrim($apiUrl, '/') . '/cek-saldo';
+
+            $response = \Illuminate\Support\Facades\Http::timeout(10)
+                ->asJson()
+                ->post($endpoint, $payload);
+
+            $body = $response->json();
+
+            if ($response->ok() && isset($body['data']['deposit'])) {
+                $this->digiflazzBalance = (float) $body['data']['deposit'];
+            } else {
+                $this->digiflazzBalance = 0;
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to load Digiflazz balance', [
+                'error' => $e->getMessage()
+            ]);
+            $this->digiflazzBalance = 0;
+        }
     }
 
     public function loadStats()
@@ -23,6 +73,26 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         $this->totalUsers = User::count();
         $this->totalOrders = Order::count();
         $this->totalRevenue = Order::where('status', 'success')->sum('price');
+
+        // Count orders by product type
+        $this->totalDigiflazzOrders = Order::whereHas('product', function($query) {
+            $query->where('product_type', 'digiflazz');
+        })->count();
+
+        $this->totalManualOrders = Order::whereHas('product', function($query) {
+            $query->where('product_type', 'manual');
+        })->count();
+
+        // Calculate revenue by product type
+        $this->digiflazzRevenue = Order::where('status', 'success')
+            ->whereHas('product', function($query) {
+                $query->where('product_type', 'digiflazz');
+            })->sum('price');
+
+        $this->manualRevenue = Order::where('status', 'success')
+            ->whereHas('product', function($query) {
+                $query->where('product_type', 'manual');
+            })->sum('price');
     }
 
     public function getStatusBadge($status)
@@ -49,6 +119,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
     {
         $this->loadStats();
         $this->loadRecentActivities();
+        $this->loadDigiflazzBalance();
     }
 }; ?>
 
@@ -58,8 +129,8 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         <flux:subheading>Welcome back, {{ auth()->user()->name }}! 👋</flux:subheading>
     </flux:heading>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Main Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
@@ -102,6 +173,82 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                 </div>
             </div>
         </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Saldo Digiflazz
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($digiflazzBalance / 1000, 0) }}K
+                    </flux:heading>
+                    <flux:subheading class="text-xs mt-1">Current balance</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                    <flux:icon.wallet class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+            </div>
+        </flux:card>
+    </div>
+
+    <!-- Product Type Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Digiflazz Orders
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($totalDigiflazzOrders) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">Supplier products</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                    <flux:icon.globe-alt class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Manual Orders
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($totalManualOrders) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">Custom stock products</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <flux:icon.cube class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Digiflazz Revenue
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($digiflazzRevenue / 1000, 0) }}K
+                    </flux:heading>
+                    <flux:subheading class="text-xs mt-1">From supplier orders</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                    <flux:icon.currency-dollar class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Manual Revenue
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($manualRevenue / 1000, 0) }}K
+                    </flux:heading>
+                    <flux:subheading class="text-xs mt-1">From custom stock</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <flux:icon.currency-dollar class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+            </div>
+        </flux:card>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -114,6 +261,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                     <flux:table.column>Order Code</flux:table.column>
                     <flux:table.column>User</flux:table.column>
                     <flux:table.column>Game</flux:table.column>
+                    <flux:table.column>Type</flux:table.column>
                     <flux:table.column>Status</flux:table.column>
                 </flux:table.columns>
 
@@ -124,6 +272,17 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                             </flux:table.cell>
                             <flux:table.cell>{{ $activity->user->name ?? 'N/A' }}</flux:table.cell>
                             <flux:table.cell>{{ $activity->game->name ?? 'N/A' }}</flux:table.cell>
+                            <flux:table.cell>
+                                @if ($activity->product && $activity->product->product_type === 'manual')
+                                    <flux:badge color="purple" size="sm" icon="cube">
+                                        Manual
+                                    </flux:badge>
+                                @else
+                                    <flux:badge color="indigo" size="sm" icon="globe-alt">
+                                        Digiflazz
+                                    </flux:badge>
+                                @endif
+                            </flux:table.cell>
                             <flux:table.cell>
                                 <flux:badge color="{{ $this->getStatusBadge($activity->status) }}" size="sm">
                                     {{ ucfirst($activity->status) }}
@@ -137,7 +296,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="4" class="text-center text-zinc-500">No recent orders
+                            <flux:table.cell colspan="5" class="text-center text-zinc-500">No recent orders
                             </flux:table.cell>
                         </flux:table.row>
                     @endforelse

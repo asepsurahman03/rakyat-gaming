@@ -560,7 +560,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         </div>
 
         <!-- Products Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             @php
                 $filteredProducts = $this->getFilteredProducts();
             @endphp
@@ -610,28 +610,22 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->
     @if (count($latestPosts) > 0)
         <div class="container mx-auto p-4 md:p-6 max-w-7xl mb-10 md:mb-20">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <flux:heading size="xl" class="text-white mb-2">{{ __('messages.latest_articles') }}
-                    </flux:heading>
-                    <flux:text class="text-white/90">{{ __('messages.read_more') }}</flux:text>
-                </div>
-                <flux:button href="{{ route('guest.posts.index') }}" wire:navigate variant="primary"
-                    class="text-white hover:bg-white/10">
-                    {{ __('messages.view_all') }}
-                </flux:button>
+            <div class="mb-6">
+                <flux:heading size="xl" class="text-white mb-2">{{ __('messages.latest_articles') }}
+                </flux:heading>
+                <flux:text class="text-white/90">{{ __('messages.read_more') }}</flux:text>
             </div>
 
-            <div class="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+            <div class="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide px-4">
                 @foreach ($latestPosts as $post)
                     <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate
-                        class="group flex-shrink-0 w-72 md:98 snap-start">
+                        class="group flex-shrink-0 w-52 md:w-72 snap-start">
                         <div
-                            class="hover:shadow-lg shadow-yellow-400 hover:border-2 hover:border-yellow-400 rounded-xl transition-all duration-300 h-full">
+                            class="hover:shadow-lg bg-zinc-900 shadow-yellow-400 hover:border-2 hover:border-yellow-400 rounded-xl transition-all duration-300">
                             @if ($post->featured_image)
                                 <div class="w-full aspect-[3/4] overflow-hidden rounded-t-xl">
                                     <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}"
-                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                        class="w-full object-cover group-hover:scale-110 transition-transform duration-300">
                                 </div>
                             @else
                                 <div
@@ -640,7 +634,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                 </div>
                             @endif
 
-                            <div class="p-4 bg-zinc-900 rounded-b-xl flex flex-col justify-between">
+                            <div class="p-4 rounded-b-xl flex flex-col justify-between ">
                                 <flux:heading size="sm" class="line-clamp-2 mb-2 text-yellow-400 transition">
                                     {{ $post->title }}
                                 </flux:heading>
@@ -658,6 +652,10 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                     </a>
                 @endforeach
             </div>
+            <flux:button href="{{ route('guest.posts.index') }}" wire:navigate variant="primary"
+                class="text-white hover:bg-white/10">
+                {{ __('messages.view_all') }}
+            </flux:button>
         </div>
     @endif
 </div>

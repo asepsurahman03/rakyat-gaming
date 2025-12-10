@@ -71,25 +71,62 @@ class PaymentController extends Controller
 
             $order->update(['status' => 'process']);
 
-            // Trigger topup to Digiflazz
-            if ($order->product && $order->product->supplierProduct) {
-                try {
-                    $result = $this->digiflazzService->topup($order, $order->product->supplierProduct);
+            // Trigger topup to Digiflazz or handle manual product stock
+            if ($order->product) {
+                // Handle manual products - decrement stock
+                if ($order->product->product_type === 'manual') {
+                    try {
+                        $product = $order->product;
 
-                    Log::info('Digiflazz topup triggered from payment callback', [
-                        'order_id' => $order->id,
-                        'result' => $result,
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Digiflazz topup failed', [
-                        'order_id' => $order->id,
-                        'error' => $e->getMessage(),
-                    ]);
+                        if ($product->stock !== null && $product->stock > 0) {
+                            $product->decrement('stock', 1);
 
-                    $order->update([
-                        'status' => 'failed',
-                        'note' => 'Topup failed: ' . $e->getMessage(),
-                    ]);
+                            // Update order status to success for manual products
+                            $order->update([
+                                'status' => 'process',
+                                'note' => 'Manual product - stock decremented',
+                            ]);
+
+                            Log::info('Manual product stock decremented', [
+                                'order_id' => $order->id,
+                                'product_id' => $product->id,
+                                'remaining_stock' => $product->fresh()->stock,
+                            ]);
+                        } else {
+                            throw new \Exception('Stock not available');
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Manual product stock decrement failed', [
+                            'order_id' => $order->id,
+                            'error' => $e->getMessage(),
+                        ]);
+
+                        $order->update([
+                            'status' => 'failed',
+                            'note' => 'Stock decrement failed: ' . $e->getMessage(),
+                        ]);
+                    }
+                }
+                // Handle Digiflazz products - trigger topup
+                elseif ($order->product->product_type === 'digiflazz' && $order->product->supplierProduct) {
+                    try {
+                        $result = $this->digiflazzService->topup($order, $order->product->supplierProduct);
+
+                        Log::info('Digiflazz topup triggered from payment callback', [
+                            'order_id' => $order->id,
+                            'result' => $result,
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error('Digiflazz topup failed', [
+                            'order_id' => $order->id,
+                            'error' => $e->getMessage(),
+                        ]);
+
+                        $order->update([
+                            'status' => 'failed',
+                            'note' => 'Topup failed: ' . $e->getMessage(),
+                        ]);
+                    }
                 }
             }
         } else {

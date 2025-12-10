@@ -158,6 +158,7 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
             <flux:table.columns>
                 <flux:table.column>#</flux:table.column>
                 <flux:table.column>Produk</flux:table.column>
+                <flux:table.column>Type</flux:table.column>
                 <flux:table.column>Game</flux:table.column>
                 <flux:table.column>Harga Beli</flux:table.column>
                 <flux:table.column>Harga Jual</flux:table.column>
@@ -176,6 +177,13 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
                                     <div class="text-xs text-zinc-500">{{ $product->supplierProduct->code }}</div>
                                 @endif
                             </div>
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            @if ($product->product_type === 'manual')
+                                <flux:badge color="purple" size="sm" icon="cube">Manual</flux:badge>
+                            @else
+                                <flux:badge color="indigo" size="sm" icon="link">Digiflazz</flux:badge>
+                            @endif
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge color="zinc" size="sm">{{ $product->game->name }}</flux:badge>
@@ -250,7 +258,7 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="8" class="text-center py-12">
+                        <flux:table.cell colspan="9" class="text-center py-12">
                             <div class="flex flex-col items-center gap-3">
                                 <flux:icon.cube class="w-16 h-16 text-zinc-300" />
                                 <div>

@@ -14,18 +14,24 @@ class Product extends Model
 
     protected $fillable = [
         'game_id',
+        'product_group_id',
+        'product_type',
         'supplier_product_id',
         'name',
         'selling_price',
+        'stock',
         'is_auto_price',
         'margin',
         'is_active',
         'description',
+        'sort_order',
     ];
 
     protected $casts = [
         'selling_price' => 'decimal:2',
         'margin' => 'decimal:2',
+        'stock' => 'integer',
+        'sort_order' => 'integer',
         'is_auto_price' => 'boolean',
         'is_active' => 'boolean',
     ];
@@ -36,6 +42,14 @@ class Product extends Model
     public function game(): BelongsTo
     {
         return $this->belongsTo(Game::class);
+    }
+
+    /**
+     * Get the product group that owns this product
+     */
+    public function productGroup(): BelongsTo
+    {
+        return $this->belongsTo(ProductGroup::class);
     }
 
     /**

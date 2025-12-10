@@ -2,6 +2,7 @@
 
 use App\Models\Game;
 use App\Models\Product;
+use App\Models\ProductGroup;
 use App\Models\FieldForm;
 use App\Models\FlazzSell;
 use App\Models\Order;
@@ -18,6 +19,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
     public $selectedProduct = null;
     public $fields = [];
     public $products = [];
+    public $productGroups = [];
+    public $ungroupedProducts = [];
     public $flazzSellProducts = [];
     public $timeRemaining = [];
     public $flazzSell;
@@ -58,7 +61,23 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             $this->timeRemaining = $flazzSell->getTimeRemaining();
             $this->flazzSell = $flazzSell;
         }
-        // Get regular products (excluding FlazzSell products)
+
+        // Get product groups with their products (excluding FlazzSell products)
+        $this->productGroups = ProductGroup::where('game_id', $this->game->id)
+            ->where('is_active', true)
+            ->with([
+                'products' => function ($query) use ($activeFlazzSellProductIds) {
+                    $query->with('supplierProduct')->where('is_active', true)->whereNotIn('id', $activeFlazzSellProductIds)->orderBy('sort_order')->orderBy('selling_price');
+                },
+            ])
+            ->orderBy('sort_order')
+            ->get()
+            ->filter(fn($group) => $group->products->isNotEmpty()); // Only show groups with products
+
+        // Get ungrouped products (products without product_group_id, excluding FlazzSell)
+        $this->ungroupedProducts = $this->game->products()->with('supplierProduct')->where('is_active', true)->whereNull('product_group_id')->whereNotIn('id', $activeFlazzSellProductIds)->orderBy('sort_order')->orderBy('selling_price')->get();
+
+        // All products for selection (for backward compatibility)
         $this->products = $this->game->products()->with('supplierProduct')->where('is_active', true)->whereNotIn('id', $activeFlazzSellProductIds)->orderBy('selling_price', 'asc')->get();
     }
 
@@ -142,6 +161,16 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             \DB::beginTransaction();
 
             $product = $this->products->firstWhere('id', $this->selectedProduct) ?? $this->flazzSellProducts->firstWhere('id', $this->selectedProduct);
+
+            // Check stock for manual products
+            if ($product->product_type === 'manual') {
+                $currentProduct = Product::lockForUpdate()->find($product->id);
+
+                if ($currentProduct->stock === null || $currentProduct->stock < 1) {
+                    throw new \Exception('Stok produk tidak tersedia');
+                }
+            }
+
             $price = $product->selling_price;
 
             // If FlazzSell, get discounted price
@@ -225,7 +254,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 <div>
     <div class="relative">
         <img src="{{ asset('storage/' . $game->banner) }}" class="w-full" alt="banner">
-        <div class="absolute left-1/2 -translate-x-1/2 -bottom-1/2 sm:bottom-0 translate-y-1/2 w-full max-w-7xl px-2 md:px-6">
+        <div
+            class="absolute left-1/2 -translate-x-1/2 -bottom-1/2 sm:bottom-0 translate-y-1/2 w-full max-w-7xl px-2 md:px-6">
             <div class="">
                 <div class="mb-6 p-2 md:p-6">
                     <div class="flex items-start gap-6">
@@ -418,17 +448,51 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                     </flux:card>
                 @endif
 
-                <!-- Regular Products -->
-                <flux:card class="mb-4">
-                    <flux:heading size="lg" class="mb-4">Pilih Nominal</flux:heading>
+                <!-- Grouped Products -->
+                @if ($productGroups->isNotEmpty())
+                    <flux:card class="mb-4">
+                        @foreach ($productGroups as $group)
+                            <div class="flex items-center gap-2 mb-4">
+                                <flux:heading size="lg">{{ $group->name }}</flux:heading>
+                            </div>
 
-                    @if ($products->isEmpty())
-                        <flux:callout variant="warning" icon="exclamation-triangle" class="mb-4">
-                            Produk tidak tersedia saat ini
-                        </flux:callout>
-                    @else
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-2 md:mb-4">
+                                @foreach ($group->products as $product)
+                                    <div wire:click="selectProduct({{ $product->id }})"
+                                        class="p-3 md:p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all {{ $selectedProduct === $product->id ? 'ring-2 ring-yellow-400' : '' }}">
+                                        <flux:heading size="sm" class="text-sm md:text-base line-clamp-1">
+                                            {{ $product->name }}</flux:heading>
+                                        @if ($product->description)
+                                            <flux:subheading size="sm" class="mt-1 text-xs line-clamp-2">
+                                                {{ $product->description }}
+                                            </flux:subheading>
+                                        @endif
+                                        <div class="flex items-center justify-between mt-3">
+                                            <span class="text-lg md:text-2xl font-bold text-yellow-400">Rp
+                                                {{ number_format($product->selling_price, 0, ',', '.') }}</span>
+                                            @if ($selectedProduct === $product->id)
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    class="h-5 w-5 md:h-6 md:w-6 text-yellow-400" viewBox="0 0 20 20"
+                                                    fill="currentColor">
+                                                    <path fill-rule="evenodd"
+                                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </flux:card>
+                @endif
+
+                <!-- Ungrouped Products -->
+                @if ($ungroupedProducts->isNotEmpty())
+                    <flux:card class="mb-4">
+                        <flux:heading size="lg" class="mb-4">Pilih Nominal</flux:heading>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            @foreach ($products as $product)
+                            @foreach ($ungroupedProducts as $product)
                                 <div wire:click="selectProduct({{ $product->id }})"
                                     class="p-3 md:p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all {{ $selectedProduct === $product->id ? 'ring-2 ring-yellow-400' : '' }}">
                                     <flux:heading size="sm" class="text-sm md:text-base line-clamp-1">
@@ -454,8 +518,17 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 </div>
                             @endforeach
                         </div>
-                    @endif
-                </flux:card>
+                    </flux:card>
+                @endif
+
+                <!-- Empty State -->
+                @if ($productGroups->isEmpty() && $ungroupedProducts->isEmpty())
+                    <flux:card class="mb-4">
+                        <flux:callout variant="warning" icon="exclamation-triangle">
+                            Produk tidak tersedia saat ini
+                        </flux:callout>
+                    </flux:card>
+                @endif
 
                 <flux:card class="mb-4 hidden md:block">
                     <flux:heading class="mb-4">Deskripsi {{ $game->name }}</flux:heading>
@@ -474,7 +547,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                         <div>
                             <div class="flex items-center gap-1">
                                 @for ($i = 0; $i < 5; $i++)
-                                <flux:icon.star class="w-10 h-10 text-yellow-400" variant="solid" />
+                                    <flux:icon.star class="w-10 h-10 text-yellow-400" variant="solid" />
                                 @endfor
                             </div>
                             <div class="text-sm text-zinc-300">Berdasarkan 3.421 ulasan</div>

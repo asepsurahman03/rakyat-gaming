@@ -25,6 +25,14 @@ mount(function () {
     $this->product = Product::with('supplierProduct')->findOrFail($checkoutData['product_id']);
     $this->fields = $checkoutData['fields'];
 
+    // Check stock for manual products
+    if ($this->product->product_type === 'manual') {
+        if ($this->product->stock === null || $this->product->stock < 1) {
+            session()->forget('checkout_data');
+            return $this->redirect(route('home'), navigate: true);
+        }
+    }
+
     // Set user data if authenticated
     if (auth()->check()) {
         $this->email = auth()->user()->email;
@@ -59,6 +67,15 @@ $createOrder = function () {
 
     try {
         \DB::beginTransaction();
+
+        // Check stock again for manual products (double-check before creating order)
+        if ($this->product->product_type === 'manual') {
+            $currentProduct = Product::lockForUpdate()->find($this->product->id);
+
+            if ($currentProduct->stock === null || $currentProduct->stock < 1) {
+                throw new \Exception('Stok produk tidak tersedia');
+            }
+        }
 
         // Create order
         $order = Order::create([
