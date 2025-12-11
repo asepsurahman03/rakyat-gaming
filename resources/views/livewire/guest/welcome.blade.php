@@ -616,7 +616,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                 <flux:text class="text-white/90">{{ __('messages.read_more') }}</flux:text>
             </div>
 
-            <div class="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide px-4">
+            <div class="flex gap-4 md:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar px-4">
                 @foreach ($latestPosts as $post)
                     <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate
                         class="group flex-shrink-0 w-52 md:w-72 snap-start">

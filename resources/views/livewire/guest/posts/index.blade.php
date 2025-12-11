@@ -86,7 +86,8 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
             <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <flux:input type="text" icon="magnifying-glass" wire:model.live.debounce.300ms="search"
                     :placeholder="__('messages.search_articles')" />
-                <flux:select wire:model.live="gameFilter" :placeholder="__('messages.all_categories')" class="w-full md:max-w-xs">
+                <flux:select wire:model.live="gameFilter" :placeholder="__('messages.all_categories')"
+                    class="w-full md:max-w-xs">
                     <flux:select.option value="">{{ __('messages.all_categories') }}</flux:select.option>
                     @foreach ($games as $game)
                         <flux:select.option value="{{ $game->id }}">{{ $game->name }}</flux:select.option>
@@ -98,40 +99,48 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
             <div class="mb-12">
                 <flux:heading size="xl" class="mb-6">{{ __('messages.popular_articles') }}</flux:heading>
 
-                @if($popularPosts->count() > 0)
+                @if ($popularPosts->count() > 0)
                     <!-- Posts Grid: 2 Columns -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Column 1: Featured Post (Post #1) -->
                         <div>
                             @php $featuredPost = $popularPosts->first(); @endphp
-                            <a href="{{ route('guest.posts.show', $featuredPost->slug) }}" wire:navigate class="group block h-full">
+                            <a href="{{ route('guest.posts.show', $featuredPost->slug) }}" wire:navigate
+                                class="group block h-full">
                                 <flux:card class="hover:shadow-xl transition-shadow group-hover:border-yellow-400">
                                     @if ($featuredPost->featured_image)
-                                        <div class="w-full aspect-[3/4] overflow-hidden rounded-lg">
-                                            <img src="{{ Storage::url($featuredPost->featured_image) }}" alt="{{ $featuredPost->title }}"
+                                        <div class="w-full aspect-[3/4] overflow-hidden rounded-lg mb-4">
+                                            <img src="{{ Storage::url($featuredPost->featured_image) }}"
+                                                alt="{{ $featuredPost->title }}"
                                                 class="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-300">
                                         </div>
                                     @else
-                                        <div class="w-full aspect-[3/4] bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center">
+                                        <div
+                                            class="w-full aspect-[3/4] bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center">
                                             <x-icon name="document-text" class="w-16 h-16 text-white opacity-50" />
                                         </div>
                                     @endif
 
-                                    <div class="p-6">
+                                    <div>
                                         <div class="flex items-center gap-2 mb-3">
-                                            <flux:badge size="sm" color="yellow">{{ $featuredPost->game->name }}</flux:badge>
+                                            <flux:badge size="sm" color="yellow">{{ $featuredPost->game->name }}
+                                            </flux:badge>
                                         </div>
 
-                                        <flux:heading size="lg" class="mb-3">{{ $featuredPost->title }}</flux:heading>
+                                        <flux:heading size="lg" class="mb-3">{{ $featuredPost->title }}
+                                        </flux:heading>
 
                                         @if ($featuredPost->excerpt)
-                                            <flux:subheading class="mb-4">{{ $featuredPost->excerpt }}</flux:subheading>
+                                            <flux:subheading class="mb-4">{{ $featuredPost->excerpt }}
+                                            </flux:subheading>
                                         @endif
 
                                         <div class="flex items-center justify-between text-sm text-zinc-500">
                                             <span class="flex items-center gap-2">
                                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                    <path fill-rule="evenodd"
+                                                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                                        clip-rule="evenodd" />
                                                 </svg>
                                                 {{ $featuredPost->author->name }}
                                             </span>
@@ -144,31 +153,38 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
 
                         <!-- Column 2: Posts #2, #3, #4 (Horizontal Layout) -->
                         <div class="space-y-4">
-                            @foreach($popularPosts->skip(1)->take(6) as $post)
-                                <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group block">
+                            @foreach ($popularPosts->skip(1)->take(6) as $post)
+                                <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate
+                                    class="group block">
                                     <flux:card class="hover:shadow-xl transition-shadow group-hover:border-yellow-400">
                                         <div class="flex gap-4">
                                             <!-- Image -->
                                             @if ($post->featured_image)
                                                 <div class="flex-shrink-0 w-24 overflow-hidden rounded-lg">
-                                                    <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}"
+                                                    <img src="{{ Storage::url($post->featured_image) }}"
+                                                        alt="{{ $post->title }}"
                                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                                 </div>
                                             @else
-                                                <div class="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-                                                    <x-icon name="document-text" class="w-8 h-8 text-white opacity-50" />
+                                                <div
+                                                    class="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                                                    <x-icon name="document-text"
+                                                        class="w-8 h-8 text-white opacity-50" />
                                                 </div>
                                             @endif
 
                                             <!-- Content -->
                                             <div class="w-full py-2">
                                                 <div class="gap-2 mb-2">
-                                                    <flux:badge size="sm" color="yellow">{{ $post->game->name }}</flux:badge>
+                                                    <flux:badge size="sm" color="yellow">{{ $post->game->name }}
+                                                    </flux:badge>
                                                 </div>
-                                                <flux:heading size="sm" class="line-clamp-2 mb-2">{{ $post->title }}</flux:heading>
+                                                <flux:heading size="sm" class="line-clamp-2 mb-2">
+                                                    {{ $post->title }}</flux:heading>
 
                                                 <div class="sm:flex items-center justify-between text-xs text-zinc-500">
-                                                    <flux:text class="mb-1.5 text-yellow-400">{{ $post->author->name }}</flux:text>
+                                                    <flux:text class="mb-1.5 text-yellow-400">{{ $post->author->name }}
+                                                    </flux:text>
                                                     <span>{{ $post->published_at->diffForHumans() }}</span>
                                                 </div>
                                             </div>
@@ -191,39 +207,43 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
             <div class="mb-12">
                 <flux:heading size="xl" class="mb-6">{{ __('messages.all_articles') }}</flux:heading>
                 <!-- Posts Grid -->
-                <div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     @forelse ($posts as $post)
                         <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group">
                             <flux:card class="h-full hover:shadow-xl transition-shadow group-hover:border-yellow-400">
-                                @if ($post->featured_image)
-                                    <div class="w-full aspect-[3/4] overflow-hidden rounded-t-lg">
-                                        <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}"
-                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                                    </div>
-                                @else
-                                    <div
-                                        class="w-full aspect-[3/4] bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center">
-                                        <x-icon name="document-text" class="w-16 h-16 text-white opacity-50" />
-                                    </div>
-                                @endif
-
-                                <div class="p-4">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <flux:badge size="sm" color="yellow">{{ $post->game->name }}
-                                        </flux:badge>
-                                    </div>
-
-                                    <flux:heading size="sm" class="line-clamp-2 mb-2">{{ $post->title }}
-                                    </flux:heading>
-
-                                    @if ($post->excerpt)
-                                        <flux:subheading size="sm" class="line-clamp-2 mb-3">
-                                            {{ $post->excerpt }}</flux:subheading>
+                                <div class="flex gap-2 md:block">
+                                    @if ($post->featured_image)
+                                        <div class="w-24 md:w-full aspect-[3/4] overflow-hidden rounded-t-lg md:mb-4">
+                                            <img src="{{ Storage::url($post->featured_image) }}"
+                                                alt="{{ $post->title }}"
+                                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                        </div>
+                                    @else
+                                        <div
+                                            class="w-24 md:w-full aspect-[3/4] bg-gradient-to-br from-indigo-600 to-purple-600 rounded-t-lg flex items-center justify-center md:mb-4">
+                                            <x-icon name="document-text" class="w-16 h-16 text-white opacity-50" />
+                                        </div>
                                     @endif
 
-                                    <div class="flex items-center justify-between text-xs text-zinc-500">
-                                        <span>{{ $post->author->name }}</span>
-                                        <span>{{ $post->published_at->diffForHumans() }}</span>
+                                    <div class="py-2
+                                    md:py-0">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <flux:badge size="sm" color="yellow">{{ $post->game->name }}
+                                            </flux:badge>
+                                        </div>
+
+                                        <flux:heading size="sm" class="line-clamp-2 mb-2">{{ $post->title }}
+                                        </flux:heading>
+
+                                        @if ($post->excerpt)
+                                            <flux:subheading size="sm" class="line-clamp-2 mb-3">
+                                                {{ $post->excerpt }}</flux:subheading>
+                                        @endif
+
+                                        <div class="flex items-center justify-between text-xs text-zinc-500">
+                                            <span>{{ $post->author->name }}</span>
+                                            <span>{{ $post->published_at->diffForHumans() }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </flux:card>
