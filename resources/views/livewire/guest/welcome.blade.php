@@ -238,7 +238,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
         </style>
 
         {{-- section carousel --}}
-        <div class="bg-gradient-to-bl from-[#7E0000] to-[#470000] px-4 md:px-6 py-10 md:py-20 relative">
+        <div class="px-4 md:px-6 py-10 md:py-20 relative">
             <!-- Particle Canvas - wire:ignore to prevent Livewire from touching it -->
             <div wire:ignore class="absolute inset-0 w-full h-full pointer-events-none z-0">
                 <canvas id="particleCanvas" class="w-full h-full"></canvas>
@@ -333,7 +333,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
     <!-- FlazzSell Section -->
     @if (count($flazzSellProducts) > 0)
-        <div class="py-10">
+        <div class="mt-10">
             <div class="container mx-auto px-4 max-w-7xl">
                 <div class="w-full sm:flex justify-between items-center mb-4 md:mb-6">
                     <div class="w-full">
@@ -480,7 +480,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     @endif
 
     <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
-    <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
+    <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
         <flux:heading size="xl" class="mb-2 text-white">🔥 {{ __('messages.popular_games') }}</flux:heading>
         <flux:text class="text-white/90 mb-6">{{ __('messages.search_game_placeholder') }}
         </flux:text>
