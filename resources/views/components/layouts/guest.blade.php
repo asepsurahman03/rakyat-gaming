@@ -508,7 +508,7 @@
              class="absolute bottom-20 right-0 space-y-2">
 
             <!-- WhatsApp Button -->
-            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', env('CONTACT_WHATSAPP', '6281315435065')) }}?text=Halo,%20saya%20ingin%20bertanya%20tentang%20produk%20Anda"
+            <a href="https://wa.me/+62{{ preg_replace('/[^0-9]/', '', env('CONTACT_WHATSAPP', '6281315435065')) }}?text=Halo,%20saya%20ingin%20bertanya%20tentang%20produk%20Anda"
                target="_blank"
                class="flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white rounded-xl py-3 px-5 shadow-lg hover:shadow-xl transition-all duration-300 group min-w-[180px]">
                 <svg class="w-6 h-6 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">

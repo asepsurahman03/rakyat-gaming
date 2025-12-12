@@ -213,7 +213,7 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
                             <flux:card class="h-full hover:shadow-xl transition-shadow group-hover:border-yellow-400">
                                 <div class="flex gap-4 md:block">
                                     @if ($post->featured_image)
-                                        <div class="w-24 md:w-full aspect-[3/4] overflow-hidden rounded-t-lg md:mb-4">
+                                        <div class="flex-shrink-0 w-24 md:w-full overflow-hidden rounded-lg">
                                             <img src="{{ Storage::url($post->featured_image) }}"
                                                 alt="{{ $post->title }}"
                                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">

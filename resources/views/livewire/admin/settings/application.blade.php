@@ -57,8 +57,8 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
             'CONTACT_ADDRESS' => $this->contact_address,
             'META_KEYWORDS' => $this->meta_keywords,
             'META_DESCRIPTION' => $this->meta_description,
-            'APP_MAINTENANCE' => $this->maintenance_mode ? 'true' : 'false',
-            'MAINTENANCE_MESSAGE' => $this->maintenance_message,
+            // 'APP_MAINTENANCE' => $this->maintenance_mode ? 'true' : 'false',
+            // 'MAINTENANCE_MESSAGE' => $this->maintenance_message,
         ]);
         Flux::toast(
             heading: 'Settings saved successfully!',
@@ -169,13 +169,19 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
 
                 <flux:field>
                     <flux:label>Phone</flux:label>
-                    <flux:input wire:model="contact_phone" placeholder="021-12345678" />
+                    <flux:input.group>
+                        <flux:input.group.prefix>+62</flux:input.group.prefix>
+                        <flux:input wire:model="contact_phone" placeholder="021-12345678" />
+                    </flux:input.group>
                     <flux:error name="contact_phone" />
                 </flux:field>
 
                 <flux:field>
                     <flux:label>WhatsApp</flux:label>
-                    <flux:input wire:model="contact_whatsapp" placeholder="628123456789" />
+                    <flux:input.group>
+                        <flux:input.group.prefix>+62</flux:input.group.prefix>
+                        <flux:input wire:model="contact_whatsapp" placeholder="628123456789" />
+                    </flux:input.group>
                     <flux:error name="contact_whatsapp" />
                 </flux:field>
 

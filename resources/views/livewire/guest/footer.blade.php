@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Setting;
 use Livewire\Volt\Component;
 
 new class extends Component {
@@ -18,6 +17,7 @@ new class extends Component {
             'contact_phone' => env('CONTACT_PHONE', '+62 812-3456-7890'),
             'contact_whatsapp' => env('CONTACT_WHATSAPP', '+62 812-3456-7890'),
             'address' => env('CONTACT_ADDRESS', 'Jakarta, Indonesia'),
+            'url_whatsapp' => env('CONTACT_WHATSAPP') ? 'https://wa.me/+62' . preg_replace('/\D/', '', env('CONTACT_WHATSAPP')) : null,
         ];
     }
 }; ?>
@@ -124,7 +124,7 @@ new class extends Component {
                             <div>
                                 <div class="text-xs opacity-60">Telepon</div>
                                 <a href="tel:{{ $settings['contact_phone'] }}"
-                                    class="link link-hover">{{ $settings['contact_phone'] }}</a>
+                                    class="link link-hover">+62{{ $settings['contact_phone'] }}</a>
                             </div>
                         </li>
                         @if ($settings['contact_whatsapp'])
@@ -136,8 +136,8 @@ new class extends Component {
                                 </svg>
                                 <div>
                                     <div class="text-xs opacity-60">WhatsApp</div>
-                                    <a href="https://wa.me/{{ str_replace(['+', ' ', '-'], '', $settings['contact_whatsapp']) }}"
-                                        target="_blank" class="link link-hover">{{ $settings['contact_whatsapp'] }}</a>
+                                    <a href="{{ $settings['url_whatsapp'] }}"
+                                        target="_blank" class="link link-hover">+62{{ $settings['contact_whatsapp'] }}</a>
                                 </div>
                             </li>
                         @endif
