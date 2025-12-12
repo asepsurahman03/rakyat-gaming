@@ -113,16 +113,16 @@
                     <div x-data="{ open: false, selected: '{{ app()->getLocale() }}' }" class="relative">
                         <button @click="open = !open" @click.away="open = false"
                             class="flex items-center gap-2 px-3 py-2 rounded-lg w-20 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 hover:border-yellow-400 transition-colors">
-                            <template x-if="selected === 'en'">
-                                <span class="flex items-center gap-2">
-                                    <img src="{{ asset('images/eng.png') }}" alt="English" class="w-5 h-5 rounded-sm" />
-                                    <span class="hidden md:inline text-sm font-medium">Eng</span>
-                                </span>
-                            </template>
                             <template x-if="selected === 'id'">
                                 <span class="flex items-center gap-2">
                                     <img src="{{ asset('images/ind.png') }}" alt="Indonesia" class="w-5 h-5 rounded-sm" />
                                     <span class="hidden md:inline text-sm font-medium">Ind</span>
+                                </span>
+                            </template>
+                            <template x-if="selected === 'en'">
+                                <span class="flex items-center gap-2">
+                                    <img src="{{ asset('images/eng.png') }}" alt="English" class="w-5 h-5 rounded-sm" />
+                                    <span class="hidden md:inline text-sm font-medium">Eng</span>
                                 </span>
                             </template>
                             <svg class="w-4 h-4 ml-1" :class="{ 'rotate-180': open }" fill="none"
@@ -134,15 +134,6 @@
 
                         <div x-show="open" x-transition
                             class="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg shadow-lg overflow-hidden z-50">
-                            <a href="/lang/en"
-                                class="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
-                                :class="{ 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400': selected === 'en' }">
-                                <img src="{{ asset('images/eng.png') }}" alt="English" class="w-5 h-5 rounded-sm" />
-                                <div>
-                                    <div class="font-medium text-sm">English</div>
-                                    <div class="text-xs text-zinc-500">United Kingdom</div>
-                                </div>
-                            </a>
                             <a href="/lang/id"
                             class="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                             :class="{ 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400': selected === 'id' }">
@@ -150,6 +141,15 @@
                                 <div>
                                     <div class="font-medium text-sm">Indonesia</div>
                                     <div class="text-xs text-zinc-500">Bahasa Indonesia</div>
+                                </div>
+                            </a>
+                            <a href="/lang/en"
+                                class="flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                                :class="{ 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400': selected === 'en' }">
+                                <img src="{{ asset('images/eng.png') }}" alt="English" class="w-5 h-5 rounded-sm" />
+                                <div>
+                                    <div class="font-medium text-sm">English</div>
+                                    <div class="text-xs text-zinc-500">United Kingdom</div>
                                 </div>
                             </a>
                         </div>

@@ -20,11 +20,11 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
                 <!-- Trophy Icon -->
                 <div class="relative inline-block mb-4 sm:mb-6">
                     <div class="absolute inset-0 bg-yellow-400/20 blur-3xl rounded-full"></div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto text-yellow-400 relative" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto text-yellow-400 relative" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
                     </svg>
                 </div>
-                <flux:heading size="2xl" class="mb-2 sm:mb-4 text-white text-xl sm:text-2xl lg:text-3xl">🏆 {{ __('messages.leaderboard_title') }}</flux:heading>
+                <h1 class="text-3xl md:text-4xl font-bold mb-3 text-yellow-400">{{ __('messages.leaderboard_title') }}</h1>
                 <flux:subheading class="text-sm sm:text-base lg:text-lg text-white/80 max-w-2xl mx-auto px-4">
                     {{ __('messages.leaderboard_subtitle') }}
                 </flux:subheading>
@@ -212,28 +212,7 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
                         <div class="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
                             :class="{ 'bg-yellow-50 dark:bg-yellow-900/10': index < 3 }">
                             <div class="flex items-center gap-3">
-                                <!-- Rank Badge -->
-                                {{-- <div class="flex-shrink-0">
-                                    <template x-if="index === 0">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                            1
-                                        </div>
-                                    </template>
-                                    <template x-if="index === 1">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                            2
-                                        </div>
-                                    </template>
-                                    <template x-if="index === 2">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                            3
-                                        </div>
-                                    </template>
-                                    <template x-if="index > 2">
-                                        <div class="w-12 h-12 bg-zinc-200 dark:bg-zinc-700 rounded-full flex items-center justify-center font-semibold text-lg" x-text="index + 1">
-                                        </div>
-                                    </template>
-                                </div> --}}
+
 
                                 <!-- User Info -->
                                 <div class="flex-1 min-w-0">

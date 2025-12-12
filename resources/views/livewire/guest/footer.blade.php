@@ -28,7 +28,7 @@ new class extends Component {
         <img src="{{ asset('images/RG BORDER WEBSITE.png') }}" alt="bg-animation" class="mx-auto w-full">
     </div>
     <div class="bg-black text-gray-300">
-        <div class="max-w-7xl mx-auto w-full p-10">
+        <div class="max-w-7xl mx-auto w-full px-4 py-10 md:py-16">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full">
                 <!-- Brand Section -->
                 <div class="space-y-4">

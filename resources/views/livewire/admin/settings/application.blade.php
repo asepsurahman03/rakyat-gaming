@@ -13,8 +13,8 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
     public $contact_address;
     public $meta_keywords;
     public $meta_description;
-    public $maintenance_mode = false;
-    public $maintenance_message;
+    // public $maintenance_mode = false;
+    // public $maintenance_message;
 
     public function mount()
     {
@@ -32,8 +32,8 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
         $this->contact_address = env('CONTACT_ADDRESS', '');
         $this->meta_keywords = env('META_KEYWORDS', '');
         $this->meta_description = env('META_DESCRIPTION', '');
-        $this->maintenance_mode = env('APP_MAINTENANCE', false);
-        $this->maintenance_message = env('MAINTENANCE_MESSAGE', '');
+        // $this->maintenance_mode = env('APP_MAINTENANCE', false);
+        // $this->maintenance_message = env('MAINTENANCE_MESSAGE', '');
     }
 
     public function saveSettings()
@@ -148,19 +148,6 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
                     <flux:label>Application Description</flux:label>
                     <flux:textarea wire:model="app_description" placeholder="Deskripsi aplikasi..." rows="3" />
                 </flux:field>
-
-                <flux:field>
-                    <flux:label>Maintenance Mode</flux:label>
-                    <flux:switch wire:model.live="maintenance_mode" />
-                    <flux:description>{{ $maintenance_mode ? 'Enabled' : 'Disabled' }}</flux:description>
-                </flux:field>
-
-                @if($maintenance_mode)
-                    <flux:field>
-                        <flux:label>Maintenance Message</flux:label>
-                        <flux:textarea wire:model="maintenance_message" placeholder="We are currently under maintenance..." rows="3" />
-                    </flux:field>
-                @endif
             </div>
         </flux:card>
 
