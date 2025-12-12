@@ -333,13 +333,13 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 
     <!-- FlazzSell Section -->
     @if (count($flazzSellProducts) > 0)
-        <div class="bg-zinc-900 py-10 md:py-20">
+        <div class="py-10">
             <div class="container mx-auto px-4 max-w-7xl">
-                <div class="w-full sm:flex justify-between items-center">
+                <div class="w-full sm:flex justify-between items-center mb-4 md:mb-6">
                     <div class="w-full">
-                        <div class="flex items-start justify-between gap-3 mb-2 w-full">
-                            <div>
-                                <flux:icon.fire class="w-8 h-8 text-red-500 animate-pulse" />
+                        <div class="flex items-start justify-between gap-3 md:mb-2 w-full">
+                            <div class="flex gap-0.5">
+                                <flux:icon.bolt class="w-8 h-8 text-yellow-400 animate-pulse" />
                                 <flux:heading size="xl" class="text-white">{{ __('messages.flash_sale') }}
                                 </flux:heading>
                             </div>
@@ -387,7 +387,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
                                 </div>
                             </div>
                         </div>
-                        <flux:text class="text-white/90 mb-6">{{ __('messages.flash_sale_description') }}
+                        <flux:text class="text-white/90">{{ __('messages.flash_sale_description') }}
                         </flux:text>
                     </div>
                 </div>
@@ -480,7 +480,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     @endif
 
     <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
-    <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
+    <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
         <flux:heading size="xl" class="mb-2 text-white">🔥 {{ __('messages.popular_games') }}</flux:heading>
         <flux:text class="text-white/90 mb-6">{{ __('messages.search_game_placeholder') }}
         </flux:text>

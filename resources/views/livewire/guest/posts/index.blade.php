@@ -211,7 +211,7 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
                     @forelse ($posts as $post)
                         <a href="{{ route('guest.posts.show', $post->slug) }}" wire:navigate class="group">
                             <flux:card class="h-full hover:shadow-xl transition-shadow group-hover:border-yellow-400">
-                                <div class="flex gap-2 md:block">
+                                <div class="flex gap-4 md:block">
                                     @if ($post->featured_image)
                                         <div class="w-24 md:w-full aspect-[3/4] overflow-hidden rounded-t-lg md:mb-4">
                                             <img src="{{ Storage::url($post->featured_image) }}"
@@ -225,8 +225,7 @@ new #[Layout('components.layouts.guest'), Title('Articles')] class extends Compo
                                         </div>
                                     @endif
 
-                                    <div class="py-2
-                                    md:py-0">
+                                    <div class="py-2 md:py-0">
                                         <div class="flex items-center gap-2 mb-2">
                                             <flux:badge size="sm" color="yellow">{{ $post->game->name }}
                                             </flux:badge>
