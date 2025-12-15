@@ -653,43 +653,74 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
 @endassets
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Wait a bit for the canvas to be ready
-        setTimeout(() => {
-            const canvas = document.getElementById('particleCanvas');
-            if (!canvas) {
-                console.error('Particle canvas not found');
-                return;
-            }
+    let particleSystemInstance = null;
 
-            console.log('Initializing particle system...');
+    function initializeParticles() {
+        const canvas = document.getElementById('particleCanvas');
+        if (!canvas) {
+            console.error('Particle canvas not found');
+            return;
+        }
 
-            // Check if ParticleSystem is available
-            if (typeof ParticleSystem === 'undefined') {
-                console.error('ParticleSystem class not loaded');
-                return;
-            }
-
-            // Initialize particle system with golden theme
+        // Clean up existing instance if any
+        if (particleSystemInstance) {
             try {
-                const particleSystem = new ParticleSystem('particleCanvas', {
-                    particleCount: 80,
-                    particleColor: 'rgba(255, 215, 0, 0.7)', // Golden color
-                    particleSize: {
-                        min: 1,
-                        max: 3
-                    },
-                    speed: {
-                        min: 0.5,
-                        max: 1
-                    },
-                    shapes: ['circle', 'star', 'diamond'],
-                    glow: true
-                });
-                console.log('Particles initialized successfully');
+                particleSystemInstance.destroy();
             } catch (error) {
-                console.error('Error initializing particles:', error);
+                console.log('Error destroying previous particle system:', error);
             }
-        }, 100);
+            particleSystemInstance = null;
+        }
+
+        console.log('Initializing particle system...');
+
+        // Check if ParticleSystem is available
+        if (typeof ParticleSystem === 'undefined') {
+            console.error('ParticleSystem class not loaded');
+            return;
+        }
+
+        // Initialize particle system with golden theme
+        try {
+            particleSystemInstance = new ParticleSystem('particleCanvas', {
+                particleCount: 80,
+                particleColor: 'rgba(255, 215, 0, 0.7)', // Golden color
+                particleSize: {
+                    min: 1,
+                    max: 3
+                },
+                speed: {
+                    min: 0.5,
+                    max: 1
+                },
+                shapes: ['circle', 'star', 'diamond'],
+                glow: true
+            });
+            console.log('Particles initialized successfully');
+        } catch (error) {
+            console.error('Error initializing particles:', error);
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(initializeParticles, 100);
+    });
+
+    // Re-initialize on Livewire navigation
+    document.addEventListener('livewire:navigated', function() {
+        setTimeout(initializeParticles, 100);
+    });
+
+    // Cleanup on page leave
+    document.addEventListener('livewire:navigating', function() {
+        if (particleSystemInstance) {
+            try {
+                particleSystemInstance.destroy();
+            } catch (error) {
+                console.log('Error cleaning up particles:', error);
+            }
+            particleSystemInstance = null;
+        }
     });
 </script>
