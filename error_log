@@ -1,0 +1,48 @@
+[27-Nov-2025 11:55:03 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to undefined function Symfony\Component\Console\proc_close() in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php:168
+Stack trace:
+#0 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(145): Symfony\Component\Console\Terminal::readFromProcess()
+#1 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(111): Symfony\Component\Console\Terminal::getSttyColumns()
+#2 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(94): Symfony\Component\Console\Terminal::initDimensionsUsingStty()
+#3 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(52): Symfony\Component\Console\Terminal::initDimensions()
+#4 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Application.php(140): Symfony\Component\Console\Terminal->getHeight()
+#5 phar:///home/rakg7524/bin/composer/src/Composer/Console/Application.php(138): Symfony\Component\Console\Application->run()
+#6 phar:///home/rakg7524/bin/composer/bin/composer(112): Composer\Console\Application->run()
+#7 /home/rakg7524/bin/composer(29): require('phar:///home/ra...')
+#8 {main}
+  thrown in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php on line 168
+[27-Nov-2025 11:55:24 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to undefined function Symfony\Component\Console\proc_close() in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php:168
+Stack trace:
+#0 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(145): Symfony\Component\Console\Terminal::readFromProcess()
+#1 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(111): Symfony\Component\Console\Terminal::getSttyColumns()
+#2 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(94): Symfony\Component\Console\Terminal::initDimensionsUsingStty()
+#3 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(52): Symfony\Component\Console\Terminal::initDimensions()
+#4 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Application.php(140): Symfony\Component\Console\Terminal->getHeight()
+#5 phar:///home/rakg7524/bin/composer/src/Composer/Console/Application.php(138): Symfony\Component\Console\Application->run()
+#6 phar:///home/rakg7524/bin/composer/bin/composer(112): Composer\Console\Application->run()
+#7 /home/rakg7524/bin/composer(29): require('phar:///home/ra...')
+#8 {main}
+  thrown in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php on line 168
+[27-Nov-2025 11:56:14 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to undefined function Symfony\Component\Console\proc_close() in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php:168
+Stack trace:
+#0 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(145): Symfony\Component\Console\Terminal::readFromProcess()
+#1 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(111): Symfony\Component\Console\Terminal::getSttyColumns()
+#2 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(94): Symfony\Component\Console\Terminal::initDimensionsUsingStty()
+#3 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(52): Symfony\Component\Console\Terminal::initDimensions()
+#4 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Application.php(140): Symfony\Component\Console\Terminal->getHeight()
+#5 phar:///home/rakg7524/bin/composer/src/Composer/Console/Application.php(138): Symfony\Component\Console\Application->run()
+#6 phar:///home/rakg7524/bin/composer/bin/composer(112): Composer\Console\Application->run()
+#7 /home/rakg7524/bin/composer(29): require('phar:///home/ra...')
+#8 {main}
+  thrown in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php on line 168
+[27-Nov-2025 12:57:21 Asia/Jakarta] PHP Fatal error:  Uncaught Error: Call to undefined function Symfony\Component\Console\proc_close() in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php:168
+Stack trace:
+#0 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(145): Symfony\Component\Console\Terminal::readFromProcess()
+#1 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(111): Symfony\Component\Console\Terminal::getSttyColumns()
+#2 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(94): Symfony\Component\Console\Terminal::initDimensionsUsingStty()
+#3 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php(52): Symfony\Component\Console\Terminal::initDimensions()
+#4 phar:///home/rakg7524/bin/composer/vendor/symfony/console/Application.php(140): Symfony\Component\Console\Terminal->getHeight()
+#5 phar:///home/rakg7524/bin/composer/src/Composer/Console/Application.php(138): Symfony\Component\Console\Application->run()
+#6 phar:///home/rakg7524/bin/composer/bin/composer(112): Composer\Console\Application->run()
+#7 /home/rakg7524/bin/composer(29): require('phar:///home/ra...')
+#8 {main}
+  thrown in phar:///home/rakg7524/bin/composer/vendor/symfony/console/Terminal.php on line 168

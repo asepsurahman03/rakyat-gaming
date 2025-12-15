@@ -97,7 +97,7 @@ new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah 
     {
         $this->loading = true;
         // Get all active categories
-        $this->categories = \App\Models\Category::where('is_active', true)->orderBy('name', 'asc')->get();
+        $this->categories = \App\Models\Category::where('is_active', true)->orderBy('id', 'asc')->get();
         $this->loading = false;
     }
 
