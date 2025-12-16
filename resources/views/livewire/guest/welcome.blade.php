@@ -5,7 +5,7 @@ use Livewire\Attributes\{Layout, Title};
 use App\Models\Carousel;
 use App\Models\Game;
 
-new #[Layout('components.layouts.guest'), Title('Welcome - Top Up Game Termurah & Tercepat')] class extends Component {
+new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Cepat, Harga Merakyat | Aman & Terpercaya')] class extends Component {
     public $carousels = [];
     public $currentSlide = 0;
     public $popularGames = [];
