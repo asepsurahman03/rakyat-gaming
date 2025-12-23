@@ -4,52 +4,55 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderPayment;
-use App\Services\DuitkuService;
+use App\Services\IpaymuService;
 use App\Services\DigiflazzService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    protected $duitkuService;
+    protected $ipaymuService;
     protected $digiflazzService;
 
-    public function __construct(DuitkuService $duitkuService, DigiflazzService $digiflazzService)
+    public function __construct(IpaymuService $ipaymuService, DigiflazzService $digiflazzService)
     {
-        $this->duitkuService = $duitkuService;
+        $this->ipaymuService = $ipaymuService;
         $this->digiflazzService = $digiflazzService;
     }
 
     /**
-     * Handle payment callback from Duitku
+     * Handle payment callback from Ipaymu
      */
     public function callback(Request $request)
     {
         $data = $request->all();
 
-        Log::info('Duitku callback received', $data);
+        Log::info('Ipaymu callback received', $data);
 
         // Verify signature
-        if (!$this->duitkuService->verifyCallback($data)) {
-            Log::warning('Invalid Duitku callback signature', [
+        if (!$this->ipaymuService->verifyCallback($request)) {
+            Log::warning('Invalid Ipaymu callback signature', [
                 'ip' => $request->ip(),
                 'data' => $data,
+                'headers' => $request->headers->all(),
             ]);
             return response()->json(['message' => 'Invalid signature'], 403);
         }
 
-        $merchantOrderId = $data['merchantOrderId'] ?? null;
-        $resultCode = $data['resultCode'] ?? '';
+        // Ipaymu uses 'reference_id' or 'trx_id' instead of 'merchantOrderId'
+        $merchantOrderId = $data['reference_id'] ?? $data['trx_id'] ?? null;
+        $status = $data['status'] ?? '';
+        $statusCode = $data['status_code'] ?? '';
 
         if (!$merchantOrderId) {
-            return response()->json(['message' => 'merchantOrderId is required'], 400);
+            return response()->json(['message' => 'reference_id is required'], 400);
         }
 
         // Find order
         $order = Order::where('order_code', $merchantOrderId)->first();
 
         if (!$order) {
-            Log::warning('Order not found for Duitku callback', ['merchantOrderId' => $merchantOrderId]);
+            Log::warning('Order not found for Ipaymu callback', ['merchantOrderId' => $merchantOrderId]);
             return response()->json(['message' => 'Order not found'], 404);
         }
 
@@ -61,12 +64,14 @@ class PaymentController extends Controller
             return response()->json(['message' => 'OrderPayment not found'], 404);
         }
 
-        // Update payment status based on result code
-        if ($resultCode === '00') {
+        // Update payment status based on Ipaymu status
+        // Ipaymu status: 'berhasil' = success, 'pending' = pending, 'gagal' = failed, 'expired' = expired
+        // Status code: 1 = pending, 2 = expired, 5 = success, 6 = failed/cancelled
+        if ($statusCode == '5' || strtolower($status) === 'berhasil') {
             // Payment success
             $orderPayment->update([
                 'status' => 'paid',
-                'payment_reference' => $data['reference'] ?? null,
+                'payment_reference' => $data['trx_id'] ?? $data['sid'] ?? null,
             ]);
 
             $order->update(['status' => 'process']);
@@ -129,14 +134,24 @@ class PaymentController extends Controller
                     }
                 }
             }
-        } else {
-            // Payment failed or expired
+        } elseif ($statusCode == '2' || strtolower($status) === 'expired') {
+            // Payment expired
             $orderPayment->update([
-                'status' => $resultCode === '01' ? 'expired' : 'failed',
-                'payment_reference' => $data['reference'] ?? null,
+                'status' => 'expired',
+                'payment_reference' => $data['trx_id'] ?? $data['sid'] ?? null,
             ]);
 
             $order->update(['status' => 'failed']);
+        } else {
+            // Payment failed or pending
+            $orderPayment->update([
+                'status' => ($statusCode == '1' || strtolower($status) === 'pending') ? 'pending' : 'failed',
+                'payment_reference' => $data['trx_id'] ?? $data['sid'] ?? null,
+            ]);
+
+            if ($statusCode != '1' && strtolower($status) !== 'pending') {
+                $order->update(['status' => 'failed']);
+            }
         }
 
         return response()->json(['message' => 'Callback processed'], 200);

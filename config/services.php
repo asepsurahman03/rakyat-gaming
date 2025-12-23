@@ -50,4 +50,12 @@ return [
         'sandbox' => env('DUITKU_SANDBOX', true),
     ],
 
+    'ipaymu' => [
+        'va' => env('IPAYMU_VA'),
+        'api_key' => env('IPAYMU_API_KEY'),
+        'callback_url' => env('IPAYMU_CALLBACK_URL', env('APP_URL') . '/payment/callback'),
+        'redirect_url' => env('IPAYMU_REDIRECT_URL', env('APP_URL') . '/payment/return'),
+        'sandbox' => env('IPAYMU_SANDBOX', true),
+    ],
+
 ];

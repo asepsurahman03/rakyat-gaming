@@ -19,6 +19,7 @@ class OrderPayment extends Model
         'status',
         'payment_reference',
         'pay_url',
+        'metadata',
     ];
 
     protected $casts = [

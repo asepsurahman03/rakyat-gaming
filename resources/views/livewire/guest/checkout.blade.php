@@ -5,14 +5,14 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderPayment;
 use App\Models\PaymentGateway;
-use App\Services\DuitkuService;
+use App\Services\IpaymuService;
 use Illuminate\Support\Str;
 use function Livewire\Volt\{state, mount, computed, layout, title};
 
 layout('components.layouts.guest');
 title('Checkout');
 
-state(['game', 'product', 'fields' => [], 'selectedPaymentMethod' => null, 'email' => '', 'whatsapp' => '', 'paymentMethods' => [], 'loading' => false]);
+state(['game', 'product', 'fields' => [], 'selectedPaymentMethod' => null, 'email' => '', 'whatsapp' => '', 'paymentMethods' => [], 'paymentMethodsCached' => false, 'paymentMethodsError' => null, 'loading' => false]);
 
 mount(function () {
     $checkoutData = session('checkout_data');
@@ -39,12 +39,29 @@ mount(function () {
         $this->whatsapp = auth()->user()->profile->whatsapp ?? '';
     }
 
-    // Get payment methods from Duitku
-    $duitkuService = app(DuitkuService::class);
-    $result = $duitkuService->getPaymentMethods((int) $this->product->selling_price);
+    // Get payment methods from Ipaymu with caching
+    try {
+        $ipaymuService = app(IpaymuService::class);
 
-    if ($result['success']) {
-        $this->paymentMethods = collect($result['methods'])->take(10)->toArray();
+        // Define filters if needed
+        $filters = [
+            // 'exclude' => ['cod'], // Example: exclude specific channels
+        ];
+
+        // Get payment methods with caching (15 minutes TTL)
+        $result = $ipaymuService->getPaymentMethods((int) $this->product->selling_price, $filters, true, 15);
+
+        if ($result['success']) {
+            $this->paymentMethods = collect($result['methods'])->take(10)->toArray();
+            $this->paymentMethodsCached = $result['cached'] ?? false;
+        } else {
+            $this->paymentMethodsError = $result['message'] ?? 'Gagal memuat metode pembayaran';
+        }
+    } catch (\Exception $e) {
+        $this->paymentMethodsError = 'Terjadi kesalahan saat memuat metode pembayaran';
+        \Log::error('Failed to load payment methods in checkout', [
+            'error' => $e->getMessage(),
+        ]);
     }
 });
 
@@ -86,44 +103,55 @@ $createOrder = function () {
             'game_id' => $this->game->id,
             'product_id' => $this->product->id,
             'data_player' => $this->fields,
-            'payment_method' => $this->selectedPaymentMethod,
+            'payment_method' => $this->selectedPaymentMethod['code'] ?? $this->selectedPaymentMethod,
             'price' => $this->product->selling_price,
             'status' => 'pending',
         ]);
 
-        dd($order);
-
-        // Get payment gateway (Duitku)
-        $paymentGateway = PaymentGateway::where('code', 'duitku')->where('is_active', true)->first();
+        // Get payment gateway (Ipaymu)
+        $paymentGateway = PaymentGateway::where('code', 'ipaymu')->where('is_active', true)->first();
 
         if (!$paymentGateway) {
-            dd('payment gateway not found');
             throw new \Exception('Payment gateway tidak tersedia');
         }
 
-        dd($this->selectedPaymentMethod, $paymentGateway->id);
+        // Calculate total amount (product price + payment fee)
+        $paymentFee = $this->selectedPaymentMethod['fee'] ?? 0;
+        $totalAmount = $this->product->selling_price + $paymentFee;
 
         // Create order payment
         $orderPayment = OrderPayment::create([
             'order_id' => $order->id,
             'payment_gateway_id' => $paymentGateway->id,
-            'method' => $this->selectedPaymentMethod,
-            'amount' => $this->product->selling_price,
+            'method' => $this->selectedPaymentMethod['code'] ?? $this->selectedPaymentMethod,
+            'payment_name' => $this->selectedPaymentMethod['name'] ?? null,
+            'amount' => $totalAmount,
             'status' => 'pending',
         ]);
 
-        // Create payment request to Duitku
-        $duitkuService = app(DuitkuService::class);
-        $result = $duitkuService->createPayment($order, $this->selectedPaymentMethod);
+        // Create payment request to Ipaymu
+        $ipaymuService = app(IpaymuService::class);
+        $result = $ipaymuService->createPayment($order, $this->selectedPaymentMethod);
 
         if (!$result['success']) {
             throw new \Exception($result['message'] ?? 'Gagal membuat pembayaran');
         }
 
-        // Update order payment with payment URL
+        // Store payment data in metadata for later display
+        $paymentData = [
+            'payment_no' => $result['payment_no'] ?? null,
+            'payment_url' => $result['payment_url'] ?? null,
+            'qr_string' => $result['qr_string'] ?? null,
+            'amount' => $result['amount'] ?? $totalAmount,
+            'expired' => $result['expired'] ?? null,
+            'logo' => $this->selectedPaymentMethod['logo'] ?? null,
+        ];
+
+        // Update order payment with payment data
         $orderPayment->update([
             'payment_reference' => $result['reference'],
-            'pay_url' => $result['pay_url'],
+            'pay_url' => $result['payment_url'],
+            'metadata' => json_encode($paymentData),
         ]);
 
         \DB::commit();
@@ -131,10 +159,9 @@ $createOrder = function () {
         // Clear session
         session()->forget('checkout_data');
 
-        // Redirect to payment page
-        return redirect()->away($result['pay_url']);
+        // Redirect to payment detail page instead of external URL
+        return $this->redirect(route('payment.detail', ['order_code' => $order->order_code]), navigate: true);
     } catch (\Exception $e) {
-        dd($e);
         \DB::rollBack();
         $this->loading = false;
 
@@ -149,7 +176,7 @@ $createOrder = function () {
 
 ?>
 
-<div class="bg-gradient-to-bl from-[#7E0000] to-[#470000] px-4 md:px-6 py-10 md:py-20">
+<div class="px-4 md:px-6 py-10 md:py-20">
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-yellow-400 shadow mb-6">Checkout</h1>
 
@@ -231,20 +258,6 @@ $createOrder = function () {
             <div class="lg:col-span-1">
                 <flux:card class="sticky top-30">
                     <div class="card-body">
-                        <h2 class="card-title text-xl">Transaction Area</h2>
-                        <div class="space-y-2 mt-4">
-                            <flux:label>Pilih Metode Pembayaran</flux:label>
-                            <flux:select wire:model="selectedPaymentMethod" variant="listbox"
-                                class="input input-bordered" placeholder="pilih metode pembayaran" class="w-full">
-                                @foreach ($paymentMethods as $method)
-                                    <flux:select.option value="{{ $method['paymentMethod'] }}">
-                                        {{ $method['paymentName'] }}
-                                    </flux:select.option>
-                                @endforeach
-                            </flux:select>
-                            <flux:error name="selectedPaymentMethod" />
-                        </div>
-
                         <h2 class="card-title text-xl">Detail Transaction</h2>
 
                         <div class="space-y-2 mt-4">
@@ -254,33 +267,12 @@ $createOrder = function () {
                                     {{ number_format($product->selling_price, 0, ',', '.') }}</span>
                             </div>
 
-                            @if ($selectedPaymentMethod && !empty($paymentMethods))
-                                @php
-                                    $method = collect($paymentMethods)->firstWhere(
-                                        'paymentMethod',
-                                        $selectedPaymentMethod,
-                                    );
-                                    $fee = $method['totalFee'] ?? 0;
-                                    $total = $product->selling_price + $fee;
-                                @endphp
-                                <div class="flex justify-between">
-                                    <span class="text-base-content/60">Biaya Admin</span>
-                                    <span class="font-medium">Rp {{ number_format($fee, 0, ',', '.') }}</span>
-                                </div>
-                                <div class="divider my-2"></div>
-                                <div class="flex justify-between text-lg">
-                                    <span class="font-bold">Total</span>
-                                    <span class="font-bold text-primary">Rp
-                                        {{ number_format($total, 0, ',', '.') }}</span>
-                                </div>
-                            @else
-                                <div class="divider my-2"></div>
-                                <div class="flex justify-between text-lg">
-                                    <span class="font-bold">Total</span>
-                                    <span class="font-bold text-primary">Rp
-                                        {{ number_format($product->selling_price, 0, ',', '.') }}</span>
-                                </div>
-                            @endif
+                            <div class="divider my-2"></div>
+                            <div class="flex justify-between text-lg">
+                                <span class="font-bold">Total</span>
+                                <span class="font-bold text-primary">Rp
+                                    {{ number_format($product->selling_price, 0, ',', '.') }}</span>
+                            </div>
                         </div>
 
                         <flux:button variant="primary" class="w-full" wire:click="createOrder">

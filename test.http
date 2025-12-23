@@ -1,0 +1,6 @@
+GET https:ipaymu/sandbox/api/v2/payment-channels HTTP/1.1
+Host: sandbox.ipaymu.com
+Content-Type: application/json
+signature:
+va: 1179000899
+timestamp: 20191209155701

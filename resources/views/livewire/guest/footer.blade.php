@@ -81,8 +81,10 @@ new class extends Component {
                                 class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.home') }}</a></li>
                         <li><a href="{{ route('cek-transaksi') }}" wire:navigate
                                 class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.check_transaction') }}</a></li>
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.artikel') }}</a></li>
-                        <li><a href="#" class="link link-hover opacity-70 hover:opacity-100">{{ __('messages.calculator') }}</a></li>
+                        <li><a href="{{ route('terms-and-conditions') }}" wire:navigate
+                                class="link link-hover opacity-70 hover:opacity-100">Syarat & Ketentuan</a></li>
+                        <li><a href="{{ route('refund-policy') }}" wire:navigate
+                                class="link link-hover opacity-70 hover:opacity-100">Kebijakan Pengembalian</a></li>
                     </ul>
                 </div>
 

@@ -45,7 +45,7 @@ new #[Layout('components.layouts.guest'), Title('Artikel')] class extends Compon
     }
 }; ?>
 
-<div class="bg-gradient-to-bl from-[#7E0000] to-[#470000] py-12">
+<div class="py-12">
     <!-- Hero Section -->
         <div class="container mx-auto px-4 max-w-7xl mb-4 md:mb-6">
             <div class="mb-4">

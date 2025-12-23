@@ -8,7 +8,7 @@ use App\Models\FlazzSell;
 use App\Models\Order;
 use App\Models\OrderPayment;
 use App\Models\PaymentGateway;
-use App\Services\DuitkuService;
+use App\Services\IpaymuService;
 use Illuminate\Support\Str;
 use Livewire\Attributes\{Layout, Title};
 use Livewire\Volt\Component;
@@ -28,6 +28,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
     public $whatsapp = '';
     public $selectedPaymentMethod = null;
     public $paymentMethods = [];
+    public $paymentMethodsCached = false;
+    public $paymentMethodsError = null;
     public $loading = false;
 
     public function mount()
@@ -95,6 +97,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
         }
 
         $this->selectedProduct = $productId;
+        $this->paymentMethodsError = null;
 
         // Load payment methods when product is selected
         $product = $this->products->firstWhere('id', $productId) ?? $this->flazzSellProducts->firstWhere('id', $productId);
@@ -107,11 +110,44 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 $price = $flazzSellProduct->getDiscountedPrice();
             }
 
-            $duitkuService = app(DuitkuService::class);
-            $result = $duitkuService->getPaymentMethods((int) $price);
+            try {
+                $ipaymuService = app(IpaymuService::class);
 
-            if ($result['success']) {
-                $this->paymentMethods = collect($result['methods'])->toArray();
+                // Define filters for payment methods
+                $filters = [
+                    'exclude' => ['cod'], // Example: exclude COD if needed
+
+                    // 'min_amount' => 5000,  // Example: filter by minimum amount
+                    // 'max_amount' => 10000000, // Example: filter by maximum amount
+                ];
+
+                // Get payment methods with caching enabled (default 15 minutes)
+                $result = $ipaymuService->getPaymentMethods((int) $price, $filters, true, 15);
+
+                if ($result['success']) {
+                    $this->paymentMethods = collect($result['methods'])->toArray();
+                    $this->paymentMethodsCached = $result['cached'] ?? false;
+
+                    // Log for debugging
+                    \Log::info('Payment methods loaded', [
+                        'product_id' => $productId,
+                        'price' => $price,
+                        'methods_count' => count($this->paymentMethods),
+                        'cached' => $this->paymentMethodsCached,
+                    ]);
+                } else {
+                    $this->paymentMethodsError = $result['message'] ?? 'Gagal memuat metode pembayaran';
+                    \Log::warning('Failed to load payment methods', [
+                        'product_id' => $productId,
+                        'error' => $this->paymentMethodsError,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $this->paymentMethodsError = 'Terjadi kesalahan saat memuat metode pembayaran';
+                \Log::error('Exception loading payment methods', [
+                    'product_id' => $productId,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
     }
@@ -182,8 +218,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             // Get payment fee from selected method
             $paymentFee = 0;
             if (!empty($this->paymentMethods)) {
-                $method = collect($this->paymentMethods)->firstWhere('paymentMethod', $this->selectedPaymentMethod);
-                $paymentFee = $method['totalFee'] ?? 0;
+                $method = collect($this->paymentMethods)->firstWhere('code', $this->selectedPaymentMethod);
+                $paymentFee = $method['fee'] ?? 0;
             }
 
             $totalAmount = $price + $paymentFee;
@@ -202,8 +238,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 'status' => 'pending',
             ]);
 
-            // Get payment gateway (Duitku)
-            $paymentGateway = PaymentGateway::where('code', 'duitku')->where('is_active', true)->first();
+            // Get payment gateway (Ipaymu)
+            $paymentGateway = PaymentGateway::where('code', 'ipaymu')->where('is_active', true)->first();
 
             if (!$paymentGateway) {
                 throw new \Exception('Payment gateway tidak tersedia');
@@ -214,29 +250,42 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 'order_id' => $order->id,
                 'payment_gateway_id' => $paymentGateway->id,
                 'method' => $this->selectedPaymentMethod,
-                'payment_name' => $method['paymentName'] ?? null,
+                'payment_name' => $method['name'] ?? null,
                 'amount' => $totalAmount,
                 'status' => 'pending',
             ]);
 
-            // Create payment request to Duitku
-            $duitkuService = app(DuitkuService::class);
-            $result = $duitkuService->createPayment($order, $this->selectedPaymentMethod);
+            // Create payment request to Ipaymu
+            $ipaymuService = app(IpaymuService::class);
+            $result = $ipaymuService->createPayment($order, $method);
 
             if (!$result['success']) {
                 throw new \Exception($result['message'] ?? 'Gagal membuat pembayaran');
             }
 
-            // Update order payment with payment URL
+            // Store payment data in metadata for later display
+            $paymentData = [
+                'channel' => $result['channel'] ?? null,
+                'payment_no' => $result['payment_no'] ?? null,
+                'payment_url' => $result['payment_url'] ?? null,
+                'qr_string' => $result['qr_string'] ?? null,
+                'QrImage' => $result['QrImage'] ?? null,
+                'amount' => $result['amount'] ?? $totalAmount,
+                'expired' => $result['expired'] ?? null,
+                'logo' => $method['logo'] ?? null,
+            ];
+
+            // Update order payment with payment data
             $orderPayment->update([
                 'payment_reference' => $result['reference'],
-                'pay_url' => $result['pay_url'],
+                'pay_url' => $result['payment_url'],
+                'metadata' => json_encode($paymentData),
             ]);
 
             \DB::commit();
 
-            // Redirect to payment page
-            return redirect()->away($result['pay_url']);
+            // Redirect to payment detail page instead of external URL
+            return $this->redirect(route('payment.detail', ['order_code' => $order->order_code]), navigate: true);
         } catch (\Exception $e) {
             \DB::rollBack();
             $this->loading = false;
@@ -584,21 +633,107 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             </flux:text>
                         </div>
 
-                        <div>
-                            <flux:select wire:model="selectedPaymentMethod" variant="listbox"
-                                label="Metode Pembayaran *" placeholder="Pilih metode pembayaran" class="w-full">
-                                @if (!$paymentMethods)
-                                    <flux:select.option disabled>
-                                        Pilih produk terlebih dahulu
-                                    </flux:select.option>
-                                @else
-                                    @foreach ($paymentMethods as $method)
-                                        <flux:select.option value="{{ $method['paymentMethod'] }}">
-                                            {{ $method['paymentName'] }}
-                                        </flux:select.option>
+                        <div x-data="{ openGroup: 'Virtual Account' }">
+                            <flux:label>Metode Pembayaran *</flux:label>
+
+                            @if ($paymentMethodsError)
+                                <flux:callout variant="error" icon="exclamation-circle" class="text-sm mt-2">
+                                    {{ $paymentMethodsError }}
+                                </flux:callout>
+                            @elseif (!$paymentMethods || count($paymentMethods) === 0)
+                                <flux:callout variant="warning" icon="exclamation-triangle" class="text-sm mt-2">
+                                    Pilih produk terlebih dahulu untuk melihat metode pembayaran
+                                </flux:callout>
+                            @else
+                                @php
+                                    // Group payment methods by group_name
+                                    $groupedMethods = collect($paymentMethods)->groupBy('group_name');
+
+                                    // Sort groups by custom order
+                                    $groupOrder = [
+                                        'Virtual Account',
+                                        'eWallet',
+                                        'QRIS',
+                                        'Convenience Store',
+                                        'Credit Card',
+                                        'Debit Online',
+                                        'Pay Later',
+                                        'COD',
+                                    ];
+                                    $orderedGroups = collect($groupOrder)->filter(function ($groupName) use ($groupedMethods) {
+                                        return $groupedMethods->has($groupName);
+                                    });
+                                @endphp
+
+                                <div class="mt-3 space-y-2">
+                                    @foreach ($orderedGroups as $groupName)
+                                        @php
+                                            $methods = $groupedMethods[$groupName];
+                                            $groupIcon = $groupIcons[$groupName] ?? 'credit-card';
+                                        @endphp
+
+                                        <div class="border border-zinc-700 rounded-lg overflow-hidden bg-zinc-900">
+                                            <!-- Accordion Header -->
+                                            <button @click="openGroup = openGroup === '{{ $groupName }}' ? null : '{{ $groupName }}'"
+                                                type="button"
+                                                class="w-full flex items-center justify-between p-3 hover:bg-zinc-800/50 transition-colors">
+                                                <div class="flex w-full items-center gap-3">
+                                                    <span class="font-semibold text-sm">{{ $groupName }}</span>
+                                                </div>
+                                                <flux:icon.chevron-down
+                                                    class="w-5 h-5 text-zinc-400 transition-transform"
+                                                    x-bind:class="{ 'rotate-180': openGroup === '{{ $groupName }}' }" />
+                                            </button>
+
+                                            <!-- Accordion Content -->
+                                            <div x-show="openGroup === '{{ $groupName }}'" x-collapse
+                                                class="border-t border-zinc-700">
+                                                <div class="p-2 grid grid-cols-3 gap-2">
+                                                    @foreach ($methods as $method)
+                                                    <div class="bg-white rounded-lg ">
+                                                        <label
+                                                            class="relative p-3 border rounded-lg cursor-pointer transition-all aspect-[3/2] flex items-center justify-center
+                                                            {{ $selectedPaymentMethod === $method['code'] ? 'border-yellow-500 bg-gray-100 ring-2 ring-yellow-500/50' : 'border-zinc-700 hover:border-yellow-400/50' }}">
+                                                            <input type="radio" name="payment_method"
+                                                                value="{{ $method['code'] }}"
+                                                                wire:model.live="selectedPaymentMethod"
+                                                                class="sr-only" />
+
+                                                            @if (!empty($method['logo']))
+                                                                <img src="{{ $method['logo'] }}"
+                                                                    alt="{{ $method['name'] }}"
+                                                                    class="w-full h-full object-contain p-1" />
+                                                            @else
+                                                                <div
+                                                                    class="w-full h-full bg-zinc-800 rounded flex items-center justify-center">
+                                                                    <flux:icon.credit-card
+                                                                        class="w-8 h-8 text-zinc-600" />
+                                                                </div>
+                                                            @endif
+
+                                                            @if ($selectedPaymentMethod === $method['code'])
+                                                                <div class="absolute top-1 right-1">
+                                                                    <flux:icon.check-circle class="w-5 h-5 text-yellow-500" />
+                                                                </div>
+                                                            @endif
+                                                        </label>
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endforeach
+                                </div>
+
+                                @if ($paymentMethodsCached)
+                                    <flux:text class="text-xs text-zinc-400 mt-2 flex items-center gap-1">
+                                        <flux:icon.information-circle class="w-3 h-3" />
+                                        Metode pembayaran dari cache
+                                    </flux:text>
                                 @endif
-                            </flux:select>
+                            @endif
+
+                            <flux:error name="selectedPaymentMethod" />
                         </div>
                     </div>
 
@@ -625,8 +760,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             $paymentFee = 0;
                             $totalAmount = $displayPrice;
                             if ($selectedPaymentMethod && !empty($paymentMethods)) {
-                                $method = collect($paymentMethods)->firstWhere('paymentMethod', $selectedPaymentMethod);
-                                $paymentFee = $method['totalFee'] ?? 0;
+                                $method = collect($paymentMethods)->firstWhere('code', $selectedPaymentMethod);
+                                $paymentFee = $method['fee'] ?? 0;
                                 $totalAmount = $displayPrice + $paymentFee;
                             }
                         @endphp

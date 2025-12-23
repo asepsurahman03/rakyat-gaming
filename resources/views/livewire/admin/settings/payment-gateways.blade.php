@@ -4,12 +4,12 @@ use Livewire\Volt\Component;
 use App\Models\PaymentGateway;
 use Livewire\Attributes\{Layout, Title};
 
-new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class extends Component {
-    public $duitkuConfig;
+new #[Layout('components.layouts.app'), Title('Ipaymu Configuration')] class extends Component {
+    public $ipaymuConfig;
 
     // Form fields
     public string $api_key = '';
-    public string $api_secret = '';
+    public string $api_secret = ''; // VA Number
     public string $callback_url = '';
     public string $redirect_url = '';
     public bool $is_sandbox = true;
@@ -22,16 +22,16 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
 
     public function loadConfig(): void
     {
-        // Ambil konfigurasi Duitku pertama atau buat default
-        $this->duitkuConfig = PaymentGateway::where('code', 'duitku')->first();
+        // Ambil konfigurasi Ipaymu pertama atau buat default
+        $this->ipaymuConfig = PaymentGateway::where('code', 'ipaymu')->first();
 
-        if ($this->duitkuConfig) {
-            $this->api_key = $this->duitkuConfig->api_key ?? '';
-            $this->api_secret = $this->duitkuConfig->api_secret ?? '';
-            $this->callback_url = $this->duitkuConfig->callback_url ?? '';
-            $this->redirect_url = $this->duitkuConfig->redirect_url ?? '';
-            $this->is_sandbox = (bool) $this->duitkuConfig->is_sandbox;
-            $this->is_active = (bool) $this->duitkuConfig->is_active;
+        if ($this->ipaymuConfig) {
+            $this->api_key = $this->ipaymuConfig->api_key ?? '';
+            $this->api_secret = $this->ipaymuConfig->api_secret ?? ''; // VA number
+            $this->callback_url = $this->ipaymuConfig->callback_url ?? '';
+            $this->redirect_url = $this->ipaymuConfig->redirect_url ?? '';
+            $this->is_sandbox = (bool) $this->ipaymuConfig->is_sandbox;
+            $this->is_active = (bool) $this->ipaymuConfig->is_active;
         } else {
             // Set default URLs
             $this->callback_url = route('payment.callback');
@@ -50,16 +50,16 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
             'is_active' => 'boolean',
         ]);
 
-        if ($this->duitkuConfig) {
-            $this->duitkuConfig->update($validated);
-            $message = 'Konfigurasi Duitku berhasil diupdate';
+        if ($this->ipaymuConfig) {
+            $this->ipaymuConfig->update($validated);
+            $message = 'Konfigurasi Ipaymu berhasil diupdate';
         } else {
             PaymentGateway::create([
-                'name' => 'Duitku',
-                'code' => 'duitku',
+                'name' => 'Ipaymu',
+                'code' => 'ipaymu',
                 ...$validated
             ]);
-            $message = 'Konfigurasi Duitku berhasil disimpan';
+            $message = 'Konfigurasi Ipaymu berhasil disimpan';
         }
 
         Flux::toast(
@@ -80,13 +80,13 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
             'api_secret' => 'required',
         ]);
 
-        $duitkuService = new \App\Services\DuitkuService();
-        $result = $duitkuService->testConnection($this->api_key, $this->api_secret, true);
+        $ipaymuService = new \App\Services\IpaymuService();
+        $result = $ipaymuService->testConnection();
 
         if ($result['success']) {
             Flux::toast(
                 heading: 'Koneksi Berhasil!',
-                text: $result['message'] . '. Ditemukan ' . $result['methods_count'] . ' metode pembayaran.',
+                text: $result['message'],
                 variant: 'success',
                 duration: 5000,
                 position: 'top-right',
@@ -105,8 +105,8 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
 
 <div class="py-6">
     <!-- Page Header -->
-    <flux:heading size="xl" class="mb-2">Konfigurasi Duitku Payment Gateway</flux:heading>
-    <flux:subheading class="mb-6">Pengaturan koneksi ke payment gateway Duitku untuk memproses pembayaran</flux:subheading>
+    <flux:heading size="xl" class="mb-2">Konfigurasi Ipaymu Payment Gateway</flux:heading>
+    <flux:subheading class="mb-6">Pengaturan koneksi ke payment gateway Ipaymu untuk memproses pembayaran</flux:subheading>
 
     <div class="max-w-3xl mx-auto">
         <flux:card>
@@ -118,11 +118,11 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                         </svg>
                         <div>
-                            <flux:heading size="lg">Duitku Payment Gateway</flux:heading>
+                            <flux:heading size="lg">Ipaymu Payment Gateway</flux:heading>
                             <flux:subheading class="text-sm">Indonesian Payment Solution</flux:subheading>
                         </div>
                     </div>
-                    @if($duitkuConfig)
+                    @if($ipaymuConfig)
                         @if($is_active)
                             <flux:badge color="green" size="lg">Active</flux:badge>
                         @else
@@ -136,9 +136,9 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                 <flux:separator class="my-6" />
 
                 <!-- Info Callout -->
-                @if(!$duitkuConfig)
+                @if(!$ipaymuConfig)
                     <flux:callout variant="info" icon="information-circle" class="mb-6">
-                        <strong>Belum Ada Konfigurasi</strong> Silakan isi form di bawah untuk mengkonfigurasi koneksi ke Duitku.
+                        <strong>Belum Ada Konfigurasi</strong> Silakan isi form di bawah untuk mengkonfigurasi koneksi ke Ipaymu.
                     </flux:callout>
                 @endif
 
@@ -146,24 +146,24 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                 <form wire:submit="save" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <flux:field class="md:col-span-2">
-                            <flux:label>API Key (Merchant Code) <span class="text-red-500">*</span></flux:label>
-                            <flux:input wire:model="api_secret" placeholder="Masukkan Merchant Code dari Duitku" required />
+                            <flux:label>VA Number <span class="text-red-500">*</span></flux:label>
+                            <flux:input wire:model="api_secret" placeholder="Masukkan VA Number dari Ipaymu" required />
                             <flux:error name="api_secret" />
-                            <flux:description>Merchant Code yang didapatkan dari dashboard Duitku</flux:description>
+                            <flux:description>VA Number yang didapatkan dari dashboard Ipaymu</flux:description>
                         </flux:field>
 
                         <flux:field class="md:col-span-2">
-                            <flux:label>API Secret <span class="text-red-500">*</span></flux:label>
+                            <flux:label>API Key <span class="text-red-500">*</span></flux:label>
                             <flux:input type="password" wire:model="api_key" placeholder="••••••••••••••••" required />
                             <flux:error name="api_key" />
-                            <flux:description>API Key/Secret untuk autentikasi ke Duitku API</flux:description>
+                            <flux:description>API Key untuk autentikasi ke Ipaymu API</flux:description>
                         </flux:field>
 
                         <flux:field class="md:col-span-2">
                             <flux:label>Callback URL <span class="text-red-500">*</span></flux:label>
                             <flux:input type="url" wire:model="callback_url" placeholder="{{ route('payment.callback') }}" required readonly />
                             <flux:error name="callback_url" />
-                            <flux:description>URL untuk menerima notifikasi status pembayaran dari Duitku (POST method)</flux:description>
+                            <flux:description>URL untuk menerima notifikasi status pembayaran dari Ipaymu (POST method)</flux:description>
                         </flux:field>
 
                         <flux:field class="md:col-span-2">
@@ -203,7 +203,7 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-3">
                         <flux:button type="submit" variant="primary" icon="check" class="flex-1">
-                            {{ $duitkuConfig ? 'Update Konfigurasi' : 'Simpan Konfigurasi' }}
+                            {{ $ipaymuConfig ? 'Update Konfigurasi' : 'Simpan Konfigurasi' }}
                         </flux:button>
                         <flux:button type="button" wire:click="testConnection" variant="ghost" icon="play" class="flex-1">
                             Test Koneksi
@@ -211,7 +211,7 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                     </div>
                 </form>
 
-                @if($duitkuConfig)
+                @if($ipaymuConfig)
                     <flux:separator class="my-6" />
 
                     <!-- Statistics -->
@@ -220,13 +220,13 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="text-center">
                                 <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                                    {{ PaymentGateway::where('code', '!=', 'DUITKU')->count() }}
+                                    {{ PaymentGateway::where('code', '!=', 'ipaymu')->count() }}
                                 </div>
                                 <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Metode Pembayaran</div>
                             </div>
                             <div class="text-center">
                                 <div class="text-3xl font-bold text-green-600 dark:text-green-400">
-                                    {{ $duitkuConfig->orderPayments()->count() }}
+                                    {{ $ipaymuConfig->orderPayments()->count() }}
                                 </div>
                                 <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Total Transaksi</div>
                             </div>
@@ -254,11 +254,11 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                         <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
-                                <span>Pastikan API Key (Merchant Code) dan API Secret sesuai dengan akun Duitku Anda</span>
+                                <span>Pastikan VA Number dan API Key sesuai dengan akun Ipaymu Anda</span>
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
-                                <span>Callback URL dan Redirect URL harus didaftarkan di dashboard Duitku</span>
+                                <span>Callback URL (notifyUrl) dan Redirect URL harus didaftarkan di dashboard Ipaymu</span>
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
@@ -266,7 +266,7 @@ new #[Layout('components.layouts.app'), Title('Duitku Configuration')] class ext
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
-                                <span>Metode pembayaran individual (QRIS, VA Bank, dll) dapat dikelola di menu Payment Methods</span>
+                                <span>Metode pembayaran individual (QRIS, VA Bank, COD, dll) dapat dikelola di menu Payment Methods</span>
                             </li>
                         </ul>
                     </div>

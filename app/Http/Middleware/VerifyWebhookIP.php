@@ -79,6 +79,18 @@ class VerifyWebhookIP
                 '103.177.101.187',
                 '103.177.101.188',
             ],
+            'ipaymu' => [
+                // Ipaymu Production IPs
+                '103.140.62.122',
+                '103.140.62.123',
+                '103.140.62.124',
+                '103.140.62.125',
+                '103.140.62.126',
+                '103.140.62.127',
+
+                // Ipaymu Sandbox IPs (same as production)
+                '103.140.62.122',
+            ],
             'digiflazz' => [
                 // Digiflazz IPs
                 '52.74.250.133'

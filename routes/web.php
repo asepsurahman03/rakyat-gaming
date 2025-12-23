@@ -60,6 +60,8 @@ Volt::route('game/{slug}', 'guest.game-detail')->name('game.detail');
 Volt::route('magicwhele', 'guest.calculate.magicwhele')->name('magicwhele');
 Volt::route('winrate', 'guest.calculate.winrate')->name('winrate');
 Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
+Volt::route('terms-and-conditions', 'guest.terms-and-conditions')->name('terms-and-conditions');
+Volt::route('refund-policy', 'guest.refund-policy')->name('refund-policy');
 
 // Guest Posts/Articles
 Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
@@ -71,13 +73,13 @@ Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
     ->name('webhook.digiflazz');
 
 Route::post('/payment/callback', [PaymentController::class, 'callback'])
-    ->middleware('webhook.ip:duitku')
+    ->middleware('webhook.ip:ipaymu')
     ->name('payment.callback');
 
 Route::get('/payment/return', [PaymentController::class, 'return'])
     ->name('payment.return');
 
-Volt::route('/payment/detail', 'guest.payment-return')
+Volt::route('/payment/detail', 'guest.payment-detail')
     ->name('payment.detail');
 
 // User Dashboard Routes (Only for authenticated users with role 'user')
