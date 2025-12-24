@@ -19,6 +19,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
     {
         // Get order code from URL parameter
         $this->orderCode = request()->get('order_code') ?? (request()->get('merchantOrderId') ?? '');
+
         if ($this->orderCode) {
             $this->loadOrder();
         }
@@ -47,6 +48,20 @@ new #[Layout('components.layouts.guest')] class extends Component {
         if ($this->order->orderPayment && $this->order->orderPayment->metadata) {
             $this->paymentData = json_decode($this->order->orderPayment->metadata, true);
             $this->paymentMethod = $this->order->payment_method;
+        }
+
+        // Check if payment is expired based on time
+        if ($this->paymentData && isset($this->paymentData['expired'])) {
+            $expiryTime = \Carbon\Carbon::parse($this->paymentData['expired']);
+            $this->countdown = $expiryTime->diffForHumans();
+
+            // Auto-update status to expired if time has passed and status is still pending
+            if ($this->order->orderPayment &&
+                $this->order->orderPayment->status === 'pending' &&
+                now()->isAfter($expiryTime)) {
+                $this->order->orderPayment->update(['status' => 'expired']);
+                $this->order->refresh();
+            }
         }
 
         // Debug: Log payment method and data
@@ -123,6 +138,15 @@ new #[Layout('components.layouts.guest')] class extends Component {
             default => 'zinc',
         };
     }
+
+    public function isPaymentExpired()
+    {
+        if (!$this->paymentData || !isset($this->paymentData['expired'])) {
+            return false;
+        }
+
+        return now()->isAfter(\Carbon\Carbon::parse($this->paymentData['expired']));
+    }
 }; ?>
 
 <div class="min-h-screen py-12">
@@ -164,6 +188,22 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         </svg>
                         <h1 class="text-3xl md:text-4xl font-bold mb-2 text-green-400">Pembayaran Berhasil!</h1>
                         <p class="text-lg">Terima kasih, pembayaran Anda telah diterima</p>
+                    @elseif ($order->orderPayment && $order->orderPayment->status === 'expired')
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-red-400">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-red-400">Pembayaran Kadaluarsa</h1>
+                        <p class="text-lg">Batas waktu pembayaran telah berakhir</p>
+                    @elseif ($order->orderPayment && $order->orderPayment->status === 'failed')
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-red-400">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-red-400">Pembayaran Gagal</h1>
+                        <p class="text-lg">Transaksi pembayaran tidak berhasil</p>
                     @else
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-yellow-400">
@@ -175,7 +215,75 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     @endif
                 </div>
 
-                @if ($order->orderPayment && $order->orderPayment->status === 'pending')
+                @if ($order->orderPayment && ($order->orderPayment->status === 'expired' || $order->orderPayment->status === 'failed'))
+                    <!-- Expired/Failed Payment Notice -->
+                    <flux:card class="shadow-xl bg-white/95 backdrop-blur">
+                        <div class="p-6 md:p-8">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-bold flex items-center gap-2 text-red-600">
+                                    <flux:icon.exclamation-triangle class="w-6 h-6" />
+                                    {{ $order->orderPayment->status === 'expired' ? 'Pembayaran Kadaluarsa' : 'Pembayaran Gagal' }}
+                                </h2>
+                                <flux:badge :variant="$this->getPaymentStatusBadge($order->orderPayment->status)" size="lg">
+                                    {{ $this->getPaymentStatusText($order->orderPayment->status) }}
+                                </flux:badge>
+                            </div>
+
+                            <flux:separator class="my-6" />
+
+                            <div class="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-6">
+                                <div class="flex gap-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                        stroke="currentColor" class="w-12 h-12 flex-shrink-0 text-red-600">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                    </svg>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-red-900 mb-2">
+                                            @if ($order->orderPayment->status === 'expired')
+                                                Batas waktu pembayaran telah berakhir
+                                            @else
+                                                Transaksi pembayaran gagal diproses
+                                            @endif
+                                        </h3>
+                                        <p class="text-sm text-red-800 mb-4">
+                                            @if ($order->orderPayment->status === 'expired')
+                                                Pembayaran Anda tidak dapat dilanjutkan karena telah melewati batas waktu.
+                                                @if ($paymentData && isset($paymentData['expired']))
+                                                    Batas pembayaran berakhir pada {{ \Carbon\Carbon::parse($paymentData['expired'])->format('d M Y, H:i') }} WIB.
+                                                @endif
+                                            @else
+                                                Transaksi pembayaran tidak berhasil diselesaikan. Silakan lakukan pemesanan ulang.
+                                            @endif
+                                        </p>
+                                        <p class="text-sm font-semibold text-red-900">Silakan lakukan pemesanan baru untuk melanjutkan.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Informasi Total yang harus dibayar -->
+                            <div class="bg-zinc-50 rounded-lg p-4 mb-6">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-zinc-600">Total yang Harus Dibayar</span>
+                                    <span class="text-2xl font-bold text-zinc-900">Rp
+                                        {{ number_format($order->orderPayment->amount ?? $order->price, 0, ',', '.') }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <flux:button href="{{ route('game.detail', $order->game->slug) }}" wire:navigate variant="primary" class="flex-1">
+                                    <flux:icon.arrow-path class="w-5 h-5" />
+                                    Pesan Ulang
+                                </flux:button>
+                                <flux:button href="/" wire:navigate variant="outline" class="flex-1">
+                                    <flux:icon.home class="w-5 h-5" />
+                                    Kembali ke Home
+                                </flux:button>
+                            </div>
+                        </div>
+                    </flux:card>
+                @elseif ($order->orderPayment && $order->orderPayment->status === 'pending')
                     <!-- Payment Instructions -->
                     <flux:card class="shadow-xl bg-white/95 backdrop-blur">
                         <div class="p-6 md:p-8">
@@ -266,10 +374,10 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                     <p class="text-lg font-semibold text-zinc-800 mb-2">Scan QRIS untuk Membayar</p>
                                     <p class="text-sm text-zinc-600 mb-4">Gunakan aplikasi e-wallet atau mobile banking Anda</p>
 
-                                    <div class="bg-white rounded-lg p-4 mb-4">
+                                    <div class="bg-white rounded-lg p-4 mb-4" wire:ignore>
                                         <div class="text-center mb-4">
                                             {{-- Generate QR Code from qr_string (iPaymu's QrImage has CORS restrictions) --}}
-                                            <div id="qrcode" class="flex justify-center"></div>
+                                            <div id="qrcode-{{ $order->order_code }}" class="flex justify-center" data-qr-string="{{ $paymentData['qr_string'] }}"></div>
                                         </div>
 
                                         {{-- Link to open in new tab --}}
@@ -301,22 +409,33 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                         </ol>
                                     </div>
 
-                                    {{-- Load QRCode.js library --}}
                                     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
                                     <script>
-                                        document.addEventListener('DOMContentLoaded', function() {
-                                            const qrcodeContainer = document.getElementById('qrcode');
-                                            if (qrcodeContainer && qrcodeContainer.innerHTML === '') {
-                                                new QRCode(qrcodeContainer, {
-                                                    text: "{{ $paymentData['qr_string'] }}",
-                                                    width: 256,
-                                                    height: 256,
-                                                    colorDark: "#000000",
-                                                    colorLight: "#ffffff",
-                                                    correctLevel: QRCode.CorrectLevel.H
-                                                });
+                                        (function() {
+                                            function generateQR() {
+                                                const container = document.getElementById('qrcode-{{ $order->order_code }}');
+                                                if (!container) return;
+
+                                                const qrString = container.getAttribute('data-qr-string');
+                                                if (!qrString) return;
+
+                                                if (typeof QRCode !== 'undefined') {
+                                                    container.innerHTML = '';
+                                                    new QRCode(container, {
+                                                        text: qrString,
+                                                        width: 256,
+                                                        height: 256,
+                                                        colorDark: '#000000',
+                                                        colorLight: '#ffffff',
+                                                        correctLevel: QRCode.CorrectLevel.H
+                                                    });
+                                                } else {
+                                                    setTimeout(generateQR, 100);
+                                                }
                                             }
-                                        });
+
+                                            generateQR();
+                                        })();
                                     </script>
                                 </div>
                             @endif

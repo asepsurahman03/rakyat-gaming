@@ -343,12 +343,10 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
 
                         <div class="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-3">
                             @if ($order->orderPayment && $order->orderPayment->status === 'pending')
-                                @if ($order->orderPayment->pay_url)
                                     <flux:button href="{{ route('payment.detail', ['order_code' => $order->order_code]) }}" target="_blank" variant="primary">
                                         <flux:icon.credit-card class="w-5 h-5" />
                                         Bayar Sekarang
                                     </flux:button>
-                                @endif
                             @endif
                             <flux:button wire:click="clearForm" variant="ghost" icon="arrow-path">
                                 Cek Transaksi Lain
