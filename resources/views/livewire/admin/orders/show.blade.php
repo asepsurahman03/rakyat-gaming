@@ -19,18 +19,18 @@ $retryTopup = function () {
 
         // Get supplier code from product type
         $supplierCode = $this->order->product->product_type;
-        
+
         if (!$supplierCode || $supplierCode === 'manual') {
             throw new \Exception('Produk ini adalah produk manual, tidak dapat di-retry');
         }
 
         // Get supplier service dynamically based on product type
         $factory = app(SupplierServiceFactory::class);
-        
+
         if (!$factory->has($supplierCode)) {
             throw new \Exception("Supplier service tidak ditemukan untuk: {$supplierCode}");
         }
-        
+
         $supplierService = $factory->make($supplierCode);
         $result = $supplierService->processTransaction($this->order, $this->order->product->supplierProduct);
 
