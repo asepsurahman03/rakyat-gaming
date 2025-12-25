@@ -14,9 +14,13 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
     public string $secret = '';
     public bool $is_active = false;
 
+    // User info
+    public ?array $userInfo = null;
+
     public function mount(): void
     {
         $this->loadConfig();
+        $this->loadUserInfo();
     }
 
     public function loadConfig(): void
@@ -39,6 +43,38 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
         } else {
             $this->api_url = 'https://api.onoystore.com';
         }
+    }
+
+    public function loadUserInfo(): void
+    {
+        if (empty($this->api_key) || empty($this->api_url) || !$this->is_active) {
+            $this->userInfo = null;
+            return;
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => $this->api_key,
+            ])->get($this->api_url . '/v1/public/user');
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['statusCode']) && $data['statusCode'] == 200) {
+                    $this->userInfo = [
+                        'name' => $data['data']['user_name'] ?? '-',
+                        'email' => $data['data']['user_email'] ?? '-',
+                        'balance' => $data['data']['user_balance'] ?? 0,
+                        'role' => $data['data']['role_name'] ?? '-',
+                    ];
+                    return;
+                }
+            }
+        } catch (\Exception $e) {
+            // Silent fail
+        }
+
+        $this->userInfo = null;
     }
 
     public function save(): void
@@ -71,6 +107,7 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
         );
 
         $this->loadConfig();
+        $this->loadUserInfo();
     }
 
     public function testConnection(): void
@@ -78,6 +115,12 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
         $this->validate([
             'api_key' => 'required',
             'api_url' => 'required',
+        ]);
+
+        // Temporarily save config to test
+        $this->supplierConfig->update([
+            'api_url' => $this->api_url,
+            'api_key' => $this->api_key,
         ]);
 
         try {
@@ -111,6 +154,64 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
             );
         }
     }
+
+    // public function testUserApi(): void
+    // {
+    //     $this->validate([
+    //         'api_key' => 'required',
+    //         'api_url' => 'required',
+    //     ]);
+
+    //     try {
+    //         $response = \Illuminate\Support\Facades\Http::withHeaders([
+    //             'Authorization' => $this->api_key,
+    //         ])->get($this->api_url . '/v1/public/user');
+
+    //         if ($response->successful()) {
+    //             $data = $response->json();
+
+    //             if ($data['statusCode'] == 200) {
+    //                 $userData = $data['data'];
+    //                 $message = "User: {$userData['user_name']}\n";
+    //                 $message .= "Email: {$userData['user_email']}\n";
+    //                 $message .= "Saldo: Rp " . number_format($userData['user_balance'], 0, ',', '.') . "\n";
+    //                 $message .= "Role: {$userData['role_name']}";
+
+    //                 Flux::toast(
+    //                     heading: 'Test API User Berhasil',
+    //                     text: $message,
+    //                     variant: 'success',
+    //                     duration: 8000,
+    //                     position: 'top-right',
+    //                 );
+    //             } else {
+    //                 Flux::toast(
+    //                     heading: 'Test API Gagal',
+    //                     text: $data['message'] ?? 'Response tidak sesuai',
+    //                     variant: 'error',
+    //                     duration: 5000,
+    //                     position: 'top-right',
+    //                 );
+    //             }
+    //         } else {
+    //             Flux::toast(
+    //                 heading: 'Test API Gagal',
+    //                 text: 'HTTP Status: ' . $response->status(),
+    //                 variant: 'error',
+    //                 duration: 5000,
+    //                 position: 'top-right',
+    //             );
+    //         }
+    //     } catch (\Exception $e) {
+    //         Flux::toast(
+    //             heading: 'Error',
+    //             text: $e->getMessage(),
+    //             variant: 'error',
+    //             duration: 5000,
+    //             position: 'top-right',
+    //         );
+    //     }
+    // }
 
     public function with(): array
     {
@@ -163,6 +264,40 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
         </div>
         <flux:badge color="purple" size="lg" icon="puzzle-piece">Game Products</flux:badge>
     </div>
+
+    <!-- User Info Card -->
+    @if($userInfo)
+    <flux:card class="mb-6">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                        <flux:icon.user class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                        <flux:heading size="lg">{{ $userInfo['name'] }}</flux:heading>
+                        <flux:subheading class="text-xs">{{ $userInfo['email'] }}</flux:subheading>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <flux:subheading class="text-xs mb-1">Saldo Akun</flux:subheading>
+                        <flux:heading size="xl" class="text-green-600 dark:text-green-400">
+                            Rp {{ number_format($userInfo['balance'], 0, ',', '.') }}
+                        </flux:heading>
+                    </div>
+                    <div>
+                        <flux:subheading class="text-xs mb-1">Role</flux:subheading>
+                        <flux:badge color="purple" size="sm">{{ $userInfo['role'] }}</flux:badge>
+                    </div>
+                </div>
+            </div>
+            <flux:button type="button" wire:click="loadUserInfo" variant="ghost" size="sm" icon="arrow-path">
+                Refresh
+            </flux:button>
+        </div>
+    </flux:card>
+    @endif
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -265,12 +400,10 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
             </div>
 
             <div class="flex gap-3">
-                <flux:button type="submit" variant="primary">
-                    <flux:icon.check class="w-4 h-4" />
+                <flux:button type="submit" variant="primary" icon="check">
                     Simpan Konfigurasi
                 </flux:button>
-                <flux:button type="button" wire:click="testConnection" variant="outline">
-                    <flux:icon.signal class="w-4 h-4" />
+                <flux:button type="button" wire:click="testConnection" variant="outline" icon="signal">
                     Test Koneksi
                 </flux:button>
             </div>

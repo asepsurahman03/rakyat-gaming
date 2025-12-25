@@ -46,12 +46,24 @@ class WebhookController extends Controller
                 ], 403);
             }
 
-            // Get raw payload
-            $payload = $request->getContent();
-            $signature = $request->header('X-Signature') ?? $request->header('Authorization') ?? '';
+            // Get raw payload content
+            $rawPayload = $request->getContent();
+            $signature = $request->header('X-Signature') ?? $request->header('x-signature') ?? $request->header('Authorization') ?? '';
 
-            // Validate webhook signature
-            if (!$service->validateWebhookSignature($payload, $signature)) {
+            // Parse JSON payload first
+            $data = json_decode($rawPayload, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error("Invalid JSON webhook from {$supplierCode}: " . json_last_error_msg());
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid JSON payload'
+                ], 400);
+            }
+
+            // Validate webhook signature (now passes array)
+            if (!$service->validateWebhookSignature($data, $signature)) {
                 Log::warning("Invalid webhook signature from {$supplierCode}", [
                     'signature' => $signature,
                     'ip' => $request->ip(),
@@ -61,18 +73,6 @@ class WebhookController extends Controller
                     'success' => false,
                     'message' => 'Invalid signature'
                 ], 401);
-            }
-
-            // Parse JSON payload
-            $data = json_decode($payload, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error("Invalid JSON webhook from {$supplierCode}: " . json_last_error_msg());
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid JSON payload'
-                ], 400);
             }
 
             // Handle webhook through supplier service

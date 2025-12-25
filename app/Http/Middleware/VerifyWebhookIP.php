@@ -96,6 +96,10 @@ class VerifyWebhookIP
                 // Digiflazz IPs
                 '52.74.250.133'
             ],
+            'suppliers' => [
+                // Example supplier IPs (replace with actual supplier IPs)
+                '159.223.78.143', // Supplier A
+            ],
             default => [],
         };
     }

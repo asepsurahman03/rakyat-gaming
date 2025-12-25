@@ -72,6 +72,7 @@ Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show')
 // Webhooks & Callbacks (No auth required, IP restricted)
 // Dynamic webhook handler for all suppliers
 Route::post('/webhook/{supplierCode}', [WebhookController::class, 'handle'])
+    ->middleware('webhook.ip:suppliers')
     ->name('webhook.handle');
 
 Route::get('/webhook/{supplierCode}/test', [WebhookController::class, 'test'])

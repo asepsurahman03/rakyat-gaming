@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Order;
-use App\Services\Suppliers\DigiflazzSupplierService;
+use App\Services\SupplierServiceFactory;
 use Livewire\Attributes\{Layout, Title};
 use function Livewire\Volt\{state, mount};
 
@@ -17,11 +17,25 @@ $retryTopup = function () {
             throw new \Exception('Produk atau supplier product tidak ditemukan');
         }
 
-        $digiflazzService = app(DigiflazzSupplierService::class);
-        $result = $digiflazzService->processTransaction($this->order, $this->order->product->supplierProduct);
+        // Get supplier code from product type
+        $supplierCode = $this->order->product->product_type;
+        
+        if (!$supplierCode || $supplierCode === 'manual') {
+            throw new \Exception('Produk ini adalah produk manual, tidak dapat di-retry');
+        }
+
+        // Get supplier service dynamically based on product type
+        $factory = app(SupplierServiceFactory::class);
+        
+        if (!$factory->has($supplierCode)) {
+            throw new \Exception("Supplier service tidak ditemukan untuk: {$supplierCode}");
+        }
+        
+        $supplierService = $factory->make($supplierCode);
+        $result = $supplierService->processTransaction($this->order, $this->order->product->supplierProduct);
 
         if ($result['success']) {
-            Flux::toast(heading: 'Topup berhasil di-retry!', text: 'Permintaan topup telah dikirim ulang ke Digiflazz.', variant: 'success', duration: 3000, position: 'top-right');
+            Flux::toast(heading: 'Topup berhasil di-retry!', text: "Permintaan topup telah dikirim ulang ke " . ucfirst($supplierCode) . ".", variant: 'success', duration: 3000, position: 'top-right');
         } else {
             Flux::toast(heading: 'Gagal melakukan retry topup', text: 'Error: ' . ($result['message'] ?? 'Unknown error'), variant: 'danger', position: 'top-right');
         }
@@ -197,7 +211,7 @@ $getStatusBadge = function ($status) {
             <!-- Digiflazz Logs -->
             @if ($order->digiflazzLogs->isNotEmpty())
                 <flux:card>
-                    <flux:heading size="lg" class="mb-4">Log Digiflazz</flux:heading>
+                    <flux:heading size="lg" class="mb-4">Log </flux:heading>
 
                     <div class="space-y-4">
                         @foreach ($order->digiflazzLogs as $log)

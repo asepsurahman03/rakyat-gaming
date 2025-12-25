@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Exclude webhook and callback routes from CSRF verification
         $middleware->validateCsrfTokens(except: [
-            '/webhook/digiflazz',
+            '/webhook/*',
             '/payment/callback',
         ]);
 

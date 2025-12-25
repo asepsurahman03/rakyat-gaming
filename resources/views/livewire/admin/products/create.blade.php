@@ -18,6 +18,8 @@ state([
     'stock' => null,
     'is_auto_price' => false,
     'margin' => 1000,
+    'margin_percentage' => 0,
+    'use_percentage' => false,
     'is_active' => true,
     'description' => '',
 ]);
@@ -76,6 +78,25 @@ $updateSellingPrice = function () {
     }
 };
 
+$calculateMarginFromPercentage = function () {
+    if ($this->use_percentage && $this->supplier_product_id && $this->margin_percentage > 0) {
+        $supplierProduct = SupplierProduct::find($this->supplier_product_id);
+        if ($supplierProduct) {
+            $this->margin = ($supplierProduct->buyer_price * $this->margin_percentage) / 100;
+            $this->updateSellingPrice();
+        }
+    }
+};
+
+$calculatePercentageFromMargin = function () {
+    if (!$this->use_percentage && $this->supplier_product_id && $this->margin > 0) {
+        $supplierProduct = SupplierProduct::find($this->supplier_product_id);
+        if ($supplierProduct && $supplierProduct->buyer_price > 0) {
+            $this->margin_percentage = ($this->margin / $supplierProduct->buyer_price) * 100;
+        }
+    }
+};
+
 $onSupplierProductChange = function () {
     $supplierProduct = SupplierProduct::find($this->supplier_product_id);
     if ($supplierProduct) {
@@ -128,16 +149,12 @@ $save = function () {
                 <!-- Product Type / Supplier Selection -->
                 <div class="md:col-span-2">
                     <flux:field>
-                        <flux:label>Tipe Produk <span class="text-red-600">*</span></flux:label>
+                        <flux:label>Pilih Supplier <span class="text-red-600">*</span></flux:label>
                         <flux:select wire:model.live="product_type">
-                            <optgroup label="Supplier Products">
-                                <option value="digiflazz">⚡ Digiflazz - Produk Digital & Pulsa</option>
-                                <option value="onoystore" disabled>⭐ OnoyStore - Game Voucher (Coming Soon)</option>
-                                <option value="byxstore" disabled>🛒 ByxStore - Top-up & Voucher (Coming Soon)</option>
-                            </optgroup>
-                            <optgroup label="Manual">
-                                <option value="manual">📦 Produk Manual - Stok Sendiri</option>
-                            </optgroup>
+                            <option value="manual">Manual (Stok sendiri)</option>
+                            @foreach (['digiflazz', 'onoystore'] as $supplierCode)
+                                <option value="{{ $supplierCode }}">{{ ucfirst($supplierCode) }}</option>
+                            @endforeach
                         </flux:select>
                         <flux:description>
                             @if($product_type === 'manual')
@@ -217,8 +234,8 @@ $save = function () {
                     </flux:field>
                 </div>
 
-                <!-- Auto Price Toggle (Only for Digiflazz) -->
-                @if($product_type === 'digiflazz')
+                <!-- Auto Price Toggle (For all suppliers except manual) -->
+                @if($product_type !== 'manual')
                     <div class="md:col-span-2">
                         <flux:field>
                             <div class="flex items-center gap-3">
@@ -229,26 +246,77 @@ $save = function () {
                     </div>
 
                     @if ($is_auto_price)
-                        <div class="self-start">
+                        <div class="md:col-span-2 space-y-4">
+                            <!-- Toggle between Nominal and Percentage -->
                             <flux:field>
-                                <flux:label>Margin <span class="text-red-600">*</span></flux:label>
-                                <flux:input type="number" wire:model.live="margin" wire:change="updateSellingPrice"
-                                    placeholder="1000" step="100" />
-                                <flux:error name="margin" />
+                                <div class="flex items-center gap-4">
+                                    <flux:radio.group wire:model.live="use_percentage">
+                                        <flux:radio value="0" label="Margin Nominal (Rp)" />
+                                        <flux:radio value="1" label="Margin Persentase (%)" />
+                                    </flux:radio.group>
+                                </div>
                             </flux:field>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @if (!$use_percentage)
+                                    <!-- Margin Nominal -->
+                                    <flux:field>
+                                        <flux:label>Margin (Rp) <span class="text-red-600">*</span></flux:label>
+                                        <flux:input type="number" wire:model.live="margin"
+                                            wire:change="updateSellingPrice,calculatePercentageFromMargin"
+                                            placeholder="1000" step="100" />
+                                        <flux:description>Masukkan margin dalam rupiah</flux:description>
+                                        <flux:error name="margin" />
+                                    </flux:field>
+
+                                    @if ($supplier_product_id && $margin > 0)
+                                        @php
+                                            $sp = $this->supplierProducts->firstWhere('id', $supplier_product_id);
+                                            $calculatedPercentage = $sp && $sp->buyer_price > 0 ? ($margin / $sp->buyer_price) * 100 : 0;
+                                        @endphp
+                                        <flux:field>
+                                            <flux:label>Persentase</flux:label>
+                                            <flux:input type="text" value="{{ number_format($calculatedPercentage, 2) }}%" readonly />
+                                            <flux:description>Otomatis dihitung dari margin nominal</flux:description>
+                                        </flux:field>
+                                    @endif
+                                @else
+                                    <!-- Margin Percentage -->
+                                    <flux:field>
+                                        <flux:label>Margin (%) <span class="text-red-600">*</span></flux:label>
+                                        <flux:input type="number" wire:model.live="margin_percentage"
+                                            wire:change="calculateMarginFromPercentage"
+                                            placeholder="10" step="0.5" min="0" max="100" />
+                                        <flux:description>Masukkan persentase margin (contoh: 10 untuk 10%)</flux:description>
+                                        <flux:error name="margin_percentage" />
+                                    </flux:field>
+
+                                    @if ($supplier_product_id && $margin_percentage > 0)
+                                        @php
+                                            $sp = $this->supplierProducts->firstWhere('id', $supplier_product_id);
+                                            $calculatedMargin = $sp ? ($sp->buyer_price * $margin_percentage) / 100 : 0;
+                                        @endphp
+                                        <flux:field>
+                                            <flux:label>Margin Nominal</flux:label>
+                                            <flux:input type="text" value="Rp {{ number_format($calculatedMargin, 0, ',', '.') }}" readonly />
+                                            <flux:description>Otomatis dihitung dari persentase</flux:description>
+                                        </flux:field>
+                                    @endif
+                                @endif
+                            </div>
                         </div>
                     @endif
                 @endif
 
                 <!-- Selling Price -->
-                <div class="{{ $is_auto_price && $product_type === 'digiflazz' ? 'self-start' : 'md:col-span-2 self-start' }}">
+                <div class="{{ $is_auto_price && $product_type !== 'manual' ? 'self-start' : 'md:col-span-2 self-start' }}">
                     <flux:field>
                         <flux:label>Harga Jual <span class="text-red-600">*</span></flux:label>
                         <flux:input type="number" wire:model="selling_price" placeholder="10000" step="100"
-                            :readonly="$is_auto_price && $product_type === 'digiflazz'" />
+                            :readonly="$is_auto_price && $product_type !== 'manual'" />
                         <flux:error name="selling_price" />
-                        @if ($is_auto_price && $product_type === 'digiflazz')
-                            <flux:description>Dihitung otomatis</flux:description>
+                        @if ($is_auto_price && $product_type !== 'manual')
+                            <flux:description>Dihitung otomatis dari harga beli + margin</flux:description>
                         @endif
                     </flux:field>
                 </div>
