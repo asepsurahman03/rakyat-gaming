@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DigiflazzController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Features;
@@ -62,12 +63,21 @@ Volt::route('winrate', 'guest.calculate.winrate')->name('winrate');
 Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
 Volt::route('terms-and-conditions', 'guest.terms-and-conditions')->name('terms-and-conditions');
 Volt::route('refund-policy', 'guest.refund-policy')->name('refund-policy');
+Volt::route('faq', 'guest.faq')->name('faq');
 
 // Guest Posts/Articles
 Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
 Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show');
 
 // Webhooks & Callbacks (No auth required, IP restricted)
+// Dynamic webhook handler for all suppliers
+Route::post('/webhook/{supplierCode}', [WebhookController::class, 'handle'])
+    ->name('webhook.handle');
+
+Route::get('/webhook/{supplierCode}/test', [WebhookController::class, 'test'])
+    ->name('webhook.test');
+
+// Legacy Digiflazz webhook (kept for backward compatibility)
 Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
     ->middleware('webhook.ip:digiflazz')
     ->name('webhook.digiflazz');
@@ -141,7 +151,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Settings
     Volt::route('admin/settings/application', 'admin.settings.application')->name('admin.settings.application');
-    Volt::route('admin/settings/suppliers', 'admin.settings.suppliers')->name('admin.settings.suppliers');
+
+    // Supplier Settings (Multi-Supplier Support)
+    Volt::route('admin/settings/suppliers/digiflazz', 'admin.settings.suppliers.digiflazz')->name('admin.settings.suppliers.digiflazz');
+    Volt::route('admin/settings/suppliers/onoystore', 'admin.settings.suppliers.onoystore')->name('admin.settings.suppliers.onoystore');
+    Volt::route('admin/settings/suppliers/byxstore', 'admin.settings.suppliers.byxstore')->name('admin.settings.suppliers.byxstore');
+
     Volt::route('admin/settings/payment-gateways', 'admin.settings.payment-gateways')->name('admin.settings.payment-gateways');
 });
 

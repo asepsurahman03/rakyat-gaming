@@ -61,6 +61,14 @@ class Product extends Model
     }
 
     /**
+     * Get the supplier for this product (via product_type as supplier code)
+     */
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'product_type', 'code');
+    }
+
+    /**
      * Get all orders for this product
      */
     public function orders(): HasMany
@@ -116,5 +124,54 @@ class Product extends Model
     public function hasActiveFlazzSell(): bool
     {
         return $this->activeFlazzSellProduct() !== null;
+    }
+
+    /**
+     * Check if this is a supplier-based product (not manual)
+     */
+    public function isSupplierProduct(): bool
+    {
+        return $this->product_type !== 'manual';
+    }
+
+    /**
+     * Check if this is a manual product (self-managed stock)
+     */
+    public function isManualProduct(): bool
+    {
+        return $this->product_type === 'manual';
+    }
+
+    /**
+     * Get the supplier code from product_type
+     * Returns null for manual products
+     */
+    public function getSupplierCode(): ?string
+    {
+        return $this->isSupplierProduct() ? $this->product_type : null;
+    }
+
+    /**
+     * Scope to filter products by supplier code
+     */
+    public function scopeBySupplier($query, string $supplierCode)
+    {
+        return $query->where('product_type', $supplierCode);
+    }
+
+    /**
+     * Scope to filter only supplier products (exclude manual)
+     */
+    public function scopeSupplierProducts($query)
+    {
+        return $query->where('product_type', '!=', 'manual');
+    }
+
+    /**
+     * Scope to filter only manual products
+     */
+    public function scopeManualProducts($query)
+    {
+        return $query->where('product_type', 'manual');
     }
 }

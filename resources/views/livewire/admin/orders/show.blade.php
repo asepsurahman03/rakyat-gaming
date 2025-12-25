@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Order;
-use App\Services\DigiflazzService;
+use App\Services\Suppliers\DigiflazzSupplierService;
 use Livewire\Attributes\{Layout, Title};
 use function Livewire\Volt\{state, mount};
 
@@ -17,8 +17,8 @@ $retryTopup = function () {
             throw new \Exception('Produk atau supplier product tidak ditemukan');
         }
 
-        $digiflazzService = app(DigiflazzService::class);
-        $result = $digiflazzService->topup($this->order, $this->order->product->supplierProduct);
+        $digiflazzService = app(DigiflazzSupplierService::class);
+        $result = $digiflazzService->processTransaction($this->order, $this->order->product->supplierProduct);
 
         if ($result['success']) {
             Flux::toast(heading: 'Topup berhasil di-retry!', text: 'Permintaan topup telah dikirim ulang ke Digiflazz.', variant: 'success', duration: 3000, position: 'top-right');

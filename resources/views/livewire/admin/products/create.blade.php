@@ -24,21 +24,21 @@ state([
 
 rules(function () {
     return [
-        'product_type' => 'required|in:digiflazz,manual',
+        'product_type' => 'required|string|max:50',
         'game_id' => 'required|exists:games,id',
         'product_group_id' => 'nullable|exists:product_groups,id',
         'sort_order' => 'integer|min:0',
         'supplier_product_id' => [
-            'required_if:product_type,digiflazz',
+            'required_unless:product_type,manual',
             'nullable',
             'exists:supplier_products,id',
             function ($attribute, $value, $fail) {
-                if ($this->product_type === 'digiflazz' && $value && $this->game_id) {
+                if ($this->product_type !== 'manual' && $value && $this->game_id) {
                     $exists = Product::where('game_id', $this->game_id)
                         ->where('supplier_product_id', $value)
                         ->exists();
                     if ($exists) {
-                        $fail('Produk Digiflazz ini sudah ada untuk game yang dipilih.');
+                        $fail('Produk supplier ini sudah ada untuk game yang dipilih.');
                     }
                 }
             },
@@ -94,10 +94,9 @@ $save = function () {
     // Set supplier_product_id to null if empty (for manual products)
     if ($this->product_type === 'manual') {
         $this->supplier_product_id = null;
-    }
-
-    // Set stock to null if empty (for digiflazz products)
-    if ($this->product_type === 'digiflazz') {
+        // Stock is required for manual products
+    } else {
+        // Set stock to null for supplier products
         $this->stock = null;
     }
 
@@ -126,14 +125,27 @@ $save = function () {
     <flux:card>
         <form wire:submit="save" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Product Type -->
+                <!-- Product Type / Supplier Selection -->
                 <div class="md:col-span-2">
                     <flux:field>
                         <flux:label>Tipe Produk <span class="text-red-600">*</span></flux:label>
-                        <flux:radio.group wire:model.live="product_type" variant="segmented">
-                            <flux:radio value="digiflazz" label="Produk Digiflazz" description="Produk dari supplier Digiflazz" />
-                            <flux:radio value="manual" label="Produk Manual" description="Produk stok sendiri" />
-                        </flux:radio.group>
+                        <flux:select wire:model.live="product_type">
+                            <optgroup label="Supplier Products">
+                                <option value="digiflazz">⚡ Digiflazz - Produk Digital & Pulsa</option>
+                                <option value="onoystore" disabled>⭐ OnoyStore - Game Voucher (Coming Soon)</option>
+                                <option value="byxstore" disabled>🛒 ByxStore - Top-up & Voucher (Coming Soon)</option>
+                            </optgroup>
+                            <optgroup label="Manual">
+                                <option value="manual">📦 Produk Manual - Stok Sendiri</option>
+                            </optgroup>
+                        </flux:select>
+                        <flux:description>
+                            @if($product_type === 'manual')
+                                Produk dengan stok yang dikelola sendiri (tidak melalui supplier)
+                            @else
+                                Produk dari supplier {{ ucfirst($product_type) }} - transaksi otomatis melalui API
+                            @endif
+                        </flux:description>
                         <flux:error name="product_type" />
                     </flux:field>
                 </div>
@@ -163,18 +175,27 @@ $save = function () {
                     <flux:error name="product_group_id" />
                 </flux:field>
 
-                <!-- Supplier Product (Only for Digiflazz) -->
-                @if($product_type === 'digiflazz')
-                    <flux:field>
+                <!-- Supplier Product (Only for Supplier Products, not Manual) -->
+                @if($product_type !== 'manual')
+                    <flux:field class="md:col-span-2">
                         <flux:label>Produk Supplier <span class="text-red-600">*</span></flux:label>
                         <flux:select variant="listbox" searchable wire:model="supplier_product_id" wire:change="onSupplierProductChange">
-                            <option value="">Pilih Produk Supplier</option>
-                            @foreach ($this->supplierProducts as $sp)
+                            <option value="">Pilih Produk dari {{ ucfirst($product_type) }}</option>
+                            @foreach ($this->supplierProducts->where('supplier.code', $product_type) as $sp)
                                 <flux:select.option value="{{ $sp->id }}">
-                                    {{ $sp->product_name }} - Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}
+                                    <div class="flex justify-between items-center">
+                                        <span>{{ $sp->product_name }}</span>
+                                        <span class="text-sm text-zinc-500">Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}</span>
+                                    </div>
                                 </flux:select.option>
                             @endforeach
                         </flux:select>
+                        <flux:description>
+                            Pilih produk dari katalog {{ ucfirst($product_type) }}
+                            @if($this->supplierProducts->where('supplier.code', $product_type)->count() === 0)
+                                <span class="text-orange-600">- Tidak ada produk tersedia. Lakukan sync produk terlebih dahulu.</span>
+                            @endif
+                        </flux:description>
                         <flux:error name="supplier_product_id" />
                     </flux:field>
                 @else

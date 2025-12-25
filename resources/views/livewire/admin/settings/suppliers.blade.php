@@ -2,7 +2,7 @@
 
 use Livewire\Volt\Component;
 use App\Models\Supplier;
-use App\Services\DigiflazzService;
+use App\Services\Suppliers\DigiflazzSupplierService;
 use Livewire\Attributes\{Layout, Title};
 
 new #[Layout('components.layouts.app'), Title('Digiflazz Configuration')] class extends Component {

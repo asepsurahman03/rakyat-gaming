@@ -132,6 +132,7 @@ class DigiflazzService
             'customer_no' => $customerId,
             'ref_id' => $refId,
             'sign' => $sign,
+            'testing' => true,
         ];
 
         // Digiflazz transaction endpoint

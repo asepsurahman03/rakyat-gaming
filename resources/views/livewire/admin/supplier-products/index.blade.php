@@ -5,6 +5,7 @@ use Livewire\Attributes\{Layout, Title};
 use Livewire\WithPagination;
 use App\Models\SupplierProduct;
 use App\Models\Supplier;
+use App\Services\SupplierServiceFactory;
 
 new #[Layout('components.layouts.app'), Title('Supplier Products')] class extends Component {
     use WithPagination;
@@ -13,6 +14,7 @@ new #[Layout('components.layouts.app'), Title('Supplier Products')] class extend
     public string $categoryFilter = '';
     public string $brandFilter = '';
     public string $statusFilter = '';
+    public string $supplierFilter = '';
 
     public function with(): array
     {
@@ -38,10 +40,19 @@ new #[Layout('components.layouts.app'), Title('Supplier Products')] class extend
             $query->where('status', $this->statusFilter);
         }
 
+        if ($this->supplierFilter) {
+            $query->whereHas('supplier', function ($q) {
+                $q->where('code', $this->supplierFilter);
+            });
+        }
+
+        $suppliers = Supplier::where('is_active', true)->get();
+
         return [
             'supplierProducts' => $query->paginate(25),
             'categories' => SupplierProduct::distinct()->pluck('category')->filter(),
             'brands' => SupplierProduct::distinct()->pluck('brand')->filter(),
+            'suppliers' => $suppliers,
             'totalProducts' => SupplierProduct::count(),
             'activeProducts' => SupplierProduct::where('status', 'active')->count(),
         ];
@@ -67,24 +78,50 @@ new #[Layout('components.layouts.app'), Title('Supplier Products')] class extend
         $this->resetPage();
     }
 
+    public function updatingSupplierFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function syncProducts(): void
     {
-        $service = app(\App\Services\DigiflazzService::class);
-        $result = $service->syncPriceList();
-
-        if ($result['success']) {
-            $service->applyAutoPricing();
+        if (empty($this->supplierFilter)) {
             Flux::toast(
-                heading: 'Berhasil sync ' . $result['count'] . ' produk dari supplier',
-                text: 'Produk telah diperbarui dari supplier.',
-                variant: 'success',
+                heading: 'Pilih Supplier',
+                text: 'Silakan pilih supplier terlebih dahulu untuk melakukan sync.',
+                variant: 'warning',
                 duration: 3000,
                 position: 'top-right',
             );
-        } else {
+            return;
+        }
+
+        try {
+            $factory = app(SupplierServiceFactory::class);
+            $service = $factory->make($this->supplierFilter);
+            $result = $service->syncProducts();
+
+            if ($result['success']) {
+                Flux::toast(
+                    heading: 'Berhasil sync ' . $result['synced_count'] . ' produk',
+                    text: 'Produk dari ' . strtoupper($this->supplierFilter) . ' telah diperbarui.',
+                    variant: 'success',
+                    duration: 3000,
+                    position: 'top-right',
+                );
+            } else {
+                Flux::toast(
+                    heading: 'Gagal sync produk',
+                    text: 'Error: ' . ($result['body']['message'] ?? 'Unknown error'),
+                    variant: 'error',
+                    duration: 3000,
+                    position: 'top-right',
+                );
+            }
+        } catch (\Exception $e) {
             Flux::toast(
                 heading: 'Gagal sync produk',
-                text: 'Error: ' . ($result['body']['message'] ?? 'Unknown error'),
+                text: 'Error: ' . $e->getMessage(),
                 variant: 'error',
                 duration: 3000,
                 position: 'top-right',
@@ -148,33 +185,61 @@ new #[Layout('components.layouts.app'), Title('Supplier Products')] class extend
 
     <!-- Filters & Actions -->
     <flux:card class="mb-6">
-        <div class="flex flex-col md:flex-row gap-4">
-            <!-- Search -->
-            <div class="flex-1">
-                <flux:input wire:model.live.debounce.300ms="search"
-                    placeholder="Search by code, name, or brand..."
-                    icon="magnifying-glass" />
+        <div class="flex flex-col gap-4">
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Search -->
+                <div class="flex-1">
+                    <flux:input wire:model.live.debounce.300ms="search"
+                        placeholder="Search by code, name, or brand..."
+                        icon="magnifying-glass" />
+                </div>
+
+                <!-- Supplier Filter -->
+                <flux:select wire:model.live="supplierFilter" placeholder="Select Supplier" class="w-full md:w-48">
+                    @foreach ($suppliers as $supplier)
+                        <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
+                    @endforeach
+                </flux:select>
+
+                <!-- Category Filter -->
+                <flux:select wire:model.live="categoryFilter" placeholder="All Categories" class="w-full md:w-48">
+                    @foreach ($categories as $category)
+                        <option value="{{ $category }}">{{ $category }}</option>
+                    @endforeach
+                </flux:select>
+
+                <!-- Brand Filter -->
+                <flux:select wire:model.live="brandFilter" placeholder="All Brands" class="w-full md:w-48">
+                    @foreach ($brands as $brand)
+                        <option value="{{ $brand }}">{{ $brand }}</option>
+                    @endforeach
+                </flux:select>
+
+                <!-- Status Filter -->
+                <flux:select wire:model.live="statusFilter" placeholder="All Status" class="w-full md:w-32">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </flux:select>
             </div>
 
-            <!-- Category Filter -->
-            <flux:select wire:model.live="categoryFilter" placeholder="All Categories" class="w-full md:w-48">
-                @foreach ($categories as $category)
-                    <option value="{{ $category }}">{{ $category }}</option>
-                @endforeach
-            </flux:select>
-
-            <!-- Brand Filter -->
-            <flux:select wire:model.live="brandFilter" placeholder="All Brands" class="w-full md:w-48">
-                @foreach ($brands as $brand)
-                    <option value="{{ $brand }}">{{ $brand }}</option>
-                @endforeach
-            </flux:select>
-
-            <!-- Status Filter -->
-            <flux:select wire:model.live="statusFilter" placeholder="All Status" class="w-full md:w-32">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-            </flux:select>
+            @if($supplierFilter)
+                <div class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div class="flex items-center gap-3">
+                        <flux:icon.information-circle class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <div>
+                            <div class="font-semibold text-blue-900 dark:text-blue-100">
+                                {{ $suppliers->firstWhere('code', $supplierFilter)?->name ?? 'Unknown Supplier' }} Products
+                            </div>
+                            <div class="text-sm text-blue-700 dark:text-blue-300">
+                                Click "Sync Products" to refresh products from this supplier
+                            </div>
+                        </div>
+                    </div>
+                    <flux:button wire:click="syncProducts" variant="primary" icon="arrow-path" size="sm">
+                        Sync Now
+                    </flux:button>
+                </div>
+            @endif
         </div>
     </flux:card>
 

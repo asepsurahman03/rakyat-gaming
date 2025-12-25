@@ -62,18 +62,16 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                     <!-- Section 5 -->
                     <section>
-                        <h2 class="text-2xl font-bold mb-4">5. Cara Transaksi di Rakyat Gaming (Anti Ribet 😎)</h2>
+                        <h2 class="text-2xl font-bold mb-4">5. Cara Transaksi di Rakyat Gaming (Anti Ribet)</h2>
                         <ul class="list-decimal list-inside space-y-2 ml-2">
                             <li>Pilih game dan nominal top up</li>
                             <li>Masukkan ID game dengan benar</li>
                             <li>Selesaikan pembayaran sesuai instruksi</li>
                             <li>Pesanan diproses setelah pembayaran dikonfirmasi oleh sistem</li>
                         </ul>
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4 rounded">
-                            <flux:text class="text-sm text-gray-500">
-                                💡 <strong>Tips:</strong> Sebagian besar transaksi diproses secara otomatis agar kamu bisa langsung lanjut main.
+                            <flux:text class="leading-relaxed flex items-center mt-4">
+                                <strong>Tips:</strong> Sebagian besar transaksi diproses secara otomatis agar kamu bisa langsung lanjut main.
                             </flux:text>
-                        </div>
                     </section>
 
                     <!-- Section 6 -->
@@ -194,17 +192,6 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 </div>
 
                 <flux:separator class="my-8" />
-
-                <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                    <flux:button href="{{ route('refund-policy') }}" wire:navigate variant="outline">
-                        <flux:icon.document-text class="w-5 h-5" />
-                        Kebijakan Pengembalian Dana
-                    </flux:button>
-                    <flux:button href="/" wire:navigate variant="primary">
-                        <flux:icon.home class="w-5 h-5" />
-                        Kembali ke Beranda
-                    </flux:button>
-                </div>
             </div>
         </flux:card>
     </div>

@@ -46,13 +46,13 @@ rules(function () {
         'game_id' => 'required|exists:games,id',
         'product_group_id' => 'nullable|exists:product_groups,id',
         'sort_order' => 'integer|min:0',
-        'product_type' => 'required|in:digiflazz,manual',
+        'product_type' => 'required|string|max:50',
         'supplier_product_id' => [
-            'required_if:product_type,digiflazz',
+            'required_unless:product_type,manual',
             'nullable',
             'exists:supplier_products,id',
             function ($attribute, $value, $fail) {
-                if ($this->product_type === 'digiflazz' && $value && $this->game_id) {
+                if ($this->product_type !== 'manual' && $value && $this->game_id) {
                     $exists = Product::where('game_id', $this->game_id)
                         ->where('supplier_product_id', $value)
                         ->where('id', '!=', $this->product->id)
@@ -166,22 +166,35 @@ $save = function () {
                     <flux:error name="product_group_id" />
                 </flux:field>
 
-                <!-- Product Type -->
+                <!-- Product Type / Supplier Selection -->
                 <flux:field>
                     <flux:label>Tipe Produk <span class="text-red-600">*</span></flux:label>
-                    <flux:radio.group wire:model.live="product_type" variant="segmented">
-                        <flux:radio value="digiflazz" label="Produk Digiflazz" />
-                        <flux:radio value="manual" label="Produk Manual" />
-                    </flux:radio.group>
+                    <flux:select wire:model.live="product_type">
+                        <optgroup label="Supplier Products">
+                            <option value="digiflazz">⚡ Digiflazz - Produk Digital & Pulsa</option>
+                            <option value="onoystore" disabled>⭐ OnoyStore - Game Voucher (Coming Soon)</option>
+                            <option value="byxstore" disabled>🛒 ByxStore - Top-up & Voucher (Coming Soon)</option>
+                        </optgroup>
+                        <optgroup label="Manual">
+                            <option value="manual">📦 Produk Manual - Stok Sendiri</option>
+                        </optgroup>
+                    </flux:select>
+                    <flux:description>
+                        @if($product_type === 'manual')
+                            Produk dengan stok yang dikelola sendiri
+                        @else
+                            Produk dari supplier {{ ucfirst($product_type) }}
+                        @endif
+                    </flux:description>
                     <flux:error name="product_type" />
                 </flux:field>
 
-                <!-- Supplier Product (Only for Digiflazz) -->
-                @if ($product_type === 'digiflazz')
+                <!-- Supplier Product (Only for Supplier Products, not Manual) -->
+                @if ($product_type !== 'manual')
                 <flux:field>
                     <flux:label>Produk Supplier <span class="text-red-600">*</span></flux:label>
                     <flux:select variant="listbox" searchable wire:model="supplier_product_id" wire:change="onSupplierProductChange">
-                        @foreach ($this->supplierProducts as $sp)
+                        @foreach ($this->supplierProducts->where('supplier.code', $product_type) as $sp)
                             <flux:select.option value="{{ $sp->id }}">
                                 {{ $sp->product_name }} - Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}
                             </flux:select.option>

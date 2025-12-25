@@ -3,8 +3,18 @@
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 
-new #[Layout('components.layouts.guest')] class extends Component {
-    //
+new #[Layout('components.layouts.guest'), Title('Kebijakan Pengembalian Dana')] class extends Component {
+    public $settings;
+
+    public function mount()
+    {
+        $this->settings = [
+            'contact_email' => env('CONTACT_EMAIL', 'info@rakyatgaming.com'),
+            'contact_phone' => env('CONTACT_PHONE', '+62 812-3456-7890'),
+            'contact_whatsapp' => env('CONTACT_WHATSAPP', '+62 812-3456-7890'),
+            'url_whatsapp' => env('CONTACT_WHATSAPP') ? 'https://wa.me/+62' . preg_replace('/\D/', '', env('CONTACT_WHATSAPP')) : null,
+        ];
+    }
 }; ?>
 
 <div class="min-h-screen py-12">
@@ -35,12 +45,10 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             <li>Oleh karena itu, sebagian besar transaksi bersifat final setelah pembayaran berhasil.</li>
                             <li>Kebijakan ini dibuat untuk menjaga kenyamanan gamer sekaligus keberlangsungan layanan.</li>
                         </ul>
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                            <flux:text class="text-blue-900 text-sm">
-                                🎮 <strong>Inilah alasan banyak gamer memilih top up di Rakyat Gaming:</strong><br>
+                            <flux:text>
+                                <strong>Inilah alasan banyak gamer memilih top up di Rakyat Gaming:</strong>
                                 jelas dari awal, transparan, dan tanpa kejutan di akhir.
                             </flux:text>
-                        </div>
                     </section>
 
                     <!-- Section 3 -->
@@ -63,17 +71,15 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         <flux:text class="mb-3">
                             Untuk menjaga kecepatan dan keadilan layanan bagi seluruh pengguna, refund tidak dapat dilakukan apabila:
                         </flux:text>
-                        <ul class="list-disc list-inside space-y-2 ml-4">
+                        <ul class="list-disc list-inside space-y-2 ml-4 mb-3">
                             <li>Terjadi kesalahan pengisian data oleh pengguna (ID game, server, username, dan sejenisnya).</li>
                             <li>Layanan telah berhasil diproses atau digunakan.</li>
                             <li>Terjadi keterlambatan akibat maintenance atau gangguan server game/publisher.</li>
                             <li>Pengguna berubah keputusan setelah transaksi selesai.</li>
                         </ul>
-                        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded mt-4">
-                            <flux:text class="text-amber-900 text-sm">
-                                ⚠️ <strong>Pastikan data sudah benar sebelum pembayaran</strong> agar top up dapat diproses dengan cepat tanpa kendala.
+                            <flux:text>
+                            Pastikan data sudah benar sebelum pembayaran agar top up dapat diproses dengan cepat tanpa kendala.
                             </flux:text>
-                        </div>
                     </section>
 
                     <!-- Section 5 -->
@@ -98,31 +104,18 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         <flux:text class="mb-4">
                             Permohonan hanya dapat diajukan melalui kontak resmi Rakyat Gaming dengan melampirkan bukti transaksi yang valid:
                         </flux:text>
-                        <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-5">
                             <ul class="space-y-3">
-                                <li class="flex items-start gap-3">
-                                    <span class="text-2xl">📧</span>
-                                    <div>
-                                        <flux:text class="text-gray-500  font-semibold">Email</flux:text>
-                                        <flux:text class="text-gray-500  text-sm">officialrakyatgaming@gmail.com</flux:text>
-                                    </div>
+                                <li>
+                                    <strong>Email</strong> : <a href="mailto:{{ $settings['contact_email'] }}" class="link link-hover">{{ $settings['contact_email'] }}</a>
                                 </li>
-                                <li class="flex items-start gap-3">
-                                    <span class="text-2xl">📱</span>
-                                    <div>
-                                        <flux:text class="text-gray-500  font-semibold">WhatsApp</flux:text>
-                                        <flux:text class="text-gray-500  text-sm">+62 813-1543-5065</flux:text>
-                                    </div>
+                                <li>
+                                    <strong>WhatsApp</strong> : <a href="{{ $settings['url_whatsapp'] }}" target="_blank"
+                                        class="link link-hover">+62{{ $settings['contact_whatsapp'] }}</a>
                                 </li>
-                                <li class="flex items-start gap-3">
-                                    <span class="text-2xl">🕒</span>
-                                    <div>
-                                        <flux:text class="text-gray-500  font-semibold">Jam Operasional</flux:text>
-                                        <flux:text class="text-gray-500  text-sm">09.00 – 21.00 WIB</flux:text>
-                                    </div>
+                                <li>
+                                    <strong>Jam Operasional</strong> : 09.00 – 21.00 WIB
                                 </li>
                             </ul>
-                        </div>
                         <flux:text class="leading-relaxed mt-4 text-sm italic">
                             Permohonan yang diajukan di luar jalur resmi tidak akan diproses.
                         </flux:text>
@@ -156,37 +149,9 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             Kebijakan ini merupakan acuan resmi sebagaimana dimaksud dalam Point 8 <a href="{{ route('terms-and-conditions') }}" wire:navigate class="text-blue-600 hover:text-blue-700 underline font-semibold">Syarat & Ketentuan Layanan Rakyat Gaming</a> dan menjadi bagian yang tidak terpisahkan darinya.
                         </flux:text>
                     </section>
-
-                    <!-- Closing Message -->
-                    <section>
-                        <div class="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-lg p-6 text-center">
-                            <flux:text class="text-zinc-800 font-semibold mb-2">
-                                Kami percaya gamer sejati tidak mau ribet.
-                            </flux:text>
-                            <flux:text class="mb-4 text-zinc-700">
-                                Karena itu, Rakyat Gaming dipilih oleh mereka yang ingin top up cepat, jelas, dan tanpa drama.
-                            </flux:text>
-                            <div class="bg-white rounded-lg p-4 inline-block">
-                                <flux:text class="text-blue-900">
-                                    💡 <strong>Pastikan data kamu benar, top up sekarang, dan langsung lanjut main.</strong>
-                                </flux:text>
-                            </div>
-                        </div>
-                    </section>
                 </div>
 
                 <flux:separator class="my-8" />
-
-                <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                    <flux:button href="{{ route('terms-and-conditions') }}" wire:navigate variant="outline">
-                        <flux:icon.document-text class="w-5 h-5" />
-                        Syarat dan Ketentuan
-                    </flux:button>
-                    <flux:button href="/" wire:navigate variant="primary">
-                        <flux:icon.home class="w-5 h-5" />
-                        Kembali ke Beranda
-                    </flux:button>
-                </div>
             </div>
         </flux:card>
     </div>

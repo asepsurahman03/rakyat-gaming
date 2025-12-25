@@ -85,11 +85,26 @@
                         <flux:icon.cog size="xs" /> <span>{{ __('messages.application') }}</span>
                     </div>
                 </flux:navlist.item>
-                <flux:navlist.item href="{{ route('admin.settings.suppliers') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers')">
-                    <div class="text-yellow-400  flex items-center gap-2">
-                        <flux:icon.truck size="xs" /> <span>{{ __('messages.suppliers') }}</span>
-                    </div>
-                </flux:navlist.item>
+
+                <!-- Suppliers Submenu -->
+                <flux:navlist.group expandable heading="{{ __('messages.suppliers') }}" icon="truck">
+                    <flux:navlist.item href="{{ route('admin.settings.suppliers.digiflazz') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.digiflazz')">
+                        <div class="text-yellow-400  flex items-center gap-2">
+                            <flux:icon.bolt size="xs" variant="mini" /> <span>Digiflazz</span>
+                        </div>
+                    </flux:navlist.item>
+                    <flux:navlist.item href="{{ route('admin.settings.suppliers.onoystore') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.onoystore')">
+                        <div class="text-yellow-400  flex items-center gap-2">
+                            <flux:icon.star size="xs" variant="mini" /> <span>OnoyStore</span>
+                        </div>
+                    </flux:navlist.item>
+                    <flux:navlist.item href="{{ route('admin.settings.suppliers.byxstore') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.byxstore')">
+                        <div class="text-yellow-400  flex items-center gap-2">
+                            <flux:icon.shopping-bag size="xs" variant="mini" /> <span>ByxStore</span>
+                        </div>
+                    </flux:navlist.item>
+                </flux:navlist.group>
+
                 <flux:navlist.item href="{{ route('admin.settings.payment-gateways') }}" wire:navigate :current="request()->routeIs('admin.settings.payment-gateways')">
                     <div class="text-yellow-400  flex items-center gap-2">
                         <flux:icon.credit-card size="xs" /> <span>{{ __('messages.payment_gateways') }}</span>
