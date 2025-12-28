@@ -202,7 +202,7 @@ $save = function () {
                                 <flux:select.option value="{{ $sp->id }}">
                                     <div class="flex justify-between items-center">
                                         <span>{{ $sp->product_name }}</span>
-                                        <span class="text-sm text-zinc-500">Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}</span>
+                                        <span class="text-sm text-zinc-500">Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}</span> - <span class="text-sm text-zinc-500">{{ $sp->category }}</span>
                                     </div>
                                 </flux:select.option>
                             @endforeach

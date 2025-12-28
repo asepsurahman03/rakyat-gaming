@@ -20,14 +20,19 @@ class ByxStoreSupplierService extends BaseSupplierService
 
     /**
      * Test connection to ByxStore API
+     * Calls both /saldo and /service endpoints to get balance and product count
      *
      * @return array
      */
     public function testConnection(): array
     {
         try {
-            // TODO: Implement actual ByxStore API connection test
-            // This is a placeholder implementation
+            if (empty($this->apiKey) || empty($this->baseUrl)) {
+                return [
+                    'success' => false,
+                    'message' => 'API Key is not configured',
+                ];
+            }
 
             if (!$this->isActive()) {
                 return [
@@ -36,26 +41,53 @@ class ByxStoreSupplierService extends BaseSupplierService
                 ];
             }
 
-            // Placeholder: simulate API call
-            $response = $this->makeRequest('GET', '/check', [
-                'key' => $this->apiKey,
+            // Get balance from /saldo endpoint
+            $balance = null;
+            $balanceResponse = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/saldo', [
+                'api_key' => $this->apiKey,
             ]);
 
-            if ($response['success']) {
+            if ($balanceResponse->successful()) {
+                $balanceData = $balanceResponse->json();
+                if (isset($balanceData['status']) && $balanceData['status'] === true) {
+                    $balance = $balanceData['data']['saldo'] ?? 0;
+                }
+            }
+
+            // Get products from /service endpoint
+            $productCount = 0;
+            $serviceResponse = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/service', [
+                'api_key' => $this->apiKey,
+            ]);
+
+            if (!$serviceResponse->successful()) {
                 return [
-                    'success' => true,
-                    'message' => 'Connection successful',
-                    'data' => [
-                        'balance' => $response['data']['balance'] ?? 0,
-                        'formatted_balance' => 'Rp ' . number_format($response['data']['balance'] ?? 0, 0, ',', '.'),
-                    ],
+                    'success' => false,
+                    'message' => 'Failed to connect to service endpoint',
+                    'status_code' => $serviceResponse->status(),
                 ];
             }
 
+            $serviceData = $serviceResponse->json();
+
+            if (!isset($serviceData['status']) || $serviceData['status'] !== true) {
+                return [
+                    'success' => false,
+                    'message' => $serviceData['msg'] ?? 'Connection failed',
+                ];
+            }
+
+            $productCount = count($serviceData['data'] ?? []);
+
             return [
-                'success' => false,
-                'message' => $response['error'] ?? 'Connection failed',
-                'status_code' => $response['status_code'] ?? 0,
+                'success' => true,
+                'message' => 'Connection successful',
+                'data' => [
+                    'username' => 'ByxStore User',
+                    'balance' => $balance,
+                    'product_count' => $productCount,
+                    'formatted_balance' => 'Saldo: Rp ' . number_format($balance ?? 0, 0, ',', '.') . ' | ' . $productCount . ' layanan tersedia',
+                ],
             ];
 
         } catch (\Exception $e) {
@@ -78,13 +110,16 @@ class ByxStoreSupplierService extends BaseSupplierService
     public function getBalance(): ?float
     {
         try {
-            // TODO: Implement actual ByxStore balance API
-            $response = $this->makeRequest('GET', '/balance', [
-                'key' => $this->apiKey,
+            $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/saldo', [
+                'api_key' => $this->apiKey,
             ]);
 
-            if ($response['success'] && isset($response['data']['balance'])) {
-                return (float) $response['data']['balance'];
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['status']) && $data['status'] === true) {
+                    return (float) ($data['data']['saldo'] ?? 0);
+                }
             }
 
             return null;
@@ -106,44 +141,60 @@ class ByxStoreSupplierService extends BaseSupplierService
     public function syncProducts(): array
     {
         try {
-            // TODO: Implement actual ByxStore product sync API
-            // This is a placeholder implementation
-
             Log::info('Starting ByxStore product sync');
 
-            $response = $this->makeRequest('GET', '/price-list', [
-                'key' => $this->apiKey,
-                'type' => 'all',
+            // Get products from /service endpoint
+            $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/service', [
+                'api_key' => $this->apiKey,
             ]);
 
-            if (!$response['success']) {
+            if (!$response->successful()) {
                 return [
                     'success' => false,
-                    'message' => $response['error'] ?? 'Failed to fetch products',
+                    'message' => 'Failed to fetch products: ' . $response->body(),
                     'synced_count' => 0,
                 ];
             }
 
-            $products = $response['data']['data'] ?? [];
+            $data = $response->json();
+
+            if ($data['status'] !== true) {
+                return [
+                    'success' => false,
+                    'message' => $data['msg'] ?? 'Failed to fetch products',
+                    'synced_count' => 0,
+                ];
+            }
+
+            $products = $data['data'] ?? [];
             $syncedCount = 0;
             $newCount = 0;
             $updatedCount = 0;
 
             foreach ($products as $productData) {
+                // Determine which price to use based on user level (default to regular price)
+                $price = $productData['harga'] ?? 0;
+
                 $supplierProduct = SupplierProduct::updateOrCreate(
                     [
                         'supplier_id' => $this->supplier->id,
-                        'code' => $productData['product_code'] ?? $productData['sku'],
+                        'code' => $productData['id'],
                     ],
                     [
-                        'product_name' => $productData['product_name'] ?? $productData['name'],
-                        'category' => $productData['category'] ?? 'General',
-                        'brand' => $productData['brand'] ?? 'ByxStore',
-                        'type' => $productData['type'] ?? 'digital',
-                        'buyer_price' => $productData['buyer_price'] ?? 0,
-                        'seller_price' => $productData['seller_price'] ?? 0,
-                        'status' => $productData['seller_product_status'] ?? 'available',
-                        'description' => $productData['desc'] ?? null,
+                        'product_name' => $productData['nama_layanan'],
+                        'category' => $productData['kategori'] ?? 'General',
+                        'brand' => $productData['kategori'] ?? 'ByxStore',
+                        'type' => 'digital',
+                        'buyer_price' => $price,
+                        'seller_price' => $price,
+                        'status' => $productData['status'] === 'aktif' ? 'active' : 'inactive',
+                        'description' => null,
+                        'meta_data' => json_encode([
+                            'harga' => $productData['harga'],
+                            'harga_gold' => $productData['harga_gold'] ?? null,
+                            'harga_silver' => $productData['harga_silver'] ?? null,
+                            'harga_pro' => $productData['harga_pro'] ?? null,
+                        ]),
                         'last_sync_at' => now(),
                     ]
                 );
@@ -194,51 +245,327 @@ class ByxStoreSupplierService extends BaseSupplierService
     public function processTransaction(Order $order, SupplierProduct $supplierProduct): array
     {
         try {
-            // TODO: Implement actual ByxStore transaction API
-
             Log::info('Processing ByxStore transaction', [
                 'order_id' => $order->id,
+                'order_code' => $order->order_code,
                 'product_code' => $supplierProduct->code,
+                'customer_no' => $order->customer_no,
             ]);
 
+            // Prepare payload according to ByxStore API documentation
             $payload = [
-                'key' => $this->apiKey,
-                'sign' => $this->generateTransactionSignature($order, $supplierProduct),
-                'type' => 'order',
-                'service' => $supplierProduct->code,
-                'data_no' => $order->customer_no,
-                'ref_id' => $order->order_code,
+                'api_key' => $this->apiKey,
+                'service_id' => $supplierProduct->code,
+                'target' => $order->customer_no, // Data ID|Zone ID format
+                'kontak' => $order->customer_phone ?? '0', // Phone number
+                'idtrx' => $order->order_code, // Unique ID from our site
             ];
 
-            $response = $this->makeRequest('POST', '/transaction', $payload);
+            // Add callback URL if configured
+            if (!empty(config('services.byxstore.callback_url'))) {
+                $payload['callback'] = config('services.byxstore.callback_url');
+            }
+
+            // Make request to /order endpoint
+            $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/order', $payload);
+
+            // Parse response
+            $responseData = $response->json();
 
             // Log transaction
-            $this->logTransaction($order, $payload, $response['data'] ?? [], 'sent');
+            $this->logTransaction($order, $payload, $responseData, 'sent');
 
-            if ($response['success']) {
+            if (!$response->successful()) {
+                Log::error('ByxStore transaction HTTP error', [
+                    'order_id' => $order->id,
+                    'status_code' => $response->status(),
+                    'response' => $response->body(),
+                ]);
+
                 return [
-                    'success' => true,
-                    'message' => 'Transaction processed',
-                    'data' => $response['data'] ?? [],
+                    'success' => false,
+                    'message' => 'HTTP Error: ' . $response->status(),
+                    'data' => $responseData ?? [],
                 ];
             }
 
+            // Check response status
+            if (isset($responseData['status']) && $responseData['status'] === true) {
+                Log::info('ByxStore transaction success', [
+                    'order_id' => $order->id,
+                    'invoice' => $responseData['data']['id'] ?? null,
+                    'status' => $responseData['data']['status'] ?? 'pending',
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => $responseData['msg'] ?? 'Transaction processed',
+                    'data' => [
+                        'invoice' => $responseData['data']['id'] ?? null,
+                        'service_name' => $responseData['data']['service_name'] ?? null,
+                        'service_id' => $responseData['data']['service_id'] ?? null,
+                        'target' => $responseData['data']['target'] ?? null,
+                        'status' => $responseData['data']['status'] ?? 'pending',
+                        'keterangan' => $responseData['data']['keterangan'] ?? null,
+                    ],
+                ];
+            }
+
+            // Transaction failed
+            Log::warning('ByxStore transaction failed', [
+                'order_id' => $order->id,
+                'message' => $responseData['msg'] ?? 'Unknown error',
+                'response' => $responseData,
+            ]);
+
             return [
                 'success' => false,
-                'message' => $response['error'] ?? 'Transaction failed',
-                'data' => $response['data'] ?? [],
+                'message' => $responseData['msg'] ?? 'Transaction failed',
+                'data' => $responseData['data'] ?? [],
             ];
 
         } catch (\Exception $e) {
-            Log::error('ByxStore transaction failed', [
+            Log::error('ByxStore transaction exception', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
                 'success' => false,
                 'message' => 'Transaction failed: ' . $e->getMessage(),
             ];
+        }
+    }
+
+    /**
+     * Check order status from ByxStore
+     *
+     * @param string $byxstoreInvoice ByxStore invoice/order_id
+     * @return array
+     */
+    /**
+     * Check transaction status by Order object
+     * This method is called by the order detail page
+     *
+     * @param Order $order
+     * @return array
+     */
+    public function checkTransactionStatus(Order $order): array
+    {
+        try {
+            // Get ByxStore invoice from order note
+            $note = is_string($order->note) ? json_decode($order->note, true) : $order->note;
+            $byxstoreInvoice = null;
+
+            if (is_array($note) && isset($note['invoice'])) {
+                $byxstoreInvoice = $note['invoice'];
+            } elseif (is_array($note) && isset($note['data']['id'])) {
+                $byxstoreInvoice = $note['data']['id'];
+            }
+
+            if (!$byxstoreInvoice) {
+                return [
+                    'success' => false,
+                    'message' => 'ByxStore invoice tidak ditemukan pada order',
+                ];
+            }
+
+            // Check status at ByxStore
+            $result = $this->checkOrderStatus($byxstoreInvoice);
+
+            if (!$result['success']) {
+                return $result;
+            }
+
+            // Update order based on status
+            $statusData = $result['data'] ?? [];
+            $transactionStatus = strtolower($statusData['status'] ?? '');
+
+            return $this->handleTransactionStatus($order, $transactionStatus, $statusData);
+
+        } catch (\Exception $e) {
+            Log::error('ByxStore check transaction status failed', [
+                'order_code' => $order->order_code,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to check transaction status: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Check order status by ByxStore invoice ID
+     *
+     * @param string $byxstoreInvoice
+     * @return array
+     */
+    public function checkOrderStatus(string $byxstoreInvoice): array
+    {
+        try {
+            Log::info('Checking ByxStore order status', [
+                'invoice' => $byxstoreInvoice,
+            ]);
+
+            // Prepare payload according to ByxStore API documentation
+            $payload = [
+                'api_key' => $this->apiKey,
+                'order_id' => $byxstoreInvoice,
+            ];
+
+            // Make request to /status endpoint
+            $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/status', $payload);
+
+            // Parse response
+            $responseData = $response->json();
+
+            if (!$response->successful()) {
+                Log::error('ByxStore status check HTTP error', [
+                    'invoice' => $byxstoreInvoice,
+                    'status_code' => $response->status(),
+                    'response' => $response->body(),
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'HTTP Error: ' . $response->status(),
+                ];
+            }
+
+            // Check response status
+            if (isset($responseData['status']) && $responseData['status'] === true) {
+                Log::info('ByxStore status check success', [
+                    'invoice' => $byxstoreInvoice,
+                    'status' => $responseData['data']['status'] ?? 'unknown',
+                    'keterangan' => $responseData['data']['keterangan'] ?? null,
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => $responseData['msg'] ?? 'Status check successful',
+                    'data' => [
+                        'invoice' => $responseData['data']['id'] ?? $byxstoreInvoice,
+                        'status' => $responseData['data']['status'] ?? 'unknown',
+                        'sn' => $responseData['data']['keterangan'] ?? null, // Serial Number
+                        'keterangan' => $responseData['data']['keterangan'] ?? null,
+                    ],
+                ];
+            }
+
+            // Status check failed
+            Log::warning('ByxStore status check failed', [
+                'invoice' => $byxstoreInvoice,
+                'message' => $responseData['msg'] ?? 'Unknown error',
+                'response' => $responseData,
+            ]);
+
+            return [
+                'success' => false,
+                'message' => $responseData['msg'] ?? 'Status check failed',
+                'data' => $responseData['data'] ?? [],
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('ByxStore status check exception', [
+                'invoice' => $byxstoreInvoice,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Status check failed: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Handle different transaction statuses from ByxStore
+     *
+     * @param Order $order
+     * @param string $status
+     * @param array $transactionData
+     * @return array
+     */
+    protected function handleTransactionStatus(Order $order, string $status, array $transactionData): array
+    {
+        $invoice = $transactionData['invoice'] ?? $transactionData['id'] ?? null;
+        $keterangan = $transactionData['keterangan'] ?? '';
+
+        switch ($status) {
+            case 'sukses':
+            case 'success':
+                $order->update([
+                    'status' => 'success',
+                    'note' => json_encode($transactionData)
+                ]);
+
+                // Increment sold_count if applicable
+                $product = $order->product;
+                if ($product) {
+                    $flazzSellProduct = $product->activeFlazzSellProduct();
+                    if ($flazzSellProduct) {
+                        $flazzSellProduct->incrementSoldCount();
+                    }
+                }
+
+                Log::info('ByxStore transaction successful', [
+                    'order_id' => $order->id,
+                    'invoice' => $invoice,
+                    'status' => $status,
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => $keterangan ?: 'Transaction successful',
+                    'invoice' => $invoice,
+                    'data' => $transactionData,
+                ];
+
+            case 'pending':
+            case 'process':
+                $order->update([
+                    'status' => 'process',
+                    'note' => json_encode($transactionData)
+                ]);
+
+                Log::info('ByxStore transaction pending', [
+                    'order_id' => $order->id,
+                    'invoice' => $invoice,
+                    'status' => $status,
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => 'Transaction is being processed',
+                    'invoice' => $invoice,
+                    'data' => $transactionData,
+                ];
+
+            case 'gagal':
+            case 'failed':
+            default:
+                $order->update([
+                    'status' => 'failed',
+                    'note' => json_encode($transactionData)
+                ]);
+
+                Log::warning('ByxStore transaction failed', [
+                    'order_id' => $order->id,
+                    'invoice' => $invoice,
+                    'status' => $status,
+                    'keterangan' => $keterangan,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => $keterangan ?: 'Transaction failed',
+                    'invoice' => $invoice,
+                    'data' => $transactionData,
+                ];
         }
     }
 
@@ -402,19 +729,5 @@ class ByxStoreSupplierService extends BaseSupplierService
         }
 
         return $isValid;
-    }
-
-    /**
-     * Generate transaction signature for ByxStore
-     *
-     * @param Order $order
-     * @param SupplierProduct $supplierProduct
-     * @return string
-     */
-    private function generateTransactionSignature(Order $order, SupplierProduct $supplierProduct): string
-    {
-        // TODO: Implement actual ByxStore signature generation
-        // This is an example, adjust based on ByxStore documentation
-        return md5($this->apiKey . $supplierProduct->code . $order->customer_no . $this->secret);
     }
 }

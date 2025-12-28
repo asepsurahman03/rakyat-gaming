@@ -32,7 +32,7 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
                 'code' => 'onoystore',
                 'api_url' => 'https://api.onoystore.com',
                 'is_active' => false,
-            ]
+            ],
         );
 
         if ($this->supplierConfig) {
@@ -70,8 +70,16 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
                     return;
                 }
             }
+
         } catch (\Exception $e) {
-            // Silent fail
+            Flux::toast(
+                heading: 'Error',
+                text: 'Gagal memuat informasi user: ' . $e->getMessage(),
+                variant: 'error',
+                duration: 5000,
+                position: 'top-right',
+            );
+            Log::error("Failed to load OnoyStore user info: " . $e->getMessage());
         }
 
         $this->userInfo = null;
@@ -93,18 +101,12 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
             Supplier::create([
                 'name' => 'OnoyStore',
                 'code' => 'onoystore',
-                ...$validated
+                ...$validated,
             ]);
             $message = 'Konfigurasi OnoyStore berhasil disimpan';
         }
 
-        Flux::toast(
-            heading: 'Sukses',
-            text: $message,
-            variant: 'success',
-            duration: 3000,
-            position: 'top-right',
-        );
+        Flux::toast(heading: 'Sukses', text: $message, variant: 'success', duration: 3000, position: 'top-right');
 
         $this->loadConfig();
         $this->loadUserInfo();
@@ -128,30 +130,20 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
             $result = $service->testConnection();
 
             if ($result['success']) {
-                Flux::toast(
-                    heading: 'Koneksi Berhasil',
-                    text: $result['data']['formatted_balance'] ?? 'Koneksi ke OnoyStore berhasil',
-                    variant: 'success',
-                    duration: 5000,
-                    position: 'top-right',
-                );
+                Log::info("message: " . ($result['data'] ?? 'No message'));
+                $this->userInfo = [
+                    'name' => $result['data']['user_name'] ?? '-',
+                    'email' => $result['data']['user_email'] ?? '-',
+                    'balance' => $result['data']['user_balance'] ?? 0,
+                    'role' => $result['data']['role_name'] ?? '-',
+                ];
+                Flux::toast(heading: 'Koneksi Berhasil', text: $result['data']['formatted_balance'] ?? 'Koneksi ke OnoyStore berhasil', variant: 'success', duration: 5000, position: 'top-right');
             } else {
-                Flux::toast(
-                    heading: 'Koneksi Gagal',
-                    text: $result['message'] ?? 'Gagal terhubung ke OnoyStore',
-                    variant: 'error',
-                    duration: 5000,
-                    position: 'top-right',
-                );
+
+                Flux::toast(heading: 'Koneksi Gagal', text: $result['message'] ?? 'Gagal terhubung ke OnoyStore', variant: 'error', duration: 5000, position: 'top-right');
             }
         } catch (\Exception $e) {
-            Flux::toast(
-                heading: 'Error',
-                text: $e->getMessage(),
-                variant: 'error',
-                duration: 5000,
-                position: 'top-right',
-            );
+            Flux::toast(heading: 'Error', text: $e->getMessage(), variant: 'error', duration: 5000, position: 'top-right');
         }
     }
 
@@ -225,9 +217,7 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
                 $balance = $service->getBalance();
 
                 $totalProducts = \App\Models\SupplierProduct::where('supplier_id', $this->supplierConfig->id)->count();
-                $activeProducts = \App\Models\SupplierProduct::where('supplier_id', $this->supplierConfig->id)
-                    ->where('status', 'active')
-                    ->count();
+                $activeProducts = \App\Models\SupplierProduct::where('supplier_id', $this->supplierConfig->id)->where('status', 'active')->count();
             } catch (\Exception $e) {
                 // Silent fail
             }
@@ -244,7 +234,8 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
 <div class="space-y-6">
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-        <a wire:navigate href="{{ route('dashboard') }}" class="hover:text-zinc-900 dark:hover:text-zinc-100">Dashboard</a>
+        <a wire:navigate href="{{ route('dashboard') }}"
+            class="hover:text-zinc-900 dark:hover:text-zinc-100">Dashboard</a>
         <flux:icon.chevron-right class="w-4 h-4" />
         <span>Suppliers</span>
         <flux:icon.chevron-right class="w-4 h-4" />
@@ -254,9 +245,6 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
     <!-- Page Header -->
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <flux:icon.star class="w-8 h-8 text-white" />
-            </div>
             <div>
                 <flux:heading size="xl">OnoyStore</flux:heading>
                 <flux:subheading>Konfigurasi supplier produk game voucher</flux:subheading>
@@ -266,37 +254,38 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
     </div>
 
     <!-- User Info Card -->
-    @if($userInfo)
-    <flux:card class="mb-6">
-        <div class="flex items-start justify-between">
-            <div class="flex-1">
-                <div class="flex items-center gap-2 mb-4">
-                    <div class="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                        <flux:icon.user class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+    @if ($userInfo)
+        <flux:card class="mb-6">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div
+                            class="flex items-center justify-center w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                            <flux:icon.user class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                            <flux:heading size="lg">{{ $userInfo['name'] }}</flux:heading>
+                            <flux:subheading class="text-xs">{{ $userInfo['email'] }}</flux:subheading>
+                        </div>
                     </div>
-                    <div>
-                        <flux:heading size="lg">{{ $userInfo['name'] }}</flux:heading>
-                        <flux:subheading class="text-xs">{{ $userInfo['email'] }}</flux:subheading>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <flux:subheading class="text-xs mb-1">Saldo Akun</flux:subheading>
+                            <flux:heading size="xl" class="text-green-600 dark:text-green-400">
+                                Rp {{ number_format($userInfo['balance'], 0, ',', '.') }}
+                            </flux:heading>
+                        </div>
+                        <div>
+                            <flux:subheading class="text-xs mb-1">Role</flux:subheading>
+                            <flux:badge color="purple" size="sm">{{ $userInfo['role'] }}</flux:badge>
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <flux:subheading class="text-xs mb-1">Saldo Akun</flux:subheading>
-                        <flux:heading size="xl" class="text-green-600 dark:text-green-400">
-                            Rp {{ number_format($userInfo['balance'], 0, ',', '.') }}
-                        </flux:heading>
-                    </div>
-                    <div>
-                        <flux:subheading class="text-xs mb-1">Role</flux:subheading>
-                        <flux:badge color="purple" size="sm">{{ $userInfo['role'] }}</flux:badge>
-                    </div>
-                </div>
+                <flux:button type="button" wire:click="loadUserInfo" variant="ghost" size="sm" icon="arrow-path">
+                    Refresh
+                </flux:button>
             </div>
-            <flux:button type="button" wire:click="loadUserInfo" variant="ghost" size="sm" icon="arrow-path">
-                Refresh
-            </flux:button>
-        </div>
-    </flux:card>
+        </flux:card>
     @endif
 
     <!-- Stats Cards -->
@@ -304,9 +293,10 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
-                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Status</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Status
+                    </flux:heading>
                     <flux:heading size="2xl" class="mt-2">
-                        @if($is_active)
+                        @if ($is_active)
                             <flux:badge color="lime" icon="check-circle">Aktif</flux:badge>
                         @else
                             <flux:badge color="zinc" icon="x-circle">Nonaktif</flux:badge>
@@ -322,10 +312,11 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
-                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Saldo</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Saldo
+                    </flux:heading>
                     <flux:heading size="2xl" class="mt-2">
-                        @if($balance !== null)
-                            Rp {{ number_format($balance, 0, ',', '.') }}
+                        @if ($userInfo !== null)
+                            Rp {{ number_format($userInfo['balance'], 0, ',', '.') }}
                         @else
                             -
                         @endif
@@ -340,7 +331,8 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
-                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Produk</flux:heading>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Produk
+                    </flux:heading>
                     <flux:heading size="2xl" class="mt-2">{{ number_format($totalProducts) }}</flux:heading>
                     <flux:subheading class="text-xs mt-1">{{ number_format($activeProducts) }} aktif</flux:subheading>
                 </div>
@@ -358,36 +350,22 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
             <flux:separator />
 
             <div>
-                <flux:input
-                    wire:model="api_url"
-                    label="API URL"
-                    type="url"
-                    placeholder="https://api.onoystore.com"
-                    required
-                />
+                <flux:input wire:model="api_url" label="API URL" type="url" placeholder="https://api.onoystore.com"
+                    required />
                 <flux:error name="api_url" />
                 <flux:subheading class="text-xs mt-1">Endpoint API OnoyStore</flux:subheading>
             </div>
 
             <div>
-                <flux:input
-                    wire:model="api_key"
-                    label="API Key"
-                    type="text"
-                    placeholder="Masukkan API Key OnoyStore"
-                    required
-                />
+                <flux:input wire:model="api_key" label="API Key" type="text" placeholder="Masukkan API Key OnoyStore"
+                    required />
                 <flux:error name="api_key" />
                 <flux:subheading class="text-xs mt-1">API Key dari dashboard OnoyStore</flux:subheading>
             </div>
 
             <div>
-                <flux:input
-                    wire:model="secret"
-                    label="Secret Key"
-                    type="password"
-                    placeholder="Masukkan Secret Key (opsional)"
-                />
+                <flux:input wire:model="secret" label="Secret Key" type="password"
+                    placeholder="Masukkan Secret Key (opsional)" />
                 <flux:error name="secret" />
                 <flux:subheading class="text-xs mt-1">Secret key untuk validasi webhook (opsional)</flux:subheading>
             </div>
@@ -396,7 +374,8 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
 
             <div>
                 <flux:checkbox wire:model="is_active" label="Aktifkan Supplier" />
-                <flux:subheading class="text-xs mt-1">Centang untuk mengaktifkan OnoyStore sebagai supplier</flux:subheading>
+                <flux:subheading class="text-xs mt-1">Centang untuk mengaktifkan OnoyStore sebagai supplier
+                </flux:subheading>
             </div>
 
             <div class="flex gap-3">

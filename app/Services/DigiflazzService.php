@@ -132,7 +132,7 @@ class DigiflazzService
             'customer_no' => $customerId,
             'ref_id' => $refId,
             'sign' => $sign,
-            'testing' => true,
+            // 'testing' => true,
         ];
 
         // Digiflazz transaction endpoint
@@ -197,6 +197,83 @@ class DigiflazzService
         // fallback: if response not OK or no data
         $order->update(['status' => 'failed', 'note' => json_encode($body)]);
         return ['success' => false, 'body' => $body, 'message' => 'Invalid response from Digiflazz'];
+    }
+
+    /**     * Check transaction status by Order object
+     *
+     * @param Order $order
+     * @return array
+     */
+    public function checkTransactionStatus(Order $order): array
+    {
+        if (!$order->product || !$order->product->supplierProduct) {
+            return [
+                'success' => false,
+                'message' => 'Produk atau supplier product tidak ditemukan',
+            ];
+        }
+
+        $dataPlayer = is_string($order->data_player) ? json_decode($order->data_player, true) : $order->data_player;
+        $customerId = $this->buildCustomerNo($dataPlayer);
+
+        return $this->checkStatus(
+            $order->product->supplierProduct->code,
+            $customerId,
+            $order->order_code
+        );
+    }
+
+    /**     * Check status pascabayar transaction at Digiflazz
+     *
+     * @param string $buyerSkuCode - Kode produk (e.g., "pln")
+     * @param string $customerNo - Nomor pelanggan
+     * @param string $refId - Ref ID unik
+     * @return array
+     */
+    public function checkStatus(string $buyerSkuCode, string $customerNo, string $refId): array
+    {
+        // Get Digiflazz credentials from supplier or config
+        $username = $this->supplier->username ?? env('DIGIFLAZZ_USERNAME');
+
+        // Generate signature: md5(username + apiKey + ref_id)
+        $sign = md5($username . $this->apiKey . $refId);
+
+        // Build payload according to Digiflazz API documentation
+        $payload = [
+            'commands' => 'status-pasca',
+            'username' => $username,
+            'buyer_sku_code' => $buyerSkuCode,
+            'customer_no' => $customerNo,
+            'ref_id' => $refId,
+            'sign' => $sign,
+        ];
+
+        // Digiflazz transaction endpoint
+        $endpoint = rtrim($this->baseUrl, '/') . '/transaction';
+
+        // Log request
+        DigiflazzLog::create([
+            'request_body' => $payload,
+            'status' => 'sent'
+        ]);
+
+        // Send request
+        $response = Http::asJson()->post($endpoint, $payload);
+        $body = $response->json();
+
+        // Log response
+        DigiflazzLog::create([
+            'request_body' => $payload,
+            'response_body' => $body,
+            'status' => $response->ok() ? 'success' : 'failed'
+        ]);
+
+        // Return response
+        if ($response->ok()) {
+            return ['success' => true, 'body' => $body];
+        }
+
+        return ['success' => false, 'body' => $body, 'message' => 'Failed to check status'];
     }
 
     /**

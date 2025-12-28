@@ -57,9 +57,10 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 }
             }
 
+            $data = $response->json();
             return [
                 'success' => false,
-                'message' => 'Gagal terhubung ke OnoyStore API. Status: ' . $response->status(),
+                'message' => 'Gagal terhubung ke OnoyStore API. Status: ' . ($data['message'] ?? 'Unknown error'),
                 'status_code' => $response->status(),
             ];
         } catch (\Exception $e) {
@@ -390,6 +391,102 @@ class OnoyStoreSupplierService extends BaseSupplierService
                     'invoice_number' => $invoiceNumber,
                     'data' => $transactionData,
                 ];
+        }
+    }
+
+    /**
+     * Check transaction status by Order object
+     *
+     * @param Order $order
+     * @return array
+     */
+    public function checkTransactionStatus(Order $order): array
+    {
+        return $this->checkStatus($order->order_code);
+    }
+
+    /**
+     * Check transaction status by trx_id for manual refresh
+     *
+     * @param string $trxId
+     * @return array
+     */
+    public function checkStatus(string $trxId): array
+    {
+        try {
+            if (!$this->isActive() || empty($this->apiKey) || empty($this->baseUrl)) {
+                return [
+                    'success' => false,
+                    'message' => 'Supplier tidak aktif atau API Key tidak ditemukan',
+                ];
+            }
+
+            Log::info('Checking OnoyStore transaction status', [
+                'trx_id' => $trxId,
+            ]);
+
+            // Get invoice detail by trx_id
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => $this->apiKey,
+            ])->get($this->baseUrl . '/v1/public/status/trx-id/' . $trxId);
+
+            if (!$response->successful()) {
+                return [
+                    'success' => false,
+                    'message' => 'Gagal mendapatkan status transaksi. Status: ' . $response->status(),
+                ];
+            }
+
+            $responseData = $response->json();
+
+            if (!isset($responseData['statusCode']) || $responseData['statusCode'] != 200) {
+                return [
+                    'success' => false,
+                    'message' => $responseData['message'] ?? 'Response tidak valid dari OnoyStore',
+                ];
+            }
+
+            $transactionData = $responseData['data'] ?? [];
+
+            // Find order by trx_id
+            $order = Order::where('order_code', $trxId)->first();
+
+            if (!$order) {
+                return [
+                    'success' => false,
+                    'message' => 'Order tidak ditemukan',
+                    'data' => $transactionData,
+                ];
+            }
+
+            // Update order status based on current status
+            $status = strtoupper($transactionData['status'] ?? '');
+            $result = $this->handleTransactionStatus($order, $status, $transactionData);
+
+            Log::info('OnoyStore status check completed', [
+                'trx_id' => $trxId,
+                'order_id' => $order->id,
+                'status' => $status,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Status berhasil diperbarui',
+                'order_id' => $order->id,
+                'status' => $status,
+                'data' => $transactionData,
+            ];
+        } catch (\Exception $e) {
+            Log::error('OnoyStore status check failed', [
+                'trx_id' => $trxId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Status check failed: ' . $e->getMessage(),
+            ];
         }
     }
 

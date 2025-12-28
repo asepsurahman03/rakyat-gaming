@@ -132,7 +132,7 @@ new #[Layout('components.layouts.app'), Title('Management Pesanan')] class exten
                             @if ($order->product->product_type === 'manual')
                                 <flux:badge color="purple" size="sm" icon="cube">Manual</flux:badge>
                             @else
-                                <flux:badge color="indigo" size="sm" icon="link">Digiflazz</flux:badge>
+                                <flux:badge color="indigo" size="sm" icon="link">{{ $order->product->product_type }}</flux:badge>
                             @endif
                         </flux:table.cell>
                         <flux:table.cell class="font-semibold">Rp {{ number_format($order->price, 0, ',', '.') }}</flux:table.cell>

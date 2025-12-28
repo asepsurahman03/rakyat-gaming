@@ -52,6 +52,48 @@ $updateStatus = function ($newStatus) {
     $this->order->refresh();
 };
 
+$refreshStatus = function () {
+    try {
+        if (!$this->order->product || !$this->order->product->supplierProduct) {
+            throw new \Exception('Produk atau supplier product tidak ditemukan');
+        }
+
+        // Get supplier code from product type
+        $supplierCode = $this->order->product->product_type;
+
+        if (!$supplierCode || $supplierCode === 'manual') {
+            throw new \Exception('Produk ini adalah produk manual, tidak dapat melakukan check status');
+        }
+
+        // Get supplier service dynamically based on product type
+        $factory = app(SupplierServiceFactory::class);
+
+        if (!$factory->has($supplierCode)) {
+            throw new \Exception("Supplier service tidak ditemukan untuk: {$supplierCode}");
+        }
+
+        $supplierService = $factory->make($supplierCode);
+
+        // Check if supplier service has checkTransactionStatus method
+        if (!method_exists($supplierService, 'checkTransactionStatus')) {
+            throw new \Exception("Supplier {$supplierCode} tidak mendukung pengecekan status");
+        }
+
+        $result = $supplierService->checkTransactionStatus($this->order);
+
+        if ($result['success']) {
+            Flux::toast(heading: 'Status berhasil diperbarui!', text: "Status telah di-refresh dari " . ucfirst($supplierCode) . ".", variant: 'success', duration: 3000, position: 'top-right');
+        } else {
+            Flux::toast(heading: 'Gagal memeriksa status', text: 'Error: ' . ($result['message'] ?? 'Unknown error'), variant: 'warning', position: 'top-right');
+        }
+
+        $this->order->refresh();
+        $this->order->load(['user', 'game', 'product.supplierProduct', 'orderPayment.paymentGateway', 'digiflazzLogs']);
+    } catch (\Exception $e) {
+        Flux::toast(heading: 'Gagal memeriksa status', text: 'Error: ' . $e->getMessage(), variant: 'danger', position: 'top-right');
+    }
+};
+
 $getStatusBadge = function ($status) {
     return match ($status) {
         'pending' => 'warning',
@@ -251,6 +293,13 @@ $getStatusBadge = function ($status) {
                 <flux:heading size="lg" class="mb-4">Aksi</flux:heading>
 
                 <div class="space-y-3">
+                    <!-- Refresh Status from Supplier -->
+                    @if ($order->product && $order->product->product_type && $order->product->product_type !== 'manual')
+                        <flux:button wire:click="refreshStatus" icon="arrow-path" variant="primary" class="w-full">
+                            Cek Status di Supplier
+                        </flux:button>
+                    @endif
+
                     <!-- Retry Topup -->
                     @if (in_array($order->status, ['failed', 'pending']) && $order->orderPayment && $order->orderPayment->status === 'paid')
                         <flux:button wire:click="retryTopup" icon="arrow-path" wire:confirm="Yakin ingin retry topup?"

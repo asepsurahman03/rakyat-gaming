@@ -118,6 +118,55 @@ new #[Layout('components.layouts.app'), Title('Digiflazz - Supplier Configuratio
             );
         }
     }
+
+    public function loadProfile(): void
+    {
+        // Just trigger a re-render to update profile info from with()
+        $this->dispatch('$refresh');
+    }
+
+    public function with(): array
+    {
+        $totalProducts = 0;
+        $activeProducts = 0;
+        $balance = null;
+        $profileInfo = null;
+
+        if ($this->supplierConfig && $this->supplierConfig->is_active) {
+            try {
+                $service = app(DigiflazzSupplierService::class);
+                $balanceData = $service->getBalance();
+
+                if (is_array($balanceData) && isset($balanceData['balance'])) {
+                    $balance = $balanceData['balance'];
+                    $profileInfo = [
+                        'username' => $balanceData['username'] ?? $this->username,
+                        'balance' => $balance,
+                    ];
+                } else {
+                    $balance = $balanceData;
+                    $profileInfo = [
+                        'username' => $this->username,
+                        'balance' => $balance,
+                    ];
+                }
+
+                $totalProducts = \App\Models\SupplierProduct::where('supplier_id', $this->supplierConfig->id)->count();
+                $activeProducts = \App\Models\SupplierProduct::where('supplier_id', $this->supplierConfig->id)
+                    ->where('status', 'active')
+                    ->count();
+            } catch (\Exception $e) {
+                // Silent fail
+            }
+        }
+
+        return [
+            'balance' => $balance,
+            'totalProducts' => $totalProducts,
+            'activeProducts' => $activeProducts,
+            'profileInfo' => $profileInfo,
+        ];
+    }
 }; ?>
 
 <div class="space-y-6">
@@ -133,9 +182,6 @@ new #[Layout('components.layouts.app'), Title('Digiflazz - Supplier Configuratio
     <!-- Page Header dengan Logo -->
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <flux:icon.bolt class="w-8 h-8 text-white" />
-            </div>
             <div>
                 <flux:heading size="xl">Digiflazz</flux:heading>
                 <flux:subheading>Konfigurasi supplier produk digital & pulsa</flux:subheading>
@@ -144,125 +190,159 @@ new #[Layout('components.layouts.app'), Title('Digiflazz - Supplier Configuratio
         <flux:badge color="blue" size="lg" icon="cube">Digital Products</flux:badge>
     </div>
 
+    <!-- Profile Info Card -->
+    @if($profileInfo)
     <flux:card>
-        <!-- Stats Section -->
-        @if($supplierConfig)
-            <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {{ number_format($supplierConfig->supplierProducts()->count()) }}
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                        <flux:icon.user class="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Total Produk</div>
+                    <div>
+                        <flux:heading size="lg">{{ $profileInfo['username'] }}</flux:heading>
+                        <flux:subheading class="text-xs">Digiflazz Account</flux:subheading>
+                    </div>
                 </div>
-                <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {{ number_format($supplierConfig->supplierProducts()->where('status', 'active')->count()) }}
-                    </div>
-                    <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Produk Aktif</div>
-                </div>
-                <div class="text-center p-4 {{ $is_active ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' }} rounded-lg border">
-                    <div class="text-2xl font-bold {{ $is_active ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                        {{ $is_active ? 'Aktif' : 'Nonaktif' }}
-                    </div>
-                    <div class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Status Supplier</div>
+                <div>
+                    <flux:subheading class="text-xs mb-1">Saldo Akun</flux:subheading>
+                    <flux:heading size="xl" class="text-green-600 dark:text-green-400">
+                        Rp {{ number_format($profileInfo['balance'], 0, ',', '.') }}
+                    </flux:heading>
                 </div>
             </div>
+            <flux:button type="button" wire:click="loadProfile" variant="ghost" size="sm" icon="arrow-path">
+                Refresh
+            </flux:button>
+        </div>
+    </flux:card>
+    @endif
 
-            <flux:separator class="mb-6" />
-        @else
-            <flux:callout variant="info" icon="information-circle" class="mb-6">
-                <strong>Belum Ada Konfigurasi</strong> Silakan isi form di bawah untuk mengkonfigurasi koneksi ke Digiflazz.
-            </flux:callout>
-        @endif
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Status</flux:heading>
+                    <flux:heading size="2xl" class="mt-2">
+                        @if($is_active)
+                            <flux:badge color="lime" icon="check-circle">Aktif</flux:badge>
+                        @else
+                            <flux:badge color="zinc" icon="x-circle">Nonaktif</flux:badge>
+                        @endif
+                    </flux:heading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <flux:icon.signal class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+            </div>
+        </flux:card>
 
-        <!-- Configuration Form -->
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Saldo</flux:heading>
+                    <flux:heading size="2xl" class="mt-2">
+                        @if($balance !== null)
+                            Rp {{ number_format($balance, 0, ',', '.') }}
+                        @else
+                            -
+                        @endif
+                    </flux:heading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <flux:icon.banknotes class="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Produk</flux:heading>
+                    <flux:heading size="2xl" class="mt-2">{{ number_format($totalProducts) }}</flux:heading>
+                    <flux:subheading class="text-xs mt-1">{{ number_format($activeProducts) }} aktif</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <flux:icon.cube class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+            </div>
+        </flux:card>
+    </div>
+
+    <!-- Configuration Form -->
+    <flux:card>
         <form wire:submit="save" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <flux:field class="md:col-span-2">
-                    <flux:label>Username <span class="text-red-500">*</span></flux:label>
-                    <flux:input wire:model="username" placeholder="Masukkan username Digiflazz" required />
-                    <flux:error name="username" />
-                    <flux:description>Username yang didapatkan dari dashboard Digiflazz</flux:description>
-                </flux:field>
+            <flux:heading size="lg">Konfigurasi API</flux:heading>
+            <flux:separator />
 
-                <flux:field class="md:col-span-2">
-                    <flux:label>API Key <span class="text-red-500">*</span></flux:label>
-                    <flux:input type="password" wire:model="api_key" placeholder="••••••••••••••••" required />
-                    <flux:error name="api_key" />
-                    <flux:description>API Key untuk autentikasi ke Digiflazz API</flux:description>
-                </flux:field>
+            <div>
+                <flux:input
+                    wire:model="username"
+                    label="Username"
+                    type="text"
+                    placeholder="Masukkan username Digiflazz"
+                    required
+                />
+                <flux:error name="username" />
+                <flux:subheading class="text-xs mt-1">Username yang didapatkan dari dashboard Digiflazz</flux:subheading>
+            </div>
 
-                <flux:field class="md:col-span-2">
-                    <flux:label>Webhook Secret</flux:label>
-                    <flux:input type="password" wire:model="secret" placeholder="••••••••••••••••" />
-                    <flux:error name="secret" />
-                    <flux:description>Secret key untuk validasi webhook callback (opsional, untuk keamanan tambahan)</flux:description>
-                </flux:field>
+            <div>
+                <flux:input
+                    wire:model="api_url"
+                    label="API URL"
+                    type="url"
+                    placeholder="https://api.digiflazz.com/v1"
+                    required
+                />
+                <flux:error name="api_url" />
+                <flux:subheading class="text-xs mt-1">Endpoint API Digiflazz</flux:subheading>
+            </div>
 
-                <flux:field class="md:col-span-2">
-                    <flux:label>API URL <span class="text-red-500">*</span></flux:label>
-                    <flux:input type="url" wire:model="api_url" placeholder="https://api.digiflazz.com/v1" required />
-                    <flux:error name="api_url" />
-                    <flux:description>Endpoint API Digiflazz (biasanya tidak perlu diubah)</flux:description>
-                </flux:field>
+            <div>
+                <flux:input
+                    wire:model="api_key"
+                    label="API Key"
+                    type="password"
+                    placeholder="Masukkan API Key Digiflazz"
+                    required
+                />
+                <flux:error name="api_key" />
+                <flux:subheading class="text-xs mt-1">API Key untuk autentikasi ke Digiflazz API</flux:subheading>
+            </div>
+
+            <div>
+                <flux:input
+                    wire:model="secret"
+                    label="Secret Key"
+                    type="password"
+                    placeholder="Masukkan Secret Key (opsional)"
+                />
+                <flux:error name="secret" />
+                <flux:subheading class="text-xs mt-1">Secret key untuk validasi webhook (opsional)</flux:subheading>
             </div>
 
             <flux:separator />
 
-            <div class="space-y-4">
-                <flux:field>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <flux:label>Status Aktif</flux:label>
-                            <flux:description>Aktifkan koneksi untuk menggunakan supplier Digiflazz</flux:description>
-                        </div>
-                        <flux:switch wire:model="is_active" />
-                    </div>
-                </flux:field>
+            <div>
+                <flux:checkbox wire:model="is_active" label="Aktifkan Supplier" />
+                <flux:subheading class="text-xs mt-1">Centang untuk mengaktifkan Digiflazz sebagai supplier</flux:subheading>
             </div>
 
-            <flux:separator />
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-3">
-                <flux:button type="submit" variant="primary" icon="check" class="flex-1">
-                    {{ $supplierConfig ? 'Update Konfigurasi' : 'Simpan Konfigurasi' }}
+            <div class="flex gap-3">
+                <flux:button type="submit" variant="primary" icon="check">
+                    Simpan Konfigurasi
                 </flux:button>
-                <flux:button type="button" wire:click="testConnection" variant="ghost" icon="play" class="flex-1">
+                <flux:button type="button" wire:click="testConnection" variant="outline" icon="signal">
                     Test Koneksi
                 </flux:button>
             </div>
         </form>
-
-        @if($supplierConfig)
-            <flux:separator class="my-6" />
-
-            <!-- Info Section -->
-            <div class="bg-zinc-50 dark:bg-zinc-800 p-6 rounded-lg">
-                <flux:heading size="base" class="mb-4">Informasi Penting</flux:heading>
-                <ul class="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    <li class="flex items-start gap-2">
-                        <flux:icon.check-circle class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span>Pastikan username dan API key sudah benar sebelum menggunakan</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <flux:icon.check-circle class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span>Gunakan fitur "Test Koneksi" untuk memverifikasi kredensial</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <flux:icon.check-circle class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span>Webhook Secret digunakan untuk memvalidasi callback dari Digiflazz (opsional tapi direkomendasikan)</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <flux:icon.check-circle class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span>Status aktif harus diaktifkan agar sistem dapat melakukan transaksi</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <flux:icon.check-circle class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span>Sinkronisasi harga produk dilakukan secara periodik oleh sistem</span>
-                    </li>
-                </ul>
-            </div>
-        @endif
     </flux:card>
+
+    <flux:callout variant="warning" icon="exclamation-triangle" class="mt-6">
+        <strong>Penting:</strong> Pastikan Username, API Key dan Secret Key yang Anda masukkan benar.
+        Kredensial yang salah dapat menyebabkan kegagalan dalam proses transaksi.
+    </flux:callout>
 </div>

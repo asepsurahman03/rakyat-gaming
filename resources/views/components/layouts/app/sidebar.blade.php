@@ -90,17 +90,17 @@
                 <flux:navlist.group expandable heading="{{ __('messages.suppliers') }}" icon="truck">
                     <flux:navlist.item href="{{ route('admin.settings.suppliers.digiflazz') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.digiflazz')">
                         <div class="text-yellow-400  flex items-center gap-2">
-                            <flux:icon.bolt size="xs" variant="mini" /> <span>Digiflazz</span>
+                            <span>Digiflazz</span>
                         </div>
                     </flux:navlist.item>
                     <flux:navlist.item href="{{ route('admin.settings.suppliers.onoystore') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.onoystore')">
                         <div class="text-yellow-400  flex items-center gap-2">
-                            <flux:icon.star size="xs" variant="mini" /> <span>OnoyStore</span>
+                            <span>OnoyStore</span>
                         </div>
                     </flux:navlist.item>
                     <flux:navlist.item href="{{ route('admin.settings.suppliers.byxstore') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.byxstore')">
                         <div class="text-yellow-400  flex items-center gap-2">
-                            <flux:icon.shopping-bag size="xs" variant="mini" /> <span>ByxStore</span>
+                            <span>ByxStore</span>
                         </div>
                     </flux:navlist.item>
                 </flux:navlist.group>

@@ -234,6 +234,88 @@ class DigiflazzSupplierService extends BaseSupplierService
     }
 
     /**
+     * Check transaction status from Digiflazz
+     *
+     * @param Order $order
+     * @return array
+     */
+    public function checkTransactionStatus(Order $order): array
+    {
+        try {
+            // Validate order has product and supplier product
+            if (!$order->product || !$order->product->supplierProduct) {
+                return [
+                    'success' => false,
+                    'message' => 'Produk atau supplier product tidak ditemukan',
+                ];
+            }
+
+            // Validate credentials
+            if (empty($this->username) || empty($this->apiKey)) {
+                return [
+                    'success' => false,
+                    'message' => 'Username atau API Key tidak terkonfigurasi',
+                ];
+            }
+
+            $refId = $order->order_code;
+            $sign = md5($this->username . $this->apiKey . $refId);
+
+            $payload = [
+                'username' => $this->username,
+                'buyer_sku_code' => $order->product->supplierProduct->code,
+                'ref_id' => $refId,
+                'sign' => $sign,
+            ];
+
+            $endpoint = '/cek-status';
+            $response = $this->makeRequest('POST', $endpoint, $payload);
+
+            // Log request and response
+            DigiflazzLog::create([
+                'order_id' => $order->id,
+                'request_body' => $payload,
+                'response_body' => $response['data'] ?? null,
+                'status' => $response['success'] ? 'success' : 'failed',
+            ]);
+
+            if ($response['success'] && isset($response['data']['data'])) {
+                $body = $response['data'];
+                $transactionStatus = strtolower($body['data']['status'] ?? '');
+
+                // Update order status based on supplier response
+                return $this->handleTransactionStatus($order, $transactionStatus, $body);
+            }
+
+            // Return more detailed error message
+            $errorMessage = 'Failed to check transaction status';
+            if (isset($response['data']['message'])) {
+                $errorMessage .= ': ' . $response['data']['message'];
+            } elseif (isset($response['error'])) {
+                $errorMessage .= ': ' . $response['error'];
+            }
+
+            return [
+                'success' => false,
+                'message' => $errorMessage,
+                'data' => $response['data'] ?? null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Digiflazz check status failed', [
+                'order_code' => $order->order_code,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to check transaction status: ' . $e->getMessage(),
+                'data' => null,
+            ];
+        }
+    }
+
+    /**
      * Handle different transaction statuses from Digiflazz
      *
      * @param Order $order

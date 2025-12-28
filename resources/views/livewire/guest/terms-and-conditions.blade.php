@@ -70,7 +70,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             <li>Pesanan diproses setelah pembayaran dikonfirmasi oleh sistem</li>
                         </ul>
                             <flux:text class="leading-relaxed flex items-center mt-4">
-                                <strong>Tips:</strong> Sebagian besar transaksi diproses secara otomatis agar kamu bisa langsung lanjut main.
+                                Sebagian besar transaksi diproses secara otomatis agar kamu bisa langsung lanjut main.
                             </flux:text>
                     </section>
 
