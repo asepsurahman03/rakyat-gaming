@@ -15,6 +15,8 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
     public $digiflazzRevenue = 0;
     public $manualRevenue = 0;
     public $digiflazzBalance = 0;
+    public $onoystoreBalance = 0;
+    public $byxstoreBalance = 0;
     public $recentActivities = [];
 
     public function mount()
@@ -22,6 +24,8 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         $this->loadStats();
         $this->loadRecentActivities();
         $this->loadDigiflazzBalance();
+        $this->loadOnoystoreBalance();
+        $this->loadByxstoreBalance();
     }
 
     public function loadDigiflazzBalance()
@@ -65,6 +69,49 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                 'error' => $e->getMessage()
             ]);
             $this->digiflazzBalance = 0;
+        }
+    }
+
+    public function loadOnoystoreBalance()
+    {
+        try {
+            $supplier = \App\Models\Supplier::where('code', 'onoystore')->first();
+
+            if (!$supplier || !$supplier->api_key) {
+                $this->onoystoreBalance = 0;
+                return;
+            }
+
+            $service = app(\App\Services\OnoystoreService::class);
+            $balance = $service->getBalance();
+            $this->onoystoreBalance = $balance ?? 0;
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to load Onoystore balance', [
+                'error' => $e->getMessage()
+            ]);
+            $this->onoystoreBalance = 0;
+        }
+    }
+
+    public function loadByxstoreBalance()
+    {
+        try {
+            $supplier = \App\Models\Supplier::where('code', 'byxstore')->first();
+
+            if (!$supplier || !$supplier->api_key) {
+                $this->byxstoreBalance = 0;
+                return;
+            }
+
+            // TODO: Implement Byxstore balance check API call when available
+            // For now, set to 0
+            $this->byxstoreBalance = 0;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to load Byxstore balance', [
+                'error' => $e->getMessage()
+            ]);
+            $this->byxstoreBalance = 0;
         }
     }
 
@@ -120,6 +167,8 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         $this->loadStats();
         $this->loadRecentActivities();
         $this->loadDigiflazzBalance();
+        $this->loadOnoystoreBalance();
+        $this->loadByxstoreBalance();
     }
 }; ?>
 
@@ -130,7 +179,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
     </flux:heading>
 
     <!-- Main Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
@@ -173,7 +222,10 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                 </div>
             </div>
         </flux:card>
+    </div>
 
+    <!-- Supplier Balances -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
@@ -188,6 +240,36 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                 </div>
             </div>
         </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Saldo Onoystore
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($onoystoreBalance / 1000, 0) }}K
+                    </flux:heading>
+                    <flux:subheading class="text-xs mt-1">Current balance</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <flux:icon.wallet class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+            </div>
+        </flux:card>
+
+        <flux:card>
+            <div class="flex items-start justify-between">
+                <div>
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Saldo Byxstore
+                    </flux:heading>
+                    <flux:heading size="2xl" class="mt-2">Rp {{ number_format($byxstoreBalance / 1000, 0) }}K
+                    </flux:heading>
+                    <flux:subheading class="text-xs mt-1">Current balance</flux:subheading>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                    <flux:icon.wallet class="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                </div>
+            </div>
+        </flux:card>
     </div>
 
     <!-- Product Type Stats -->
@@ -195,7 +277,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
         <flux:card>
             <div class="flex items-start justify-between">
                 <div>
-                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Digiflazz Orders
+                    <flux:heading size="sm" class="text-zinc-500 dark:text-zinc-400 font-medium">Suppliers Orders
                     </flux:heading>
                     <flux:heading size="2xl" class="mt-2">{{ number_format($totalDigiflazzOrders) }}</flux:heading>
                     <flux:subheading class="text-xs mt-1">Supplier products</flux:subheading>

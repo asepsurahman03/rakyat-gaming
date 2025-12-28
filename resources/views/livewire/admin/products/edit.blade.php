@@ -4,21 +4,19 @@ use App\Models\Product;
 use App\Models\Game;
 use App\Models\ProductGroup;
 use App\Models\SupplierProduct;
-use function Livewire\Volt\{state, mount, computed, rules, Layout, Title};
-
-Layout('components.layouts.app');
-Title('Edit Produk');
+use Livewire\Attributes\{Layout, Title};
+use function Livewire\Volt\{state, mount, computed, rules};
 
 state([
     'product',
+    'product_type' => 'digiflazz',
     'game_id' => '',
     'product_group_id' => null,
     'sort_order' => 0,
-    'product_type' => 'digiflazz',
     'supplier_product_id' => '',
-    'stock' => null,
     'name' => '',
     'selling_price' => 0,
+    'stock' => null,
     'is_auto_price' => false,
     'margin' => 1000,
     'margin_percentage' => 0,
@@ -29,14 +27,14 @@ state([
 
 mount(function (Product $product) {
     $this->product = $product;
+    $this->product_type = $product->product_type ?? 'digiflazz';
     $this->game_id = $product->game_id;
     $this->product_group_id = $product->product_group_id;
     $this->sort_order = $product->sort_order ?? 0;
-    $this->product_type = $product->product_type ?? 'digiflazz';
     $this->supplier_product_id = $product->supplier_product_id;
-    $this->stock = $product->stock;
     $this->name = $product->name;
     $this->selling_price = $product->selling_price;
+    $this->stock = $product->stock;
     $this->is_auto_price = $product->is_auto_price;
     $this->margin = $product->margin ?? 1000;
     $this->is_active = $product->is_active;
@@ -45,10 +43,10 @@ mount(function (Product $product) {
 
 rules(function () {
     return [
+        'product_type' => 'required|string|max:50',
         'game_id' => 'required|exists:games,id',
         'product_group_id' => 'nullable|exists:product_groups,id',
         'sort_order' => 'integer|min:0',
-        'product_type' => 'required|string|max:50',
         'supplier_product_id' => [
             'required_unless:product_type,manual',
             'nullable',
@@ -60,14 +58,14 @@ rules(function () {
                         ->where('id', '!=', $this->product->id)
                         ->exists();
                     if ($exists) {
-                        $fail('Produk Digiflazz ini sudah ada untuk game yang dipilih.');
+                        $fail('Produk supplier ini sudah ada untuk game yang dipilih.');
                     }
                 }
             },
         ],
-        'stock' => 'required_if:product_type,manual|nullable|integer|min:0',
         'name' => 'required|string|max:255',
         'selling_price' => 'required|numeric|min:0',
+        'stock' => 'required_if:product_type,manual|nullable|integer|min:0',
         'is_auto_price' => 'boolean',
         'margin' => 'required_if:is_auto_price,true|numeric|min:0',
         'is_active' => 'boolean',
@@ -120,6 +118,10 @@ $calculatePercentageFromMargin = function () {
 $onSupplierProductChange = function () {
     $supplierProduct = SupplierProduct::find($this->supplier_product_id);
     if ($supplierProduct) {
+        // Auto-fill name if empty
+        if (empty($this->name)) {
+            $this->name = $supplierProduct->product_name;
+        }
         // Calculate price if auto-price is enabled
         if ($this->is_auto_price) {
             $this->selling_price = $supplierProduct->buyer_price + $this->margin;
@@ -131,10 +133,9 @@ $save = function () {
     // Set supplier_product_id to null if empty (for manual products)
     if ($this->product_type === 'manual') {
         $this->supplier_product_id = null;
-    }
-
-    // Set stock to null if empty (for digiflazz products)
-    if ($this->product_type === 'digiflazz') {
+        // Stock is required for manual products
+    } else {
+        // Set stock to null for supplier products
         $this->stock = null;
     }
 
@@ -150,7 +151,8 @@ $save = function () {
 
 <div class="space-y-6">
     <div class="flex items-center gap-4">
-        <flux:button wire:navigate href="{{ route('admin.products.index') }}" variant="ghost" size="sm" icon="arrow-left">
+        <flux:button wire:navigate href="{{ route('admin.products.index') }}" variant="ghost" size="sm"
+            icon="arrow-left">
             Kembali
         </flux:button>
         <div>
@@ -161,13 +163,34 @@ $save = function () {
 
     <flux:card>
         <form wire:submit="save" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <!-- Product Type / Supplier Selection -->
+                <div class="md:col-span-2">
+                    <flux:field>
+                        <flux:label>Pilih Supplier <span class="text-red-600">*</span></flux:label>
+                        <flux:select wire:model.live="product_type">
+                            <option value="manual">Manual (Stok sendiri)</option>
+                            @foreach (['digiflazz', 'onoystore'] as $supplierCode)
+                                <option value="{{ $supplierCode }}">{{ ucfirst($supplierCode) }}</option>
+                            @endforeach
+                        </flux:select>
+                        <flux:description>
+                            @if($product_type === 'manual')
+                                Produk dengan stok yang dikelola sendiri (tidak melalui supplier)
+                            @else
+                                Produk dari supplier {{ ucfirst($product_type) }} - transaksi otomatis melalui API
+                            @endif
+                        </flux:description>
+                        <flux:error name="product_type" />
+                    </flux:field>
+                </div>
+
                 <!-- Game -->
                 <flux:field>
                     <flux:label>Game <span class="text-red-600">*</span></flux:label>
                     <flux:select wire:model.live="game_id">
                         <option value="">Pilih Game</option>
-                        @foreach($this->games as $game)
+                        @foreach ($this->games as $game)
                             <option value="{{ $game->id }}">{{ $game->name }}</option>
                         @endforeach
                     </flux:select>
@@ -187,52 +210,37 @@ $save = function () {
                     <flux:error name="product_group_id" />
                 </flux:field>
 
-                <!-- Product Type / Supplier Selection -->
-                <flux:field>
-                    <flux:label>Tipe Produk <span class="text-red-600">*</span></flux:label>
-                    <flux:select wire:model.live="product_type">
-                        <optgroup label="Supplier Products">
-                            <option value="digiflazz">⚡ Digiflazz - Produk Digital & Pulsa</option>
-                            <option value="onoystore" disabled>⭐ OnoyStore - Game Voucher (Coming Soon)</option>
-                            <option value="byxstore" disabled>🛒 ByxStore - Top-up & Voucher (Coming Soon)</option>
-                        </optgroup>
-                        <optgroup label="Manual">
-                            <option value="manual">📦 Produk Manual - Stok Sendiri</option>
-                        </optgroup>
-                    </flux:select>
-                    <flux:description>
-                        @if($product_type === 'manual')
-                            Produk dengan stok yang dikelola sendiri
-                        @else
-                            Produk dari supplier {{ ucfirst($product_type) }}
-                        @endif
-                    </flux:description>
-                    <flux:error name="product_type" />
-                </flux:field>
-
                 <!-- Supplier Product (Only for Supplier Products, not Manual) -->
-                @if ($product_type !== 'manual')
-                <flux:field>
-                    <flux:label>Produk Supplier <span class="text-red-600">*</span></flux:label>
-                    <flux:select variant="listbox" searchable wire:model="supplier_product_id" wire:change="onSupplierProductChange">
-                        @foreach ($this->supplierProducts->where('supplier.code', $product_type) as $sp)
-                            <flux:select.option value="{{ $sp->id }}">
-                                {{ $sp->product_name }} - Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}
-                            </flux:select.option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="supplier_product_id" />
-                </flux:field>
-                @endif
-
-                <!-- Stock (Only for Manual Products) -->
-                @if ($product_type === 'manual')
-                <flux:field>
-                    <flux:label>Stok <span class="text-red-600">*</span></flux:label>
-                    <flux:input type="number" wire:model="stock" placeholder="100" min="0" />
-                    <flux:error name="stock" />
-                    <flux:description>Jumlah stok yang tersedia untuk produk manual</flux:description>
-                </flux:field>
+                @if($product_type !== 'manual')
+                    <flux:field class="md:col-span-2">
+                        <flux:label>Produk Supplier <span class="text-red-600">*</span></flux:label>
+                        <flux:select variant="listbox" searchable wire:model="supplier_product_id" wire:change="onSupplierProductChange">
+                            <option value="">Pilih Produk dari {{ ucfirst($product_type) }}</option>
+                            @foreach ($this->supplierProducts->where('supplier.code', $product_type) as $sp)
+                                <flux:select.option value="{{ $sp->id }}">
+                                    <div class="flex justify-between items-center">
+                                        <span>{{ $sp->product_name }}</span>
+                                        <span class="text-sm text-zinc-500">Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}</span> - <span class="text-sm text-zinc-500">{{ $sp->category }}</span>
+                                    </div>
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        <flux:description>
+                            Pilih produk dari katalog {{ ucfirst($product_type) }}
+                            @if($this->supplierProducts->where('supplier.code', $product_type)->count() === 0)
+                                <span class="text-orange-600">- Tidak ada produk tersedia. Lakukan sync produk terlebih dahulu.</span>
+                            @endif
+                        </flux:description>
+                        <flux:error name="supplier_product_id" />
+                    </flux:field>
+                @else
+                    <!-- Stock (Only for Manual) -->
+                    <flux:field>
+                        <flux:label>Stok <span class="text-red-600">*</span></flux:label>
+                        <flux:input type="number" wire:model="stock" placeholder="0" />
+                        <flux:description>Jumlah stok produk manual</flux:description>
+                        <flux:error name="stock" />
+                    </flux:field>
                 @endif
 
                 <!-- Name -->
@@ -245,7 +253,7 @@ $save = function () {
                 </div>
 
                 <!-- Auto Price Toggle (For all suppliers except manual) -->
-                @if ($product_type !== 'manual')
+                @if($product_type !== 'manual')
                 <div class="md:col-span-2">
                     <flux:field>
                         <div class="flex items-center gap-3">
@@ -319,13 +327,13 @@ $save = function () {
                 @endif
 
                 <!-- Selling Price -->
-                <div class="{{ ($product_type !== 'manual' && $is_auto_price) ? 'self-start' : 'md:col-span-2 self-start' }}">
+                <div class="{{ $is_auto_price && $product_type !== 'manual' ? 'self-start' : 'md:col-span-2 self-start' }}">
                     <flux:field>
                         <flux:label>Harga Jual <span class="text-red-600">*</span></flux:label>
                         <flux:input type="number" wire:model="selling_price" placeholder="10000" step="100"
-                            :readonly="$product_type !== 'manual' && $is_auto_price" />
+                            :readonly="$is_auto_price && $product_type !== 'manual'" />
                         <flux:error name="selling_price" />
-                        @if ($product_type !== 'manual' && $is_auto_price)
+                        @if ($is_auto_price && $product_type !== 'manual')
                             <flux:description>Dihitung otomatis dari harga beli + margin</flux:description>
                         @endif
                     </flux:field>
@@ -336,7 +344,8 @@ $save = function () {
                 <div class="md:col-span-2">
                     <flux:field>
                         <flux:label>Deskripsi</flux:label>
-                        <flux:textarea wire:model="description" rows="2" placeholder="Keterangan tambahan produk..." />
+                        <flux:textarea wire:model="description" rows="2"
+                            placeholder="Keterangan tambahan produk..." />
                         <flux:error name="description" />
                     </flux:field>
                 </div>
@@ -358,7 +367,7 @@ $save = function () {
                 </flux:field>
             </div>
 
-            @if ($product_type === 'digiflazz' && $supplier_product_id)
+            @if ($supplier_product_id)
                 @php
                     $sp = $this->supplierProducts->firstWhere('id', $supplier_product_id);
                 @endphp

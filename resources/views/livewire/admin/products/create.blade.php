@@ -145,7 +145,7 @@ $save = function () {
 
     <flux:card>
         <form wire:submit="save" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <!-- Product Type / Supplier Selection -->
                 <div class="md:col-span-2">
                     <flux:field>
