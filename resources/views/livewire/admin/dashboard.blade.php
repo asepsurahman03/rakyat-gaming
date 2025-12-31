@@ -82,7 +82,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                 return;
             }
 
-            $service = app(\App\Services\OnoystoreService::class);
+            $service = app(\App\Services\Suppliers\OnoyStoreSupplierService::class);
             $balance = $service->getBalance();
             $this->onoystoreBalance = $balance ?? 0;
 
@@ -104,8 +104,10 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                 return;
             }
 
-            // TODO: Implement Byxstore balance check API call when available
-            // For now, set to 0
+            $service = app(\App\Services\Suppliers\ByxStoreSupplierService::class);
+            $balance = $service->getBalance();
+            $this->byxstoreBalance = $balance ?? 0;
+
             $this->byxstoreBalance = 0;
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to load Byxstore balance', [

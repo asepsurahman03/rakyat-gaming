@@ -30,22 +30,16 @@ class ByxStoreSupplierService extends BaseSupplierService
             if (empty($this->apiKey) || empty($this->baseUrl)) {
                 return [
                     'success' => false,
-                    'message' => 'API Key is not configured',
-                ];
-            }
-
-            if (!$this->isActive()) {
-                return [
-                    'success' => false,
-                    'message' => 'ByxStore supplier is not active or not configured',
+                    'message' => 'API Key atau URL tidak dikonfigurasi',
                 ];
             }
 
             // Get balance from /saldo endpoint
             $balance = null;
-            $balanceResponse = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/saldo', [
-                'api_key' => $this->apiKey,
-            ]);
+            $balanceResponse = \Illuminate\Support\Facades\Http::timeout(30)
+                ->post($this->baseUrl . '/saldo', [
+                    'api_key' => $this->apiKey,
+                ]);
 
             if ($balanceResponse->successful()) {
                 $balanceData = $balanceResponse->json();
@@ -56,43 +50,80 @@ class ByxStoreSupplierService extends BaseSupplierService
 
             // Get products from /service endpoint
             $productCount = 0;
-            $serviceResponse = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/service', [
-                'api_key' => $this->apiKey,
-            ]);
+            $serviceResponse = \Illuminate\Support\Facades\Http::timeout(30)
+                ->post($this->baseUrl . '/service', [
+                    'api_key' => $this->apiKey,
+                ]);
 
             if (!$serviceResponse->successful()) {
+                $statusCode = $serviceResponse->status();
+                $errorBody = $serviceResponse->body();
+
+                Log::error('ByxStore service endpoint failed', [
+                    'status_code' => $statusCode,
+                    'response' => $errorBody,
+                    'url' => $this->baseUrl . '/service',
+                ]);
+
                 return [
                     'success' => false,
-                    'message' => 'Failed to connect to service endpoint',
-                    'status_code' => $serviceResponse->status(),
+                    'message' => 'Gagal terhubung ke endpoint service (Status: ' . $statusCode . ')',
+                    'status_code' => $statusCode,
+                    'detail' => $errorBody,
                 ];
             }
 
             $serviceData = $serviceResponse->json();
 
             if (!isset($serviceData['status']) || $serviceData['status'] !== true) {
+                $errorMsg = 'Connection failed';
+                if (isset($serviceData['msg'])) {
+                    $errorMsg = is_array($serviceData['msg']) ? json_encode($serviceData['msg']) : (string) $serviceData['msg'];
+                }
+
+                Log::warning('ByxStore service endpoint returned error', [
+                    'message' => $errorMsg,
+                    'response' => $serviceData,
+                ]);
+
                 return [
                     'success' => false,
-                    'message' => $serviceData['msg'] ?? 'Connection failed',
+                    'message' => $errorMsg,
                 ];
             }
 
             $productCount = count($serviceData['data'] ?? []);
+
+            Log::info('ByxStore connection test successful', [
+                'balance' => $balance,
+                'product_count' => $productCount,
+            ]);
 
             return [
                 'success' => true,
                 'message' => 'Connection successful',
                 'data' => [
                     'username' => 'ByxStore User',
-                    'balance' => $balance,
-                    'product_count' => $productCount,
-                    'formatted_balance' => 'Saldo: Rp ' . number_format($balance ?? 0, 0, ',', '.') . ' | ' . $productCount . ' layanan tersedia',
+                    'balance' => (float) ($balance ?? 0),
+                    'product_count' => (int) $productCount,
+                    'formatted_balance' => 'Saldo: Rp ' . number_format((float) ($balance ?? 0), 0, ',', '.') . ' | ' . $productCount . ' layanan tersedia',
                 ],
             ];
 
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('ByxStore connection test - connection timeout', [
+                'error' => $e->getMessage(),
+                'url' => $this->baseUrl,
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Tidak dapat terhubung ke ByxStore. Periksa URL API atau koneksi internet Anda.',
+            ];
         } catch (\Exception $e) {
             Log::error('ByxStore connection test failed', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return [

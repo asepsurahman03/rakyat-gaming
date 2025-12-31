@@ -67,16 +67,20 @@ new #[Layout('components.layouts.app'), Title('ByxStore - Supplier Configuration
             if ($result['success'] && isset($result['data'])) {
                 $this->userInfo = [
                     'name' => $result['data']['username'] ?? 'ByxStore User',
-                    'balance' => $result['data']['balance'] ?? 0,
-                    'product_count' => $result['data']['product_count'] ?? 0,
+                    'balance' => (float) ($result['data']['balance'] ?? 0),
+                    'product_count' => (int) ($result['data']['product_count'] ?? 0),
                 ];
                 return;
             }
         } catch (\Exception $e) {
             Log::error("Failed to load ByxStore user info: " . $e->getMessage());
+            $errorMsg = $e->getMessage();
+            if (is_array($errorMsg)) {
+                $errorMsg = json_encode($errorMsg);
+            }
             Flux::toast(
                 heading: 'Error',
-                text: 'Gagal memuat informasi user: ' . $e->getMessage(),
+                text: 'Gagal memuat informasi user: ' . $errorMsg,
                 variant: 'error',
                 duration: 5000,
                 position: 'top-right',
@@ -140,21 +144,30 @@ new #[Layout('components.layouts.app'), Title('ByxStore - Supplier Configuration
             if ($result['success']) {
                 $this->userInfo = [
                     'name' => $result['data']['username'] ?? 'ByxStore User',
-                    'balance' => $result['data']['balance'] ?? 0,
-                    'product_count' => $result['data']['product_count'] ?? 0,
+                    'balance' => (float) ($result['data']['balance'] ?? 0),
+                    'product_count' => (int) ($result['data']['product_count'] ?? 0),
                 ];
+
+                $message = 'Koneksi ke ByxStore berhasil';
+                if (isset($result['data']['formatted_balance']) && is_string($result['data']['formatted_balance'])) {
+                    $message = $result['data']['formatted_balance'];
+                }
 
                 Flux::toast(
                     heading: 'Koneksi Berhasil',
-                    text: $result['data']['formatted_balance'] ?? 'Koneksi ke ByxStore berhasil',
+                    text: $message,
                     variant: 'success',
                     duration: 5000,
                     position: 'top-right',
                 );
             } else {
+                $errorMessage = 'Gagal terhubung ke ByxStore';
+                if (isset($result['message'])) {
+                    $errorMessage = is_array($result['message']) ? json_encode($result['message']) : (string) $result['message'];
+                }
                 Flux::toast(
                     heading: 'Koneksi Gagal',
-                    text: $result['message'] ?? 'Gagal terhubung ke ByxStore',
+                    text: $errorMessage,
                     variant: 'error',
                     duration: 5000,
                     position: 'top-right',
