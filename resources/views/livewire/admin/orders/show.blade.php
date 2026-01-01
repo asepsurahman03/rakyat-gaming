@@ -42,7 +42,7 @@ $retryTopup = function () {
 
         $this->order->refresh();
     } catch (\Exception $e) {
-        Flux::toast(heading: 'Gagal melakukan retry topup', text: 'Error: ' . $e->getMessage(), variant: 'danger', position: 'top-right');
+        Flux::toast(heading: 'Gagal retry topup', text: 'Error: ' . $e->getMessage(), variant: 'danger', position: 'top-right');
     }
 };
 
@@ -74,6 +74,7 @@ $refreshStatus = function () {
 
         $supplierService = $factory->make($supplierCode);
 
+
         // Check if supplier service has checkTransactionStatus method
         if (!method_exists($supplierService, 'checkTransactionStatus')) {
             throw new \Exception("Supplier {$supplierCode} tidak mendukung pengecekan status");
@@ -84,8 +85,8 @@ $refreshStatus = function () {
         if ($result['success']) {
             Flux::toast(heading: 'Status berhasil diperbarui!', text: "Status telah di-refresh dari " . ucfirst($supplierCode) . ".", variant: 'success', duration: 3000, position: 'top-right');
         } else {
-            Flux::toast(heading: 'Gagal memeriksa status', text: 'Error: ' . ($result['message'] ?? 'Unknown error'), variant: 'warning', position: 'top-right');
-        }
+            Flux::toast(heading: 'Gagal', text: 'Error: ' . ($result['message'] ?? 'Unknown error'), variant: 'warning', position: 'top-right');
+        }   
 
         $this->order->refresh();
         $this->order->load(['user', 'game', 'product.supplierProduct', 'orderPayment.paymentGateway', 'digiflazzLogs']);

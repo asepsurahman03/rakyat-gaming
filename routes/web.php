@@ -75,9 +75,6 @@ Route::post('/webhook/{supplierCode}', [WebhookController::class, 'handle'])
     ->middleware('webhook.ip:suppliers')
     ->name('webhook.handle');
 
-Route::get('/webhook/{supplierCode}/test', [WebhookController::class, 'test'])
-    ->name('webhook.test');
-
 // Legacy Digiflazz webhook (kept for backward compatibility)
 Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
     ->middleware('webhook.ip:digiflazz')

@@ -69,6 +69,15 @@ $productGroups = computed(function () {
 
 $supplierProducts = computed(fn() => SupplierProduct::with('supplier')->where('status', 'active')->orderBy('product_name')->get());
 
+$availableSuppliers = computed(function () {
+    return \App\Models\Supplier::whereHas('supplierProducts', function ($query) {
+        $query->where('status', 'active');
+    })
+    ->where('is_active', true)
+    ->orderBy('name')
+    ->get();
+});
+
 $updateSellingPrice = function () {
     if ($this->is_auto_price && $this->supplier_product_id) {
         $supplierProduct = SupplierProduct::find($this->supplier_product_id);
@@ -152,8 +161,8 @@ $save = function () {
                         <flux:label>Pilih Supplier <span class="text-red-600">*</span></flux:label>
                         <flux:select wire:model.live="product_type">
                             <option value="manual">Manual (Stok sendiri)</option>
-                            @foreach (['digiflazz', 'onoystore'] as $supplierCode)
-                                <option value="{{ $supplierCode }}">{{ ucfirst($supplierCode) }}</option>
+                            @foreach ($this->availableSuppliers as $supplier)
+                                <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
                             @endforeach
                         </flux:select>
                         <flux:description>
@@ -202,7 +211,7 @@ $save = function () {
                                 <flux:select.option value="{{ $sp->id }}">
                                     <div class="flex justify-between items-center">
                                         <span>{{ $sp->product_name }}</span>
-                                        <span class="text-sm text-zinc-500">Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}</span> - <span class="text-sm text-zinc-500">{{ $sp->category }}</span>
+                                        <span class="text-sm text-zinc-500">{{ ' - Rp ' . number_format($sp->buyer_price, 0, ',', '.') . ' - ' . $sp->category }}</span>
                                     </div>
                                 </flux:select.option>
                             @endforeach

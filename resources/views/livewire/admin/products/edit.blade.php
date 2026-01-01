@@ -87,6 +87,15 @@ $productGroups = computed(function () {
 
 $supplierProducts = computed(fn() => SupplierProduct::with('supplier')->where('status', 'active')->orderBy('product_name')->get());
 
+$availableSuppliers = computed(function () {
+    return \App\Models\Supplier::whereHas('supplierProducts', function ($query) {
+        $query->where('status', 'active');
+    })
+    ->where('is_active', true)
+    ->orderBy('name')
+    ->get();
+});
+
 $updateSellingPrice = function () {
     if ($this->is_auto_price && $this->supplier_product_id) {
         $supplierProduct = SupplierProduct::find($this->supplier_product_id);
@@ -170,8 +179,8 @@ $save = function () {
                         <flux:label>Pilih Supplier <span class="text-red-600">*</span></flux:label>
                         <flux:select wire:model.live="product_type">
                             <option value="manual">Manual (Stok sendiri)</option>
-                            @foreach (['digiflazz', 'onoystore'] as $supplierCode)
-                                <option value="{{ $supplierCode }}">{{ ucfirst($supplierCode) }}</option>
+                            @foreach ($this->availableSuppliers as $supplier)
+                                <option value="{{ $supplier->code }}">{{ $supplier->name }}</option>
                             @endforeach
                         </flux:select>
                         <flux:description>

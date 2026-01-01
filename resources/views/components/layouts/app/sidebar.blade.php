@@ -9,7 +9,9 @@
     <flux:sidebar sticky stashable class="bg-black dark:black border-r border-zinc-200 dark:border-zinc-800">
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-        <img src="{{ asset('images/logo-rkgame-animation.gif') }}" alt="logo" class="mx-auto my-4">
+        <a href="{{ route('home') }}" wire:navigate>
+            <img src="{{ asset('images/logo-rkgame-animation.gif') }}" alt="logo" class="mx-auto my-4">
+        </a>
 
         <flux:navlist variant="outline">
             <flux:navlist.item href="{{ route('dashboard') }}" wire:navigate :current="request()->routeIs('dashboard')">
@@ -18,69 +20,80 @@
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('carousel.index') }}" wire:navigate :current="request()->routeIs('carousel.*')">
+            <flux:navlist.item href="{{ route('carousel.index') }}" wire:navigate
+                :current="request()->routeIs('carousel.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.photo size="xs" /> <span>{{ __('messages.carousel') }}</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.categories.index') }}" wire:navigate :current="request()->routeIs('admin.categories.*')">
+            <flux:navlist.item href="{{ route('admin.categories.index') }}" wire:navigate
+                :current="request()->routeIs('admin.categories.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.squares-2x2 size="xs" /> <span>Categories</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.games.index') }}" wire:navigate :current="request()->routeIs('admin.games.*')">
+            <flux:navlist.item href="{{ route('admin.games.index') }}" wire:navigate
+                :current="request()->routeIs('admin.games.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.puzzle size="xs" /> <span>{{ __('messages.games') }}</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.products.index') }}" wire:navigate :current="request()->routeIs('admin.products.*')">
+            <flux:navlist.item href="{{ route('admin.products.index') }}" wire:navigate
+                :current="request()->routeIs('admin.products.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.cube size="xs" /> <span>{{ __('messages.products') }}</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.orders.index') }}" wire:navigate :current="request()->routeIs('admin.orders.*')">
+            <flux:navlist.item href="{{ route('admin.orders.index') }}" wire:navigate
+                :current="request()->routeIs('admin.orders.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.shopping-bag size="xs" /> <span>{{ __('messages.orders') }}</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.chat.index') }}" wire:navigate :current="request()->routeIs('admin.chat.*')">
+            <flux:navlist.item href="{{ route('admin.chat.index') }}" wire:navigate
+                :current="request()->routeIs('admin.chat.*')">
                 <div class="text-yellow-400 flex items-center gap-2 w-full">
                     <flux:icon.chat-bubble-left-right size="xs" /> <span>Live Chat</span>
                     @livewire('admin.chat.notification-badge')
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.posts.index') }}" wire:navigate :current="request()->routeIs('posts.*')">
+            <flux:navlist.item href="{{ route('admin.posts.index') }}" wire:navigate
+                :current="request()->routeIs('posts.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.document-text size="xs" /> <span>Artikel</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.flazz-sells.index') }}" wire:navigate :current="request()->routeIs('admin.flazz-sells.*')">
+            <flux:navlist.item href="{{ route('admin.flazz-sells.index') }}" wire:navigate
+                :current="request()->routeIs('admin.flazz-sells.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.fire size="xs" /> <span>FlazzSell</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.supplier-products.index') }}" wire:navigate :current="request()->routeIs('admin.supplier-products.*')">
+            <flux:navlist.item href="{{ route('admin.supplier-products.index') }}" wire:navigate
+                :current="request()->routeIs('admin.supplier-products.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.inbox-stack size="xs" /><span>{{ __('messages.supplier_products') }}</span>
                 </div>
             </flux:navlist.item>
 
-            <flux:navlist.item href="{{ route('admin.users.index') }}" wire:navigate :current="request()->routeIs('admin.users.*')">
+            <flux:navlist.item href="{{ route('admin.users.index') }}" wire:navigate
+                :current="request()->routeIs('admin.users.*')">
                 <div class="text-yellow-400  flex items-center gap-2">
                     <flux:icon.users size="xs" /> <span>{{ __('messages.users') }}</span>
                 </div>
             </flux:navlist.item>
 
             <flux:navlist.group expandable heading="{{ __('messages.configuration') }}" icon="cog">
-                <flux:navlist.item href="{{ route('admin.settings.application') }}" wire:navigate :current="request()->routeIs('admin.settings.application')">
+                <flux:navlist.item href="{{ route('admin.settings.application') }}" wire:navigate
+                    :current="request()->routeIs('admin.settings.application')">
                     <div class="text-yellow-400  flex items-center gap-2">
                         <flux:icon.cog size="xs" /> <span>{{ __('messages.application') }}</span>
                     </div>
@@ -88,24 +101,28 @@
 
                 <!-- Suppliers Submenu -->
                 <flux:navlist.group expandable heading="{{ __('messages.suppliers') }}" icon="truck">
-                    <flux:navlist.item href="{{ route('admin.settings.suppliers.digiflazz') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.digiflazz')">
+                    <flux:navlist.item href="{{ route('admin.settings.suppliers.digiflazz') }}" wire:navigate
+                        :current="request()->routeIs('admin.settings.suppliers.digiflazz')">
                         <div class="text-yellow-400  flex items-center gap-2">
                             <span>Digiflazz</span>
                         </div>
                     </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('admin.settings.suppliers.onoystore') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.onoystore')">
+                    <flux:navlist.item href="{{ route('admin.settings.suppliers.onoystore') }}" wire:navigate
+                        :current="request()->routeIs('admin.settings.suppliers.onoystore')">
                         <div class="text-yellow-400  flex items-center gap-2">
                             <span>OnoyStore</span>
                         </div>
                     </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('admin.settings.suppliers.byxstore') }}" wire:navigate :current="request()->routeIs('admin.settings.suppliers.byxstore')">
+                    <flux:navlist.item href="{{ route('admin.settings.suppliers.byxstore') }}" wire:navigate
+                        :current="request()->routeIs('admin.settings.suppliers.byxstore')">
                         <div class="text-yellow-400  flex items-center gap-2">
                             <span>ByxStore</span>
                         </div>
                     </flux:navlist.item>
                 </flux:navlist.group>
 
-                <flux:navlist.item href="{{ route('admin.settings.payment-gateways') }}" wire:navigate :current="request()->routeIs('admin.settings.payment-gateways')">
+                <flux:navlist.item href="{{ route('admin.settings.payment-gateways') }}" wire:navigate
+                    :current="request()->routeIs('admin.settings.payment-gateways')">
                     <div class="text-yellow-400  flex items-center gap-2">
                         <flux:icon.credit-card size="xs" /> <span>{{ __('messages.payment_gateways') }}</span>
                     </div>

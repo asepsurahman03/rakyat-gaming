@@ -172,7 +172,6 @@ class ByxStoreSupplierService extends BaseSupplierService
     public function syncProducts(): array
     {
         try {
-            Log::info('Starting ByxStore product sync');
 
             // Get products from /service endpoint
             $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/service', [
@@ -201,10 +200,24 @@ class ByxStoreSupplierService extends BaseSupplierService
             $syncedCount = 0;
             $newCount = 0;
             $updatedCount = 0;
+            $skippedCount = 0;
 
             foreach ($products as $productData) {
                 // Determine which price to use based on user level (default to regular price)
                 $price = $productData['harga'] ?? 0;
+
+                // Validate price: skip if invalid, null, or exceeds database limit
+                // DECIMAL(12,2) max value: 9,999,999,999.99
+                if (!is_numeric($price) || $price < 0 || $price > 9999999999.99) {
+                    Log::warning('ByxStore: Skipping product with invalid price', [
+                        'product_id' => $productData['id'] ?? 'unknown',
+                        'product_name' => $productData['nama_layanan'] ?? 'unknown',
+                        'price' => $price,
+                    ]);
+
+                    $skippedCount++;
+                    continue;
+                }
 
                 $supplierProduct = SupplierProduct::updateOrCreate(
                     [
@@ -239,18 +252,13 @@ class ByxStoreSupplierService extends BaseSupplierService
                 $syncedCount++;
             }
 
-            Log::info('ByxStore product sync completed', [
-                'synced' => $syncedCount,
-                'new' => $newCount,
-                'updated' => $updatedCount,
-            ]);
-
             return [
                 'success' => true,
                 'message' => 'Products synced successfully',
                 'synced_count' => $syncedCount,
                 'new_count' => $newCount,
                 'updated_count' => $updatedCount,
+                'skipped_count' => $skippedCount,
             ];
 
         } catch (\Exception $e) {
@@ -276,26 +284,19 @@ class ByxStoreSupplierService extends BaseSupplierService
     public function processTransaction(Order $order, SupplierProduct $supplierProduct): array
     {
         try {
-            Log::info('Processing ByxStore transaction', [
-                'order_id' => $order->id,
-                'order_code' => $order->order_code,
-                'product_code' => $supplierProduct->code,
-                'customer_no' => $order->customer_no,
-            ]);
+
+            $dataPlayer = is_string($order->data_player) ? json_decode($order->data_player, true) : $order->data_player;
+
+            $dataPlayerFormatted = $this->formatDataPlayer($dataPlayer);
 
             // Prepare payload according to ByxStore API documentation
             $payload = [
                 'api_key' => $this->apiKey,
                 'service_id' => $supplierProduct->code,
-                'target' => $order->customer_no, // Data ID|Zone ID format
-                'kontak' => $order->customer_phone ?? '0', // Phone number
+                'target' => $dataPlayerFormatted, // Data ID|Zone ID format
+                'kontak' => $order->whatsapp ?? '0', // Phone number
                 'idtrx' => $order->order_code, // Unique ID from our site
             ];
-
-            // Add callback URL if configured
-            if (!empty(config('services.byxstore.callback_url'))) {
-                $payload['callback'] = config('services.byxstore.callback_url');
-            }
 
             // Make request to /order endpoint
             $response = \Illuminate\Support\Facades\Http::post($this->baseUrl . '/order', $payload);
@@ -322,10 +323,9 @@ class ByxStoreSupplierService extends BaseSupplierService
 
             // Check response status
             if (isset($responseData['status']) && $responseData['status'] === true) {
-                Log::info('ByxStore transaction success', [
-                    'order_id' => $order->id,
-                    'invoice' => $responseData['data']['id'] ?? null,
-                    'status' => $responseData['data']['status'] ?? 'pending',
+
+                $order->update([
+                    'note' => json_encode($responseData)
                 ]);
 
                 return [
@@ -367,6 +367,19 @@ class ByxStoreSupplierService extends BaseSupplierService
                 'message' => 'Transaction failed: ' . $e->getMessage(),
             ];
         }
+    }
+
+    public function formatDataPlayer(array $dataPlayer): string
+    {
+        // ByxStore expects target in "ID|ZoneID" format
+        $playerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
+        $zoneId = $dataPlayer['zone_id'] ?? $dataPlayer['server_id'] ?? '';
+
+        if (!empty($playerId) && !empty($zoneId)) {
+            return $playerId . '|' . $zoneId;
+        }
+
+        return $playerId;
     }
 
     /**
@@ -480,7 +493,6 @@ class ByxStoreSupplierService extends BaseSupplierService
                     'data' => [
                         'invoice' => $responseData['data']['id'] ?? $byxstoreInvoice,
                         'status' => $responseData['data']['status'] ?? 'unknown',
-                        'sn' => $responseData['data']['keterangan'] ?? null, // Serial Number
                         'keterangan' => $responseData['data']['keterangan'] ?? null,
                     ],
                 ];
@@ -534,6 +546,8 @@ class ByxStoreSupplierService extends BaseSupplierService
                     'note' => json_encode($transactionData)
                 ]);
 
+                $this->logTransaction($order, [], $transactionData, 'status_checked');
+
                 // Increment sold_count if applicable
                 $product = $order->product;
                 if ($product) {
@@ -563,11 +577,7 @@ class ByxStoreSupplierService extends BaseSupplierService
                     'note' => json_encode($transactionData)
                 ]);
 
-                Log::info('ByxStore transaction pending', [
-                    'order_id' => $order->id,
-                    'invoice' => $invoice,
-                    'status' => $status,
-                ]);
+                $this->logTransaction($order, [], $transactionData, 'status_checked');
 
                 return [
                     'success' => true,
@@ -576,6 +586,21 @@ class ByxStoreSupplierService extends BaseSupplierService
                     'data' => $transactionData,
                 ];
 
+            case 'refund':
+                $order->update([
+                    'status' => 'failed',
+                    'note' => json_encode($transactionData)
+                ]);
+
+                $this->logTransaction($order, [], $transactionData, 'status_checked');
+
+                return [
+                    'success' => false,
+                    'message' => $keterangan ?: 'Transaction refunded',
+                    'invoice' => $invoice,
+                    'data' => $transactionData,
+                ];
+                
             case 'gagal':
             case 'failed':
             default:
@@ -584,12 +609,7 @@ class ByxStoreSupplierService extends BaseSupplierService
                     'note' => json_encode($transactionData)
                 ]);
 
-                Log::warning('ByxStore transaction failed', [
-                    'order_id' => $order->id,
-                    'invoice' => $invoice,
-                    'status' => $status,
-                    'keterangan' => $keterangan,
-                ]);
+                $this->logTransaction($order, [], $transactionData, 'status_checked');
 
                 return [
                     'success' => false,
@@ -618,7 +638,7 @@ class ByxStoreSupplierService extends BaseSupplierService
             $refId = $payload['ref_id'] ?? $payload['trx_id'] ?? null;
 
             if (!$refId) {
-                Log::warning('ByxStore webhook: missing ref_id', ['payload' => $payload]);
+                Log::warning('ByxStore webhook: missing ref_id in payload', ['payload' => $payload]);
 
                 $this->logWebhook(
                     $payload,

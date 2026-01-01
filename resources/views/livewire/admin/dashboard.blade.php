@@ -108,7 +108,6 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
             $balance = $service->getBalance();
             $this->byxstoreBalance = $balance ?? 0;
 
-            $this->byxstoreBalance = 0;
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to load Byxstore balance', [
                 'error' => $e->getMessage()
@@ -354,7 +353,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                         <flux:table.row>
                             <flux:table.cell class="font-mono text-xs">{{ Str::limit($activity->order_code, 8) }}
                             </flux:table.cell>
-                            <flux:table.cell>{{ $activity->user->name ?? 'N/A' }}</flux:table.cell>
+                            <flux:table.cell>{{ $activity->user->name ?? 'Guest' }}</flux:table.cell>
                             <flux:table.cell>{{ $activity->game->name ?? 'N/A' }}</flux:table.cell>
                             <flux:table.cell>
                                 @if ($activity->product && $activity->product->product_type === 'manual')
@@ -363,7 +362,7 @@ new #[Layout('components.layouts.app'), Title('Dashboard')] class extends Compon
                                     </flux:badge>
                                 @else
                                     <flux:badge color="indigo" size="sm" icon="globe-alt">
-                                        Digiflazz
+                                        {{ $activity->product->product_type }}
                                     </flux:badge>
                                 @endif
                             </flux:table.cell>
