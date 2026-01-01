@@ -10,7 +10,7 @@ use function Livewire\Volt\{state, mount, rules, uses, computed};
 
 uses([WithFileUploads::class]);
 
-state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => [], 'productGroups' => [], 'autoGenerateSlug' => false]);
+state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => [], 'productGroups' => [], 'autoGenerateSlug' => false, 'inquiry' => '', ]);
 
 $categories = computed(fn() => Category::where('is_active', true)->orderBy('sort_order')->get());
 
@@ -24,6 +24,7 @@ mount(function (Game $game) {
     $this->category_id = $game->category_id;
     $this->existingImage = $game->image;
     $this->existingBanner = $game->banner;
+    $this->inquiry = $game->inquiry;
 
     // Load existing field forms
     $this->fieldForms = $game->fieldForms
@@ -67,6 +68,7 @@ rules(
         'fieldForms.*.is_required' => 'boolean',
         'productGroups.*.name' => 'required|string|max:100',
         'productGroups.*.is_active' => 'boolean',
+        'inquiry' => 'nullable|string|max:255',
     ],
 );
 
@@ -277,6 +279,12 @@ $save = function () {
                     </flux:field>
 
                     <flux:field class="mb-4">
+                        <flux:label>Inquiry Code (Opsional)</flux:label>
+                        <flux:input wire:model="inquiry" placeholder="Masukan Inquiry" />
+                        <flux:error name="inquiry" />
+                    </flux:field>
+
+                    <flux:field class="mb-4">
                         <flux:label>Deskripsi</flux:label>
                         <flux:textarea wire:model="description" rows="4"
                             placeholder="Deskripsi singkat tentang game..." />
@@ -369,51 +377,52 @@ $save = function () {
                     </div>
 
                     @if (count($productGroups) > 0)
-                        <div class="space-y-3"
-                             x-data="{
-                                 dragging: null,
-                                 dragover: null,
-                                 startDrag(index) {
-                                     this.dragging = index;
-                                 },
-                                 endDrag() {
-                                     this.dragging = null;
-                                     this.dragover = null;
-                                 },
-                                 dragOver(index, event) {
-                                     event.preventDefault();
-                                     this.dragover = index;
-                                 },
-                                 drop(index) {
-                                     if (this.dragging !== null && this.dragging !== index) {
-                                         $wire.swapGroups(this.dragging, index);
-                                     }
-                                     this.endDrag();
-                                 }
-                             }">
+                        <div class="space-y-3" x-data="{
+                            dragging: null,
+                            dragover: null,
+                            startDrag(index) {
+                                this.dragging = index;
+                            },
+                            endDrag() {
+                                this.dragging = null;
+                                this.dragover = null;
+                            },
+                            dragOver(index, event) {
+                                event.preventDefault();
+                                this.dragover = index;
+                            },
+                            drop(index) {
+                                if (this.dragging !== null && this.dragging !== index) {
+                                    $wire.swapGroups(this.dragging, index);
+                                }
+                                this.endDrag();
+                            }
+                        }">
                             @foreach ($productGroups as $index => $group)
                                 <div class="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-move transition-all"
-                                     draggable="true"
-                                     @dragstart="startDrag({{ $index }})"
-                                     @dragend="endDrag()"
-                                     @dragover="dragOver({{ $index }}, $event)"
-                                     @drop="drop({{ $index }})"
-                                     :class="{
-                                         'opacity-50': dragging === {{ $index }},
-                                         'border-blue-500 border-2': dragover === {{ $index }} && dragging !== {{ $index }}
-                                     }">
+                                    draggable="true" @dragstart="startDrag({{ $index }})" @dragend="endDrag()"
+                                    @dragover="dragOver({{ $index }}, $event)"
+                                    @drop="drop({{ $index }})"
+                                    :class="{
+                                        'opacity-50': dragging === {{ $index }},
+                                        'border-blue-500 border-2': dragover === {{ $index }} && dragging !==
+                                            {{ $index }}
+                                    }">
                                     <div class="flex items-start gap-3">
                                         <!-- Drag Handle -->
                                         <div class="mt-2 text-zinc-400 pointer-events-none">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 8h16M4 16h16" />
                                             </svg>
                                         </div>
 
                                         <div class="flex-1">
                                             <div class="flex items-center justify-between mb-3">
                                                 <span class="text-sm font-medium">Group #{{ $index + 1 }}</span>
-                                                <button type="button" wire:click="removeProductGroup({{ $index }})"
+                                                <button type="button"
+                                                    wire:click="removeProductGroup({{ $index }})"
                                                     class="text-red-600 hover:text-red-700 text-sm">
                                                     <flux:icon.trash class="w-4 h-4" />
                                                 </button>
@@ -429,8 +438,10 @@ $save = function () {
                                                 <flux:field>
                                                     <flux:label>Status</flux:label>
                                                     <div class="flex items-center gap-3 mt-2">
-                                                        <flux:checkbox wire:model="productGroups.{{ $index }}.is_active" />
-                                                        <span class="text-sm">{{ $group['is_active'] ? 'Aktif' : 'Nonaktif' }}</span>
+                                                        <flux:checkbox
+                                                            wire:model="productGroups.{{ $index }}.is_active" />
+                                                        <span
+                                                            class="text-sm">{{ $group['is_active'] ? 'Aktif' : 'Nonaktif' }}</span>
                                                     </div>
                                                 </flux:field>
                                             </div>
@@ -466,10 +477,12 @@ $save = function () {
 
                     <flux:field class="mb-4" x-data="{ imagePreview: null }" x-init="imagePreview = @js($existingImage ? asset('storage/' . $existingImage) : null)">
                         <flux:label>Gambar Game</flux:label>
-                        @if($existingImage)
-                            <div class="mb-2 p-2 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-700">
+                        @if ($existingImage)
+                            <div
+                                class="mb-2 p-2 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-700">
                                 <p class="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Gambar saat ini:</p>
-                                <img src="{{ asset('storage/' . $existingImage) }}" class="w-32 rounded" alt="Current Image">
+                                <img src="{{ asset('storage/' . $existingImage) }}" class="w-32 rounded"
+                                    alt="Current Image">
                             </div>
                         @endif
                         <input type="file" wire:model="image" accept="image/*"
@@ -492,10 +505,12 @@ $save = function () {
 
                     <flux:field class="mb-4" x-data="{ bannerPreview: null }" x-init="bannerPreview = @js($existingBanner ? asset('storage/' . $existingBanner) : null)">
                         <flux:label>Banner Game</flux:label>
-                        @if($existingBanner)
-                            <div class="mb-2 p-2 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-700">
+                        @if ($existingBanner)
+                            <div
+                                class="mb-2 p-2 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-700">
                                 <p class="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Banner saat ini:</p>
-                                <img src="{{ asset('storage/' . $existingBanner) }}" class="w-full rounded" alt="Current Banner">
+                                <img src="{{ asset('storage/' . $existingBanner) }}" class="w-full rounded"
+                                    alt="Current Banner">
                             </div>
                         @endif
                         <input type="file" wire:model="banner" accept="image/*"
@@ -509,7 +524,8 @@ $save = function () {
                             "
                             class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
                         <flux:error name="banner" />
-                        <flux:description>Max 2MB, format: JPG, PNG. Upload banner baru untuk mengubah</flux:description>
+                        <flux:description>Max 2MB, format: JPG, PNG. Upload banner baru untuk mengubah
+                        </flux:description>
                         <div x-show="bannerPreview && bannerPreview !== @js($existingBanner ? asset('storage/' . $existingBanner) : null)" class="mt-2">
                             <p class="text-xs text-zinc-600 dark:text-zinc-400 mb-1">Preview banner baru:</p>
                             <img :src="bannerPreview" class="w-full rounded" alt="New Preview">
@@ -537,4 +553,3 @@ $save = function () {
         </div>
     </form>
 </div>
-

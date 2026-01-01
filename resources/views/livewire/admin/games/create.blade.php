@@ -21,6 +21,7 @@ state([
     'fieldForms' => [],
     'productGroups' => [],
     'autoGenerateSlug' => true,
+    'inquiry' => '',
 ]);
 
 $categories = computed(fn() => Category::where('is_active', true)->orderBy('sort_order')->get());
@@ -40,6 +41,7 @@ rules([
     'fieldForms.*.is_required' => 'boolean',
     'productGroups.*.name' => 'required|string|max:100',
     'productGroups.*.is_active' => 'boolean',
+    'inquiry' => 'nullable|string|max:255',
 ]);
 
 $generateSlug = function () {
@@ -214,6 +216,12 @@ $save = function () {
                         <flux:label>Provider</flux:label>
                         <flux:input wire:model="provider" placeholder="e.g., Moonton" />
                         <flux:error name="provider" />
+                    </flux:field>
+
+                    <flux:field class="mb-4">
+                        <flux:label>Inquiry Code (Opsional)</flux:label>
+                        <flux:input wire:model="inquiry" placeholder="Masukan Inquiry" />
+                        <flux:error name="inquiry" />
                     </flux:field>
 
                     <flux:field class="mb-4">

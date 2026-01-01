@@ -83,30 +83,30 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
     }
 }; ?>
 
-<div class="py-12">
+<div class="py-6 md:py-12">
     <!-- Hero Section -->
-    <div class="container mx-auto px-4 max-w-4xl text-center mb-8">
+    <div class="container mx-auto px-3 sm:px-4 max-w-4xl text-center mb-6 md:mb-8">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-            class="w-16 h-16 mx-auto mb-4 text-yellow-400">
+            class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-yellow-400">
             <path stroke-linecap="round" stroke-linejoin="round"
                 d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
         </svg>
-        <h1 class="text-3xl md:text-4xl font-bold mb-3 text-yellow-400">{{ __('messages.check_transaction_title') }}
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 md:mb-3 text-yellow-400">{{ __('messages.check_transaction_title') }}
         </h1>
-        <p class="text-lg text-zinc-200">{{ __('messages.check_transaction_subtitle') }}</p>
+        <p class="text-base sm:text-lg text-zinc-200">{{ __('messages.check_transaction_subtitle') }}</p>
     </div>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 max-w-4xl pb-12">
+    <div class="container mx-auto px-3 sm:px-4 max-w-4xl pb-8 md:pb-12">
         @if (!$order)
             <!-- Search Form -->
             <flux:card class="shadow-xl">
-                <div class="p-6 md:p-8">
-                    <h2 class="text-xl md:text-2xl font-semibold mb-6 text-zinc-800 dark:text-white">
+                <div class="p-4 sm:p-6 md:p-8">
+                    <h2 class="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6 text-zinc-800 dark:text-white">
                         {{ __('messages.transaction_code') }}
                     </h2>
 
-                    <form wire:submit="checkOrder" class="space-y-6">
+                    <form wire:submit="checkOrder" class="space-y-4 sm:space-y-6">
                         <!-- Order Code -->
                         <div>
                             <flux:input type="text" wire:model="orderCode" :label="__('messages.transaction_code')"
@@ -145,9 +145,9 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                         </div>
                     </form>
 
-                    <flux:separator class="my-6" />
+                    <flux:separator class="my-4 sm:my-6" />
 
-                    <flux:callout variant="info" icon="information-circle" class="text-sm">
+                    <flux:callout variant="info" icon="information-circle" class="text-xs sm:text-sm">
                         <strong>Tips:</strong> Kode transaksi dapat ditemukan di email konfirmasi atau notifikasi
                         WhatsApp yang Anda terima setelah melakukan pemesanan.
                     </flux:callout>
@@ -155,7 +155,7 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
             </flux:card>
         @else
             <!-- Order Details -->
-            <div class="space-y-6">
+            <div class="space-y-4 sm:space-y-6">
                 <!-- Success Alert -->
                 <flux:callout variant="success" icon="check-circle">
                     <strong>Transaksi ditemukan!</strong> Berikut adalah detail transaksi Anda.
@@ -163,11 +163,11 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
 
                 <!-- Order Information Card -->
                 <flux:card class="shadow-xl">
-                    <div class="p-6 md:p-8">
-                        <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
+                    <div class="p-4 sm:p-6 md:p-8">
+                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
                             <h2
-                                class="text-xl md:text-2xl font-semibold text-zinc-800 dark:text-white flex items-center gap-3">
-                                <flux:icon.document-text class="w-6 h-6" />
+                                class="text-lg sm:text-xl md:text-2xl font-semibold text-zinc-800 dark:text-white flex items-center gap-2">
+                                <flux:icon.document-text class="w-5 h-5 sm:w-6 sm:h-6" />
                                 {{ __('messages.transaction_details') }}
                             </h2>
 
@@ -187,22 +187,22 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                             </flux:badge>
                         </div>
 
-                        <flux:separator class="my-6" />
+                        <flux:separator class="my-4 sm:my-6" />
 
                         <!-- Order Info Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                             <div>
                                 <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
                                     {{ __('messages.transaction_code') }}</p>
                                 <div class="flex items-center gap-2">
-                                    <p class="font-bold text-lg text-zinc-800 dark:text-white">{{ $order->order_code }}
+                                    <p class="font-bold text-base sm:text-lg text-zinc-800 dark:text-white break-all">{{ $order->order_code }}
                                     </p>
                                     <button type="button"
-                                        onclick="navigator.clipboard.writeText('{{ $order->order_code }}'); this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' class=\'w-5 h-5\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M4.5 12.75l6 6 9-13.5\' /></svg>'; setTimeout(() => { this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' class=\'w-5 h-5\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184\' /></svg>'; }, 2000)"
-                                        class="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                        onclick="navigator.clipboard.writeText('{{ $order->order_code }}'); this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' class=\'w-4 h-4 sm:w-5 sm:h-5\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M4.5 12.75l6 6 9-13.5\' /></svg>'; setTimeout(() => { this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' class=\'w-4 h-4 sm:w-5 sm:h-5\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184\' /></svg>'; }, 2000)"
+                                        class="p-1 sm:p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex-shrink-0"
                                         title="Salin kode transaksi">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            stroke-width="1.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
                                         </svg>
@@ -227,7 +227,7 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                                 <div class="md:col-span-2">
                                     <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Data Player</p>
                                     <div
-                                        class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-zinc-50 dark:bg-zinc-800 p-4 rounded-lg">
+                                        class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 bg-zinc-50 dark:bg-zinc-800 p-3 sm:p-4 rounded-lg">
                                         @foreach ($order->data_player as $key => $value)
                                             @if ($value)
                                                 <div>
@@ -243,28 +243,28 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                             @endif
                         </div>
 
-                        <flux:separator class="my-6" />
+                        <flux:separator class="my-4 sm:my-6" />
 
                         <!-- Price -->
                         <div
-                            class="flex justify-between items-center bg-yellow-50 dark:bg-yellow-900/20 p-4 md:p-6 rounded-lg border-2 border-yellow-400">
-                            <span class="text-lg md:text-xl font-semibold text-zinc-800 dark:text-white">Total
+                            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-yellow-50 dark:bg-yellow-900/20 p-3 sm:p-4 md:p-6 rounded-lg border-2 border-yellow-400">
+                            <span class="text-base sm:text-lg md:text-xl font-semibold text-zinc-800 dark:text-white">Total
                                 Pembayaran</span>
-                            <span class="text-2xl md:text-3xl font-bold text-yellow-600 dark:text-yellow-400">Rp
+                            <span class="text-xl sm:text-xl md:text-2xl font-bold text-yellow-600 dark:text-yellow-400">Rp
                                 {{ number_format($order->price, 0, ',', '.') }}</span>
                         </div>
 
                         @if ($order->orderPayment)
-                            <flux:separator class="my-6" />
+                            <flux:separator class="my-4 sm:my-6" />
 
                             <!-- Payment Info -->
-                            <div class="bg-zinc-50 dark:bg-zinc-800 p-4 md:p-6 rounded-lg">
+                            <div class="bg-zinc-50 dark:bg-zinc-800 p-3 sm:p-4 md:p-6 rounded-lg">
                                 <h3
-                                    class="font-bold text-lg mb-4 text-zinc-800 dark:text-white flex items-center gap-2">
+                                    class="font-bold text-base sm:text-lg mb-3 sm:mb-4 text-zinc-800 dark:text-white flex items-center gap-2">
                                     <flux:icon.credit-card class="w-5 h-5" />
                                     Informasi Pembayaran
                                 </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
                                         <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Metode Pembayaran</p>
                                         <p class="font-semibold text-zinc-800 dark:text-white">
@@ -285,7 +285,7 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                                             <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Referensi
                                                 Pembayaran</p>
                                             <p
-                                                class="font-mono text-xs bg-white dark:bg-zinc-900 p-3 rounded border break-all text-zinc-800 dark:text-white">
+                                                class="font-mono text-xs bg-white dark:bg-zinc-900 p-2 sm:p-3 rounded border break-all text-zinc-800 dark:text-white">
                                                 {{ $order->orderPayment->payment_reference }}</p>
                                         </div>
                                     @endif
@@ -294,7 +294,7 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                         @endif
 
                         <!-- Transaction Status Information -->
-                        <flux:separator class="my-6" />
+                        <flux:separator class="my-4 sm:my-6" />
 
                         @if ($order->status === 'success')
                             <flux:callout variant="success" icon="check-circle">
@@ -330,10 +330,10 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                         @endif
 
                         <!-- Actions -->
-                        <flux:separator class="my-6" />
+                        <flux:separator class="my-4 sm:my-6" />
 
                         @if ($order->orderPayment && $order->orderPayment->status === 'pending')
-                            <div class="mb-6">
+                            <div class="mb-4 sm:mb-6">
                                 <flux:callout variant="warning" icon="exclamation-triangle">
                                     <strong>Pembayaran Belum Selesai!</strong> Klik tombol di bawah untuk menyelesaikan
                                     pembayaran Anda.
@@ -341,7 +341,7 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
                             </div>
                         @endif
 
-                        <div class="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-3">
+                        <div class="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-2 sm:gap-3">
                             @if ($order->orderPayment && $order->orderPayment->status === 'pending')
                                     <flux:button href="{{ route('payment.detail', ['order_code' => $order->order_code]) }}" target="_blank" variant="primary">
                                         <flux:icon.credit-card class="w-5 h-5" />

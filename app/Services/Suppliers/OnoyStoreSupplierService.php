@@ -636,4 +636,70 @@ class OnoyStoreSupplierService extends BaseSupplierService
 
         return $isValid;
     }
+
+    public function cekName($dataPlayer, $inquiry): array
+    {
+        try {
+            $dataPlayerArr = is_string($dataPlayer)
+                ? json_decode($dataPlayer, true)
+                : $dataPlayer;
+
+            $userId = $dataPlayerArr['player_id'] ?? $dataPlayerArr['user_id'] ?? '';
+            $serverId = $dataPlayerArr['server_id'] ?? $dataPlayerArr['zone_id'] ?? '';
+
+            $inquiry = 'cekml';
+
+            // Build payload according to OnoyStore API
+            $payload = [
+                'product_code' => $inquiry,
+                'user_id' => $userId,
+                'server_id' => $serverId,
+                'trx_id' => 'CEKNAME-' . uniqid(),
+            ];
+
+            // Add callback URL if configured
+            // $callbackUrl = config('app.url') . '/api/webhooks/onoystore';
+            $callbackUrl = "https://rakyatgaming.id/webhook/onoystore";
+            if (!empty($callbackUrl)) {
+                $payload['callback_url'] = $callbackUrl;
+            }
+
+            // Send transaction request
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->post($this->baseUrl . '/v1/public/order', $payload);
+
+            $body = $response->json();
+
+            // Process response
+            if ($response->successful() && isset($body['statusCode']) && ($body['statusCode'] == 201 || $body['statusCode'] == 200)) {
+                $transactionData = $body['data']['user_input'] ?? [];
+                return [
+                    'success' => true,
+                    'message' => 'Cek name berhasil',
+                    'data' => $transactionData,
+                ];
+            }
+
+            // Invalid response
+            $errorMessage = $body['message'] ?? 'Invalid response from OnoyStore';
+            return [
+                'success' => false,
+                'message' => $errorMessage,
+                'data' => $body,
+            ];
+        }
+        catch (\Exception $e) {
+            Log::error('OnoyStore cekName failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'cekName failed: ' . $e->getMessage(),
+            ];
+        }
+    }
 }

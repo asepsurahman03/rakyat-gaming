@@ -19,6 +19,7 @@ class Game extends Model
         'banner',
         'description',
         'provider',
+        'inquiry',
         'is_active',
     ];
 

@@ -149,19 +149,19 @@ new #[Layout('components.layouts.guest')] class extends Component {
     }
 }; ?>
 
-<div class="min-h-screen py-12">
-    <div class="container mx-auto px-4 max-w-4xl">
+<div class="min-h-screen py-6 md:py-12">
+    <div class="container mx-auto px-3 sm:px-4 max-w-4xl">
         @if ($notFound)
             <!-- Not Found -->
             <flux:card class="shadow-xl bg-white/95 backdrop-blur">
-                <div class="p-6 md:p-8 text-center">
+                <div class="p-4 sm:p-6 md:p-8 text-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="w-20 h-20 mx-auto mb-4 text-zinc-400">
+                        stroke="currentColor" class="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 text-zinc-400">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
-                    <h2 class="text-2xl font-bold mb-3">Transaksi Tidak Ditemukan</h2>
-                    <p class="text-zinc-600 mb-6">Kode transaksi tidak valid atau tidak ditemukan di sistem kami.</p>
+                    <h2 class="text-xl sm:text-2xl font-bold mb-3">Transaksi Tidak Ditemukan</h2>
+                    <p class="text-sm sm:text-base text-zinc-600 mb-6">Kode transaksi tidak valid atau tidak ditemukan di sistem kami.</p>
 
                     <div class="flex flex-col sm:flex-row justify-center gap-3">
                         <flux:button href="{{ route('cek-transaksi') }}" wire:navigate variant="ghost">
@@ -179,48 +179,48 @@ new #[Layout('components.layouts.guest')] class extends Component {
             <!-- Payment Details -->
             <div class="space-y-6">
                 <!-- Header -->
-                <div class="text-center text-white mb-8">
+                <div class="text-center text-white mb-6 md:mb-8">
                     @if ($order->orderPayment && $order->orderPayment->status === 'paid')
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-green-400">
+                            stroke="currentColor" class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-green-400">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-green-400">Pembayaran Berhasil!</h1>
-                        <p class="text-lg">Terima kasih, pembayaran Anda telah diterima</p>
+                        <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-green-400">Pembayaran Berhasil!</h1>
+                        <p class="text-base md:text-lg">Terima kasih, pembayaran Anda telah diterima</p>
                     @elseif ($order->orderPayment && $order->orderPayment->status === 'expired')
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-red-400">
+                            stroke="currentColor" class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-red-400">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
-                        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-red-400">Pembayaran Kadaluarsa</h1>
-                        <p class="text-lg">Batas waktu pembayaran telah berakhir</p>
+                        <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-red-400">Pembayaran Kadaluarsa</h1>
+                        <p class="text-base md:text-lg">Batas waktu pembayaran telah berakhir</p>
                     @elseif ($order->orderPayment && $order->orderPayment->status === 'failed')
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-red-400">
+                            stroke="currentColor" class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-red-400">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-red-400">Pembayaran Gagal</h1>
-                        <p class="text-lg">Transaksi pembayaran tidak berhasil</p>
+                        <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-red-400">Pembayaran Gagal</h1>
+                        <p class="text-base md:text-lg">Transaksi pembayaran tidak berhasil</p>
                     @else
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                            stroke="currentColor" class="w-16 h-16 mx-auto mb-4 text-yellow-400">
+                            stroke="currentColor" class="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-yellow-400">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                         </svg>
-                        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-yellow-400">Selesaikan Pembayaran</h1>
-                        <p class="text-lg">Silakan lakukan pembayaran sesuai instruksi di bawah</p>
+                        <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-yellow-400">Selesaikan Pembayaran</h1>
+                        <p class="text-base md:text-lg">Silakan lakukan pembayaran sesuai instruksi di bawah</p>
                     @endif
                 </div>
 
                 @if ($order->orderPayment && ($order->orderPayment->status === 'expired' || $order->orderPayment->status === 'failed'))
                     <!-- Expired/Failed Payment Notice -->
                     <flux:card class="shadow-xl bg-white/95 backdrop-blur">
-                        <div class="p-6 md:p-8">
-                            <div class="flex items-center justify-between mb-6">
-                                <h2 class="text-xl font-bold flex items-center gap-2 text-red-600">
+                        <div class="p-4 sm:p-6 md:p-8">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                                <h2 class="text-lg sm:text-xl font-bold flex items-center gap-2 text-red-600">
                                     <flux:icon.exclamation-triangle class="w-6 h-6" />
                                     {{ $order->orderPayment->status === 'expired' ? 'Pembayaran Kadaluarsa' : 'Pembayaran Gagal' }}
                                 </h2>
@@ -231,15 +231,15 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                             <flux:separator class="my-6" />
 
-                            <div class="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-6">
-                                <div class="flex gap-4">
+                            <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 sm:p-6 mb-6">
+                                <div class="flex flex-col sm:flex-row gap-4">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                        stroke="currentColor" class="w-12 h-12 flex-shrink-0 text-red-600">
+                                        stroke="currentColor" class="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 text-red-600 mx-auto sm:mx-0">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                                     </svg>
                                     <div>
-                                        <h3 class="text-lg font-bold text-red-900 mb-2">
+                                        <h3 class="text-base sm:text-lg font-bold text-red-900 mb-2">
                                             @if ($order->orderPayment->status === 'expired')
                                                 Batas waktu pembayaran telah berakhir
                                             @else
@@ -262,10 +262,10 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             </div>
 
                             <!-- Informasi Total yang harus dibayar -->
-                            <div class="bg-zinc-50 rounded-lg p-4 mb-6">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-zinc-600">Total yang Harus Dibayar</span>
-                                    <span class="text-2xl font-bold text-zinc-900">Rp
+                            <div class="bg-zinc-50 rounded-lg p-3 sm:p-4 mb-6">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+                                    <span class="text-sm sm:text-base text-zinc-600">Total yang Harus Dibayar</span>
+                                    <span class="text-xl sm:text-2xl font-bold text-zinc-900">Rp
                                         {{ number_format($order->orderPayment->amount ?? $order->price, 0, ',', '.') }}</span>
                                 </div>
                             </div>
@@ -286,9 +286,9 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 @elseif ($order->orderPayment && $order->orderPayment->status === 'pending')
                     <!-- Payment Instructions -->
                     <flux:card class="shadow-xl bg-white/95 backdrop-blur">
-                        <div class="p-6 md:p-8">
-                            <div class="flex items-center justify-between mb-6">
-                                <h2 class="text-xl font-bold flex items-center gap-2">
+                        <div class="p-4 sm:p-6 md:p-8">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                                <h2 class="text-lg sm:text-xl font-bold flex items-center gap-2">
                                     <flux:icon.credit-card class="w-6 h-6" />
                                     Informasi Pembayaran
                                 </h2>
@@ -314,21 +314,21 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                             <!-- Virtual Account Number (if available) -->
                             @if ($paymentMethod !== 'alfamart' && $paymentMethod !== 'indomaret' && $paymentMethod !== 'mpm' && $paymentMethod !== 'cc' && $paymentData && isset($paymentData['payment_no']))
-                                <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 mb-6">
-                                    <p class="text-lg font-semibold text-zinc-800 mb-2">Nomor Virtual Account</p>
+                                <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 sm:p-6 mb-6">
+                                    <p class="text-base sm:text-lg font-semibold text-zinc-800 mb-2">Nomor Virtual Account</p>
                                     <p class="text-sm text-zinc-600 mb-4">Transfer ke nomor Virtual Account berikut</p>
 
-                                    <div class="bg-white rounded-lg p-4 mb-4">
-                                        <div class="flex items-center justify-between gap-4 mb-4">
-                                            <div>
+                                    <div class="bg-white rounded-lg p-3 sm:p-4 mb-4">
+                                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                                            <div class="w-full sm:w-auto">
                                                 <p class="text-xs text-zinc-500 mb-1">Nomor Virtual Account</p>
-                                                <p class="text-2xl font-bold text-zinc-900 tracking-wider">
+                                                <p class="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 tracking-wider break-all">
                                                     {{ $paymentData['payment_no'] }}
                                                 </p>
                                             </div>
                                             <button type="button"
                                                 onclick="navigator.clipboard.writeText('{{ $paymentData['payment_no'] }}'); this.querySelector('.copy-icon').classList.add('hidden'); this.querySelector('.check-icon').classList.remove('hidden'); setTimeout(() => { this.querySelector('.copy-icon').classList.remove('hidden'); this.querySelector('.check-icon').classList.add('hidden'); }, 2000)"
-                                                class="flex-shrink-0 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                                                class="w-full sm:w-auto flex-shrink-0 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                     stroke-width="2" stroke="currentColor" class="w-5 h-5 copy-icon">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -370,14 +370,14 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                             <!-- QRIS Code (if available) -->
                             @if ($paymentMethod === 'mpm' && $paymentData && isset($paymentData['qr_string']) && !empty($paymentData['qr_string']))
-                                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-                                    <p class="text-lg font-semibold text-zinc-800 mb-2">Scan QRIS untuk Membayar</p>
+                                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 sm:p-6 mb-6">
+                                    <p class="text-base sm:text-lg font-semibold text-zinc-800 mb-2">Scan QRIS untuk Membayar</p>
                                     <p class="text-sm text-zinc-600 mb-4">Gunakan aplikasi e-wallet atau mobile banking Anda</p>
 
-                                    <div class="bg-white rounded-lg p-4 mb-4" wire:ignore>
+                                    <div class="bg-white rounded-lg p-3 sm:p-4 mb-4" wire:ignore>
                                         <div class="text-center mb-4">
                                             {{-- Generate QR Code from qr_string (iPaymu's QrImage has CORS restrictions) --}}
-                                            <div id="qrcode-{{ $order->order_code }}" class="flex justify-center" data-qr-string="{{ $paymentData['qr_string'] }}"></div>
+                                            <div id="qrcode-{{ $order->order_code }}" class="flex justify-center items-center" data-qr-string="{{ $paymentData['qr_string'] }}"></div>
                                         </div>
 
                                         {{-- Link to open in new tab --}}
@@ -421,10 +421,12 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                                                 if (typeof QRCode !== 'undefined') {
                                                     container.innerHTML = '';
+                                                    const isMobile = window.innerWidth < 640;
+                                                    const qrSize = isMobile ? 200 : 256;
                                                     new QRCode(container, {
                                                         text: qrString,
-                                                        width: 256,
-                                                        height: 256,
+                                                        width: qrSize,
+                                                        height: qrSize,
                                                         colorDark: '#000000',
                                                         colorLight: '#ffffff',
                                                         correctLevel: QRCode.CorrectLevel.H
@@ -446,8 +448,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                     $paymentData &&
                                     isset($paymentData['payment_url']) &&
                                     !empty($paymentData['payment_url']))
-                                <div class="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
-                                    <p class="text-lg font-semibold text-zinc-800 mb-2">Pembayaran Kartu Kredit</p>
+                                <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4 sm:p-6 mb-6">
+                                    <p class="text-base sm:text-lg font-semibold text-zinc-800 mb-2">Pembayaran Kartu Kredit</p>
                                     <p class="text-sm text-zinc-600 mb-4">Klik tombol di bawah untuk melanjutkan pembayaran</p>
 
                                     <div class="bg-white rounded-lg p-4 mb-4">
@@ -472,24 +474,24 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             @endif
 
                             @if ($paymentMethod === 'alfamart' || $paymentMethod === 'indomart')
-                                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-                                    <p class="text-lg font-semibold text-zinc-800 mb-2">Kode Pembayaran
+                                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 sm:p-6 mb-6">
+                                    <p class="text-base sm:text-lg font-semibold text-zinc-800 mb-2">Kode Pembayaran
                                         {{ ucfirst($paymentMethod) }}</p>
                                     <p class="text-sm text-zinc-600 mb-4">Tunjukkan kode ini kepada kasir
                                         {{ ucfirst($paymentMethod) }}</p>
 
-                                    <div class="bg-white rounded-lg p-4 mb-4">
+                                    <div class="bg-white rounded-lg p-3 sm:p-4 mb-4">
                                         @if ($paymentData && isset($paymentData['payment_no']))
-                                            <div class="flex items-center justify-between gap-4 mb-4">
-                                                <div>
+                                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                                                <div class="w-full sm:w-auto">
                                                     <p class="text-xs text-zinc-500 mb-1">Kode Pembayaran</p>
-                                                    <p class="text-2xl font-bold text-zinc-900 tracking-wider">
+                                                    <p class="text-lg sm:text-xl md:text-2xl font-bold text-zinc-900 tracking-wider break-all">
                                                         {{ $paymentData['payment_no'] }}
                                                     </p>
                                                 </div>
                                                 <button type="button"
                                                     onclick="navigator.clipboard.writeText('{{ $paymentData['payment_no'] }}'); this.querySelector('.copy-icon').classList.add('hidden'); this.querySelector('.check-icon').classList.remove('hidden'); setTimeout(() => { this.querySelector('.copy-icon').classList.remove('hidden'); this.querySelector('.check-icon').classList.add('hidden'); }, 2000)"
-                                                    class="flex-shrink-0 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                                                    class="w-full sm:w-auto flex-shrink-0 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
                                                         class="w-5 h-5 copy-icon">
@@ -531,10 +533,10 @@ new #[Layout('components.layouts.guest')] class extends Component {
                             @endif
 
                             <!-- Payment Amount -->
-                            <div class="bg-zinc-50 rounded-lg p-4 mb-6">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-zinc-600">Total Pembayaran</span>
-                                    <span class="text-2xl font-bold text-zinc-900">Rp
+                            <div class="bg-zinc-50 rounded-lg p-3 sm:p-4 mb-6">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+                                    <span class="text-sm sm:text-base text-zinc-600">Total Pembayaran</span>
+                                    <span class="text-xl sm:text-2xl font-bold text-zinc-900">Rp
                                         {{ number_format($order->orderPayment->amount ?? $order->price, 0, ',', '.') }}</span>
                                 </div>
                             </div>
@@ -562,8 +564,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                 <!-- Order Information Card -->
                 <flux:card class="shadow-xl bg-white/95 backdrop-blur">
-                    <div class="p-6 md:p-8">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <div class="p-4 sm:p-6 md:p-8">
+                        <h2 class="text-lg sm:text-xl font-bold mb-6 flex items-center gap-2">
                             <flux:icon.document-text class="w-6 h-6" />
                             Detail Pesanan
                         </h2>
@@ -642,7 +644,7 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                 <!-- Help Section -->
                 <flux:card class="shadow-xl bg-white/95 backdrop-blur">
-                    <div class="p-6 text-center">
+                    <div class="p-4 sm:p-6 text-center">
                         <p class=" mb-3">Butuh bantuan?</p>
                         <p class="text-sm text-zinc-500 mb-4">Hubungi customer service kami jika mengalami kendala</p>
                         <div class="flex flex-col sm:flex-row justify-center gap-3">

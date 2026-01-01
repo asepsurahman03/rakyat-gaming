@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderPayment;
 use App\Models\PaymentGateway;
 use App\Services\IpaymuService;
+use App\Services\OnoyStoreSupplierService;
 use Illuminate\Support\Str;
 use Livewire\Attributes\{Layout, Title};
 use Livewire\Volt\Component;
@@ -31,6 +32,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
     public $paymentMethodsCached = false;
     public $paymentMethodsError = null;
     public $loading = false;
+    public $playerName = null;
 
     public function mount()
     {
@@ -81,6 +83,29 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 
         // All products for selection (for backward compatibility)
         $this->products = $this->game->products()->with('supplierProduct')->where('is_active', true)->whereNotIn('id', $activeFlazzSellProductIds)->orderBy('selling_price', 'asc')->get();
+    }
+
+    public function cekName()
+    {
+        foreach ($this->game->fieldForms as $fieldForm) {
+            if ($fieldForm->is_required && empty($this->fields[$fieldForm->name])) {
+                // Kirim event ke JS untuk scroll
+                $this->dispatch('scroll-to-field', name: $fieldForm->name);
+                Flux::toast(heading: 'Data player tidak lengkap!', text: "Field '{$fieldForm->label}' wajib diisi sebelum melanjutkan.", variant: 'error', position: 'top-right');
+                return;
+            }
+        }
+
+        // Panggil layanan untuk mendapatkan nama pemain
+        $cekNameService = app(\App\Services\Suppliers\OnoyStoreSupplierService::class);
+        $inquiry = strtolower($this->game->inquiry); // Contoh inquiry untuk cek nama Mobile Legends
+        $result = $cekNameService->cekName($this->fields, $inquiry);
+
+        if ($result['success']) {
+            $this->playerName = $result['data']['nickname'] ?? null;
+        } else {
+            Flux::toast(heading: 'Gagal cek name!', text: $result['message'] ?? 'Terjadi kesalahan saat mengecek name.', variant: 'error', position: 'top-right');
+        }
     }
 
     public function selectProduct($productId)
@@ -385,6 +410,16 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 </div>
                             @endforeach
                         </div>
+                        @if ($game->inquiry)
+                            <div class="mt-2 md:flex gap-2 w-full items-start">
+                                <flux:button wire:click="cekName">Cek Name</flux:button>
+                                @if ($playerName)
+                                    <flux:badge color="yellow" class="mt-2 md:mt-0">
+                                        Nickname: <strong>{{ $playerName }}</strong>
+                                    </flux:badge>
+                                @endif
+                            </div>
+                        @endif
                     @endif
                 </flux:card>
 
@@ -660,7 +695,9 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                         'Pay Later',
                                         'COD',
                                     ];
-                                    $orderedGroups = collect($groupOrder)->filter(function ($groupName) use ($groupedMethods) {
+                                    $orderedGroups = collect($groupOrder)->filter(function ($groupName) use (
+                                        $groupedMethods,
+                                    ) {
                                         return $groupedMethods->has($groupName);
                                     });
                                 @endphp
@@ -674,7 +711,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 
                                         <div class="border border-zinc-700 rounded-lg overflow-hidden bg-zinc-900">
                                             <!-- Accordion Header -->
-                                            <button @click="openGroup = openGroup === '{{ $groupName }}' ? null : '{{ $groupName }}'"
+                                            <button
+                                                @click="openGroup = openGroup === '{{ $groupName }}' ? null : '{{ $groupName }}'"
                                                 type="button"
                                                 class="w-full flex items-center justify-between p-3 hover:bg-zinc-800/50 transition-colors">
                                                 <div class="flex w-full items-center gap-3">
@@ -690,34 +728,35 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                                 class="border-t border-zinc-700">
                                                 <div class="p-2 grid grid-cols-3 gap-2">
                                                     @foreach ($methods as $method)
-                                                    <div class="bg-white rounded-lg ">
-                                                        <label
-                                                            class="relative p-3 border rounded-lg cursor-pointer transition-all aspect-[3/2] flex items-center justify-center
+                                                        <div class="bg-white rounded-lg ">
+                                                            <label
+                                                                class="relative p-3 border rounded-lg cursor-pointer transition-all aspect-[3/2] flex items-center justify-center
                                                             {{ $selectedPaymentMethod === $method['code'] ? 'border-yellow-500 bg-gray-100 ring-2 ring-yellow-500/50' : 'border-zinc-700 hover:border-yellow-400/50' }}">
-                                                            <input type="radio" name="payment_method"
-                                                                value="{{ $method['code'] }}"
-                                                                wire:model.live="selectedPaymentMethod"
-                                                                class="sr-only" />
+                                                                <input type="radio" name="payment_method"
+                                                                    value="{{ $method['code'] }}"
+                                                                    wire:model.live="selectedPaymentMethod"
+                                                                    class="sr-only" />
 
-                                                            @if (!empty($method['logo']))
-                                                                <img src="{{ $method['logo'] }}"
-                                                                    alt="{{ $method['name'] }}"
-                                                                    class="w-full h-full object-contain p-1" />
-                                                            @else
-                                                                <div
-                                                                    class="w-full h-full bg-zinc-800 rounded flex items-center justify-center">
-                                                                    <flux:icon.credit-card
-                                                                        class="w-8 h-8 text-zinc-600" />
-                                                                </div>
-                                                            @endif
+                                                                @if (!empty($method['logo']))
+                                                                    <img src="{{ $method['logo'] }}"
+                                                                        alt="{{ $method['name'] }}"
+                                                                        class="w-full h-full object-contain p-1" />
+                                                                @else
+                                                                    <div
+                                                                        class="w-full h-full bg-zinc-800 rounded flex items-center justify-center">
+                                                                        <flux:icon.credit-card
+                                                                            class="w-8 h-8 text-zinc-600" />
+                                                                    </div>
+                                                                @endif
 
-                                                            @if ($selectedPaymentMethod === $method['code'])
-                                                                <div class="absolute top-1 right-1">
-                                                                    <flux:icon.check-circle class="w-5 h-5 text-yellow-500" />
-                                                                </div>
-                                                            @endif
-                                                        </label>
-                                                    </div>
+                                                                @if ($selectedPaymentMethod === $method['code'])
+                                                                    <div class="absolute top-1 right-1">
+                                                                        <flux:icon.check-circle
+                                                                            class="w-5 h-5 text-yellow-500" />
+                                                                    </div>
+                                                                @endif
+                                                            </label>
+                                                        </div>
                                                     @endforeach
                                                 </div>
                                             </div>
