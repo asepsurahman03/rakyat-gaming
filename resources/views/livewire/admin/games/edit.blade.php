@@ -10,7 +10,7 @@ use function Livewire\Volt\{state, mount, rules, uses, computed};
 
 uses([WithFileUploads::class]);
 
-state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => [], 'productGroups' => [], 'autoGenerateSlug' => false, 'inquiry' => '', ]);
+state(['game', 'name' => '', 'slug' => '', 'provider' => '', 'description' => '', 'image' => null, 'banner' => null, 'is_active' => true, 'category_id' => null, 'existingImage' => null, 'existingBanner' => null, 'fieldForms' => [], 'productGroups' => [], 'autoGenerateSlug' => false, 'inquiry' => '', 'show_modal' => false, 'modal_content' => '']);
 
 $categories = computed(fn() => Category::where('is_active', true)->orderBy('sort_order')->get());
 
@@ -25,6 +25,8 @@ mount(function (Game $game) {
     $this->existingImage = $game->image;
     $this->existingBanner = $game->banner;
     $this->inquiry = $game->inquiry;
+    $this->show_modal = $game->show_modal;
+    $this->modal_content = $game->modal_content;
 
     // Load existing field forms
     $this->fieldForms = $game->fieldForms
@@ -69,6 +71,8 @@ rules(
         'productGroups.*.name' => 'required|string|max:100',
         'productGroups.*.is_active' => 'boolean',
         'inquiry' => 'nullable|string|max:255',
+        'show_modal' => 'boolean',
+        'modal_content' => 'nullable|string',
     ],
 );
 
@@ -289,6 +293,23 @@ $save = function () {
                         <flux:textarea wire:model="description" rows="4"
                             placeholder="Deskripsi singkat tentang game..." />
                         <flux:error name="description" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Detail Topup Game (Opsional)</flux:label>
+                        <flux:editor wire:model="modal_content" rows="4"
+                            placeholder="Detail topup yang akan ditampilkan pada modal..." />
+                        <flux:error name="modal_content" />
+                        <flux:description>
+                            Informasi tambahan yang akan ditampilkan pada modal saat pengguna memilih game ini untuk
+                            topup.
+                        </flux:description>
+                    </flux:field>
+                    <flux:field class="mb-4">
+                        <div class="flex items-center gap-3 mt-2">
+                            <flux:checkbox wire:model="show_modal" />
+                            <flux:label>Tampilkan Modal Detail Topup?</flux:label>
+                        </div>
                     </flux:field>
                 </flux:card>
 

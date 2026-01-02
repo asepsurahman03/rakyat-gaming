@@ -20,11 +20,14 @@ class Game extends Model
         'description',
         'provider',
         'inquiry',
+        'show_modal',
+        'modal_content',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'show_modal' => 'boolean',
     ];
 
     /**

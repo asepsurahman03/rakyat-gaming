@@ -22,6 +22,8 @@ state([
     'productGroups' => [],
     'autoGenerateSlug' => true,
     'inquiry' => '',
+    'show_modal' => false,
+    'modal_content' => '',
 ]);
 
 $categories = computed(fn() => Category::where('is_active', true)->orderBy('sort_order')->get());
@@ -228,6 +230,21 @@ $save = function () {
                         <flux:label>Deskripsi</flux:label>
                         <flux:textarea wire:model="description" rows="4" placeholder="Deskripsi singkat tentang game..." />
                         <flux:error name="description" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Detail Topup Game (Opsional)</flux:label>
+                        <flux:editor wire:model="modal_content" rows="4" placeholder="Detail topup yang akan ditampilkan pada modal..." />
+                        <flux:error name="modal_content" />
+                        <flux:description>
+                            Informasi tambahan yang akan ditampilkan pada modal saat pengguna memilih game ini untuk topup.
+                        </flux:description>
+                    </flux:field>
+                    <flux:field class="mb-4">
+                        <div class="flex items-center gap-3 mt-2">
+                            <flux:checkbox wire:model="show_modal" />
+                            <flux:label>Tampilkan Modal Detail Topup?</flux:label>
+                        </div>
                     </flux:field>
                 </flux:card>
 

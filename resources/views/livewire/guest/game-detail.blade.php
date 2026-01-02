@@ -33,6 +33,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
     public $paymentMethodsError = null;
     public $loading = false;
     public $playerName = null;
+    public bool $showModal = false;
+    public bool $dontShowAgain = false;
 
     public function mount()
     {
@@ -40,6 +42,13 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             ->where('slug', $this->slug)
             ->where('is_active', true)
             ->firstOrFail();
+
+        // Check if user has disabled modal for this game
+        $sessionKey = 'dont_show_modal_' . $this->game->slug;
+        $dontShow = session()->get($sessionKey, false);
+
+        $this->showModal = !$dontShow && $this->game->show_modal;
+        $this->dontShowAgain = $dontShow;
 
         $this->fields = $this->game->fieldForms->pluck('name')->mapWithKeys(fn($name) => [$name => ''])->toArray();
 
@@ -105,6 +114,21 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             $this->playerName = $result['data']['nickname'] ?? null;
         } else {
             Flux::toast(heading: 'Gagal cek name!', text: $result['message'] ?? 'Terjadi kesalahan saat mengecek name.', variant: 'error', position: 'top-right');
+        }
+    }
+
+    public function updatedDontShowAgain($value)
+    {
+        $sessionKey = 'dont_show_modal_' . $this->game->slug;
+
+        if ($value) {
+            // Save to session that user doesn't want to see modal for this game
+            session()->put($sessionKey, true);
+            // Close modal immediately
+            $this->showModal = false;
+        } else {
+            // Remove from session
+            session()->forget($sessionKey);
         }
     }
 
@@ -874,6 +898,48 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 </flux:card>
             </div>
         </div>
+    </div>
+
+    {{-- modal --}}
+    <div x-data="{ showModal: @entangle('showModal') }">
+        <template x-if="showModal">
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                @keydown.escape.window="showModal = false">
+                <div class="bg-white dark:bg-zinc-900 rounded-lg shadow-lg max-w-lg w-full p-6 mx-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <flux:heading class="text-xl font-bold text-yellow-500">{{ $game->name }}</flux:heading>
+                        <button @click="showModal = false"
+                            class="text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div
+                        class="prose prose-zinc dark:prose-invert max-w-none
+                        [&>p]:text-sm
+                        [&>h1]:text-2xl [&>h2]:text-xl [&>h3]:text-lg
+                            [&>p]:mb-4
+                            [&>h1]:mt-6 [&>h1]:mb-4
+                            [&>h2]:mt-6 [&>h2]:mb-4
+                            [&>h3]:mt-6 [&>h3]:mb-4
+                            [&>ul]:my-4 [&>ul]:list-disc [&>ul]:pl-8 [&>ul]:space-y-2
+                            [&>ol]:my-4 [&>ol]:list-decimal [&>ol]:pl-8 [&>ol]:space-y-2
+                            [&>ul>li]:ml-0 [&>ol>li]:ml-0
+                            [&_ul]:list-disc [&_ol]:list-decimal">
+                        {!! $game->modal_content !!}
+                    </div>
+                    <div class="mt-4 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <flux:checkbox wire:model.live="dontShowAgain"></flux:checkbox>
+                            <flux:label>Jangan tampilkan lagi</flux:label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 </div>
 
