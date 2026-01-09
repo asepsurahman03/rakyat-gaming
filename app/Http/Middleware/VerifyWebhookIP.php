@@ -62,35 +62,11 @@ class VerifyWebhookIP
         return match ($service) {
             'duitku' => [
                 // Duitku Production IPs
-                '182.23.85.8',
-                '182.23.85.9',
-                '182.23.85.10',
-                '182.23.85.13',
-                '182.23.85.14',
-                '103.177.101.184',
-                '103.177.101.185',
-                '103.177.101.186',
-                '103.177.101.189',
-                '103.177.101.190',
-
-                // Duitku Sandbox IPs
-                '182.23.85.11',
-                '182.23.85.12',
-                '103.177.101.187',
-                '103.177.101.188',
             ],
             'ipaymu' => [
                 // Ipaymu Production IPs
                 '120.89.93.249',
-                '103.140.62.122',
-                '103.140.62.123',
-                '103.140.62.124',
-                '103.140.62.125',
-                '103.140.62.126',
-                '103.140.62.127',
-
-                // Ipaymu Sandbox IPs (same as production)
-                '103.140.62.122',
+                '120.89.93.222',
             ],
             'digiflazz' => [
                 // Digiflazz IPs
@@ -98,7 +74,8 @@ class VerifyWebhookIP
             ],
             'suppliers' => [
                 // Example supplier IPs (replace with actual supplier IPs)
-                '159.223.78.143', // Supplier A
+                '52.74.250.133', // Supplier Digiflazz IP
+                '159.223.78.143', // Supplier OnoyStore IP
             ],
             default => [],
         };
