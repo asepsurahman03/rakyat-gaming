@@ -49,7 +49,7 @@ class PaymentController extends Controller
         }
 
         // Find order
-        $order = Order::where('order_code', $merchantOrderId)->first();
+        $order = Order::where('order_code', $merchantOrderId)->where('status', 'pending')->first();
 
         if (!$order) {
             Log::warning('Order not found for Ipaymu callback', ['merchantOrderId' => $merchantOrderId]);
