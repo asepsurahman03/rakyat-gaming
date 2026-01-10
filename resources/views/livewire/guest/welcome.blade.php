@@ -89,7 +89,7 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
             ->having('products_count', '>', 0)
             ->orderBy('orders_count', 'desc') // Sort by most orders
             ->orderBy('name', 'asc')
-            ->limit(8)
+            ->limit(6)
             ->get();
     }
 

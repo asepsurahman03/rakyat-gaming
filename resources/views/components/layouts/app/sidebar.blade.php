@@ -63,6 +63,13 @@
                 </div>
             </flux:navlist.item>
 
+            <flux:navlist.item href="{{ route('admin.leaderboard') }}" wire:navigate
+                :current="request()->routeIs('admin.leaderboard')">
+                <div class="text-yellow-400 flex items-center gap-2">
+                    <flux:icon.trophy size="xs" /> <span>Leaderboard</span>
+                </div>
+            </flux:navlist.item>
+
             <flux:navlist.item href="{{ route('admin.posts.index') }}" wire:navigate
                 :current="request()->routeIs('posts.*')">
                 <div class="text-yellow-400  flex items-center gap-2">

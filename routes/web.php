@@ -147,6 +147,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Live Chat Management
     Volt::route('admin/chat', 'admin.chat.index')->name('admin.chat.index');
 
+    // Leaderboard Management
+    Volt::route('admin/leaderboard', 'admin.leaderboard')->name('admin.leaderboard');
+
     // Settings
     Volt::route('admin/settings/application', 'admin.settings.application')->name('admin.settings.application');
 
