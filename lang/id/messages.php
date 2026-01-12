@@ -186,6 +186,9 @@ return [
     'contact_info' => 'Informasi Kontak',
     'whatsapp_number' => 'Nomor WhatsApp',
     'whatsapp_placeholder' => 'Contoh: 08123456789',
+    'view_game' => 'Lihat Lainnya',
+    'no_games_found' => 'Game Tidak Ditemukan',
+    'desk_no_games_found' => 'Coba pilih kategori lain',
 
     // Checkout
     'checkout_title' => 'Checkout',

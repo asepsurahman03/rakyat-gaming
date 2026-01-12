@@ -18,6 +18,7 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
     public $loading = false;
     public $timeRemaining = '';
     public $event = null;
+    public $perPage = 12;
 
     public function mount()
     {
@@ -130,6 +131,7 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
     public function setFilter($categoryId)
     {
         $this->filterCategoryId = $categoryId;
+        $this->perPage = 12; // Reset to initial value when filter changes
     }
 
     public function getFilteredProducts()
@@ -146,7 +148,29 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
             $query->where('category_id', $this->filterCategoryId);
         }
 
-        return $query->orderBy('name', 'asc')->get();
+        return $query->orderBy('name', 'asc')->limit($this->perPage)->get();
+    }
+
+    public function getTotalFilteredProducts()
+    {
+        $query = Game::where('is_active', true)
+            ->withCount([
+                'products' => function ($q) {
+                    $q->where('is_active', true);
+                },
+            ])
+            ->having('products_count', '>', 0);
+
+        if ($this->filterCategoryId !== null && $this->filterCategoryId !== '') {
+            $query->where('category_id', $this->filterCategoryId);
+        }
+
+        return $query->count();
+    }
+
+    public function loadMore()
+    {
+        $this->perPage += 12;
     }
 
     public function nextSlide()
@@ -588,11 +612,21 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
             @empty
                 <div class="col-span-full text-center py-12">
                     <x-icon name="puzzle-piece" class="w-16 h-16 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
-                    <flux:heading size="md" class="mb-2 text-white">Game Tidak Ditemukan</flux:heading>
-                    <flux:subheading class="text-zinc-400">Coba pilih kategori lain</flux:subheading>
+                    <flux:heading size="md" class="mb-2 text-white">{{ __('messages.no_games_found') }}</flux:heading>
+                    <flux:subheading class="text-zinc-400">{{ __('messages.desk_no_games_found') }}</flux:subheading>
                 </div>
             @endforelse
         </div>
+
+        <!-- Load More Button -->
+        @php
+            $totalProducts = $this->getTotalFilteredProducts();
+        @endphp
+        @if($totalProducts > $perPage)
+            <div class="flex justify-center mt-8">
+                <flux:button wire:click="loadMore" icon="arrow-down" variant="primary">{{ __('messages.view_game') }}</flux:button>
+            </div>
+        @endif
     </div>
 
     <!-- 4. ARTIKEL TERBARU (Maksimal 3) -->

@@ -186,6 +186,9 @@ return [
     'contact_info' => 'Contact Information',
     'whatsapp_number' => 'WhatsApp Number',
     'whatsapp_placeholder' => 'Example: 08123456789',
+    'view_game' => 'View More Games',
+    'no_games_found' => 'No Games Found',
+    'desk_no_games_found' => 'Try selecting a different category',
 
     // Checkout
     'checkout_title' => 'Checkout',
