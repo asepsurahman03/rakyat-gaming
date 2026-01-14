@@ -505,7 +505,10 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
 
     <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
     <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
-        <flux:heading size="xl" class="mb-2 text-white">🔥 {{ __('messages.popular_games') }}</flux:heading>
+        <div class="mb-2 flex items-center gap-2">
+            <img src="{{ asset('images/fire.webp') }}" alt="fire icon" class="w-8 h-8 inline-block mb-1 mr-2" />
+            <flux:heading size="xl" class="mb-2 text-white">{{ __('messages.popular_games') }}</flux:heading>
+        </div>
         <flux:text class="text-white/90 mb-6">{{ __('messages.search_game_placeholder') }}
         </flux:text>
 
