@@ -4,8 +4,12 @@ use App\Models\Product;
 use App\Models\Game;
 use App\Models\ProductGroup;
 use App\Models\SupplierProduct;
+use Illuminate\Support\Facades\Storage;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\{Layout, Title};
-use function Livewire\Volt\{state, mount, computed, rules};
+use function Livewire\Volt\{state, mount, computed, rules, uses};
+
+uses([WithFileUploads::class]);
 
 state([
     'product',
@@ -15,6 +19,8 @@ state([
     'sort_order' => 0,
     'supplier_product_id' => '',
     'name' => '',
+    'icon' => null,
+    'existingIcon' => null,
     'selling_price' => 0,
     'stock' => null,
     'is_auto_price' => false,
@@ -31,6 +37,7 @@ mount(function (Product $product) {
     $this->sort_order = $product->sort_order ?? 0;
     $this->supplier_product_id = $product->supplier_product_id;
     $this->name = $product->name;
+    $this->existingIcon = $product->icon;
     $this->selling_price = $product->selling_price;
     $this->stock = $product->stock;
     $this->is_auto_price = $product->is_auto_price;
@@ -62,6 +69,7 @@ rules(function () {
             },
         ],
         'name' => 'required|string|max:255',
+        'icon' => 'nullable|image|max:2048',
         'selling_price' => 'required|numeric|min:0',
         'stock' => 'required_if:product_type,manual|nullable|integer|min:0',
         'is_auto_price' => 'boolean',
@@ -135,6 +143,18 @@ $save = function () {
     }
 
     $validated = $this->validate();
+
+    // Handle icon upload
+    if ($this->icon) {
+        // Delete old icon
+        if ($this->product->icon) {
+            Storage::disk('public')->delete($this->product->icon);
+        }
+        $validated['icon'] = $this->icon->store('products', 'public');
+    } else {
+        // Remove icon from validated array to keep existing icon
+        unset($validated['icon']);
+    }
 
     $this->product->update($validated);
 
@@ -215,7 +235,7 @@ $save = function () {
                                 <flux:select.option value="{{ $sp->id }}">
                                     <div class="flex justify-between items-center">
                                         <span>{{ $sp->product_name }}</span>
-                                        <span class="text-sm text-zinc-500">Rp {{ number_format($sp->buyer_price, 0, ',', '.') }}</span> - <span class="text-sm text-zinc-500">{{ $sp->category }}</span>
+                                        <span class="text-sm text-zinc-500">{{ ' - Rp ' . number_format($sp->buyer_price, 0, ',', '.') . ' - ' . $sp->brand . ' - ' . $sp->category }}</span>
                                     </div>
                                 </flux:select.option>
                             @endforeach
@@ -244,6 +264,28 @@ $save = function () {
                         <flux:label>Nama Produk <span class="text-red-600">*</span></flux:label>
                         <flux:input wire:model="name" placeholder="e.g., 100 Diamonds" />
                         <flux:error name="name" />
+                    </flux:field>
+                </div>
+
+                <!-- Icon -->
+                <div class="md:col-span-2">
+                    <flux:field x-data="{ iconPreview: @js($existingIcon ? asset('storage/' . $existingIcon) : null) }">
+                        <flux:label>Icon Produk (Opsional)</flux:label>
+                        <input type="file" wire:model="icon" accept="image/*"
+                            @change="
+                                const file = $event.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (e) => iconPreview = e.target.result;
+                                    reader.readAsDataURL(file);
+                                }
+                            "
+                            class="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700" />
+                        <flux:error name="icon" />
+                        <flux:description>Icon untuk menandai produk (DM/Voucher). Max 2MB, format: JPG, PNG</flux:description>
+                        <div x-show="iconPreview" class="mt-2">
+                            <img :src="iconPreview" class="w-16 h-16 rounded object-cover" alt="Preview">
+                        </div>
                     </flux:field>
                 </div>
 

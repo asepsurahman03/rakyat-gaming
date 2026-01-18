@@ -36,6 +36,7 @@ mount(function (Game $game) {
                 'label' => $fieldForm->label,
                 'name' => $fieldForm->name,
                 'type' => $fieldForm->type,
+                'options' => $fieldForm->options ?? [],
                 'is_required' => $fieldForm->is_required,
             ];
         })
@@ -66,7 +67,9 @@ rules(
         'is_active' => 'boolean',
         'fieldForms.*.label' => 'required|string|max:255',
         'fieldForms.*.name' => 'required|string|max:255',
-        'fieldForms.*.type' => 'required|in:text,number,email,tel,textarea',
+        'fieldForms.*.type' => 'required|in:text,number,email,tel,textarea,select',
+        'fieldForms.*.options' => 'nullable|array',
+        'fieldForms.*.options.*' => 'required|string',
         'fieldForms.*.is_required' => 'boolean',
         'productGroups.*.name' => 'required|string|max:100',
         'productGroups.*.is_active' => 'boolean',
@@ -102,6 +105,7 @@ $addFieldForm = function () {
         'label' => '',
         'name' => '',
         'type' => 'text',
+        'options' => [],
         'is_required' => true,
     ];
 };
@@ -109,6 +113,18 @@ $addFieldForm = function () {
 $removeFieldForm = function ($index) {
     unset($this->fieldForms[$index]);
     $this->fieldForms = array_values($this->fieldForms);
+};
+
+$addOption = function ($fieldIndex) {
+    if (!isset($this->fieldForms[$fieldIndex]['options'])) {
+        $this->fieldForms[$fieldIndex]['options'] = [];
+    }
+    $this->fieldForms[$fieldIndex]['options'][] = '';
+};
+
+$removeOption = function ($fieldIndex, $optionIndex) {
+    unset($this->fieldForms[$fieldIndex]['options'][$optionIndex]);
+    $this->fieldForms[$fieldIndex]['options'] = array_values($this->fieldForms[$fieldIndex]['options']);
 };
 
 $addProductGroup = function () {
@@ -207,6 +223,7 @@ $save = function () {
                     'label' => $fieldForm['label'],
                     'name' => $fieldForm['name'],
                     'type' => $fieldForm['type'],
+                    'options' => $fieldForm['options'] ?? null,
                     'is_required' => $fieldForm['is_required'],
                 ]);
         } else {
@@ -354,13 +371,14 @@ $save = function () {
 
                                         <flux:field>
                                             <flux:label>Tipe Input</flux:label>
-                                            <flux:select wire:model="fieldForms.{{ $index }}.type"
+                                            <flux:select wire:model.live="fieldForms.{{ $index }}.type"
                                                 size="sm">
                                                 <option value="text">Text</option>
                                                 <option value="number">Number</option>
                                                 <option value="email">Email</option>
                                                 <option value="tel">Phone</option>
                                                 <option value="textarea">Textarea</option>
+                                                <option value="select">Select (Dropdown)</option>
                                             </flux:select>
                                             <flux:error name="fieldForms.{{ $index }}.type" />
                                         </flux:field>
@@ -375,6 +393,41 @@ $save = function () {
                                             </div>
                                         </flux:field>
                                     </div>
+
+                                    @if ($fieldForm['type'] === 'select')
+                                        <div class="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <flux:label>Pilihan Select Options</flux:label>
+                                                <flux:button type="button" wire:click="addOption({{ $index }})" size="xs" variant="ghost" icon="plus">
+                                                    Tambah Option
+                                                </flux:button>
+                                            </div>
+
+                                            @if (isset($fieldForm['options']) && count($fieldForm['options']) > 0)
+                                                <div class="space-y-2">
+                                                    @foreach ($fieldForm['options'] as $optIndex => $option)
+                                                        <div class="flex items-center gap-2">
+                                                            <flux:input
+                                                                wire:model="fieldForms.{{ $index }}.options.{{ $optIndex }}"
+                                                                placeholder="e.g., Server 1, Level 50, dll"
+                                                                size="sm"
+                                                                class="flex-1" />
+                                                            <button type="button"
+                                                                wire:click="removeOption({{ $index }}, {{ $optIndex }})"
+                                                                class="text-red-600 hover:text-red-700">
+                                                                <flux:icon.trash class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                        <flux:error name="fieldForms.{{ $index }}.options.{{ $optIndex }}" />
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <div class="text-center py-3 text-zinc-400 text-xs">
+                                                    Belum ada option. Klik "Tambah Option" untuk menambahkan pilihan.
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>

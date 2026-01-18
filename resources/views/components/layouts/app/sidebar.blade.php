@@ -126,6 +126,12 @@
                             <span>ByxStore</span>
                         </div>
                     </flux:navlist.item>
+                    <flux:navlist.item href="{{ route('admin.settings.suppliers.yokkstore') }}" wire:navigate
+                        :current="request()->routeIs('admin.settings.suppliers.yokkstore')">
+                        <div class="text-yellow-400  flex items-center gap-2">
+                            <span>YokkStore</span>
+                        </div>
+                    </flux:navlist.item>
                 </flux:navlist.group>
 
                 <flux:navlist.item href="{{ route('admin.settings.payment-gateways') }}" wire:navigate

@@ -420,6 +420,17 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                         <flux:textarea id="field-{{ $fieldForm->name }}"
                                             wire:model="fields.{{ $fieldForm->name }}"
                                             placeholder="Masukkan {{ strtolower($fieldForm->label) }}" />
+                                    @elseif($fieldForm->type === 'select')
+                                        <flux:select id="field-{{ $fieldForm->name }}"
+                                            wire:model="fields.{{ $fieldForm->name }}"
+                                            placeholder="Pilih {{ strtolower($fieldForm->label) }}"
+                                            label="{{ $fieldForm->label }}">
+                                            @if ($fieldForm->options && is_array($fieldForm->options))
+                                                @foreach ($fieldForm->options as $option)
+                                                    <option value="{{ $option }}">{{ $option }}</option>
+                                                @endforeach
+                                            @endif
+                                        </flux:select>
                                     @elseif($fieldForm->type === 'number')
                                         <flux:input type="number" id="field-{{ $fieldForm->name }}"
                                             wire:model="fields.{{ $fieldForm->name }}"
@@ -516,10 +527,18 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                         </div>
                                     </div>
 
-                                    <flux:heading size="sm" class="text-sm md:text-base line-clamp-1">
-                                        {{ $product->name }}</flux:heading>
+                                    <div class="flex items-start gap-2">
+                                        <flux:heading size="sm" class="text-sm md:text-base line-clamp-2 flex-1">
+                                            {{ $product->name }}</flux:heading>
+                                        @if ($product->icon)
+                                            <img src="{{ asset('storage/' . $product->icon) }}"
+                                                alt="Icon"
+                                                class="w-6 h-6 md:w-8 md:h-8 object-contain rounded flex-shrink-0">
+                                        @endif
+                                    </div>
                                     @if ($product->description)
                                         <flux:subheading size="sm" class="mt-1 text-xs line-clamp-2">
+                                            <flux:icon.info variant="mini"/>
                                             {{ $product->description }}
                                         </flux:subheading>
                                     @endif
@@ -568,8 +587,15 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 @foreach ($group->products as $product)
                                     <div wire:click="selectProduct({{ $product->id }})"
                                         class="p-3 md:p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all {{ $selectedProduct === $product->id ? 'ring-2 ring-yellow-400' : '' }}">
-                                        <flux:heading size="sm" class="text-sm md:text-base line-clamp-1">
-                                            {{ $product->name }}</flux:heading>
+                                        <div class="flex items-start gap-2">
+                                            <flux:heading size="sm" class="text-sm md:text-base line-clamp-2 flex-1">
+                                                {{ $product->name }}</flux:heading>
+                                            @if ($product->icon)
+                                                <img src="{{ asset('storage/' . $product->icon) }}"
+                                                    alt="Icon"
+                                                    class="w-6 h-6 md:w-8 md:h-8 object-contain rounded flex-shrink-0">
+                                            @endif
+                                        </div>
                                         @if ($product->description)
                                             <flux:subheading size="sm" class="mt-1 text-xs line-clamp-2">
                                                 {{ $product->description }}
@@ -603,8 +629,15 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             @foreach ($ungroupedProducts as $product)
                                 <div wire:click="selectProduct({{ $product->id }})"
                                     class="p-3 md:p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all {{ $selectedProduct === $product->id ? 'ring-2 ring-yellow-400' : '' }}">
-                                    <flux:heading size="sm" class="text-sm md:text-base line-clamp-1">
-                                        {{ $product->name }}</flux:heading>
+                                    <div class="flex items-start gap-2">
+                                        <flux:heading size="sm" class="text-sm md:text-base line-clamp-2 flex-1">
+                                            {{ $product->name }}</flux:heading>
+                                        @if ($product->icon)
+                                            <img src="{{ asset('storage/' . $product->icon) }}"
+                                                alt="Icon"
+                                                class="w-6 h-6 md:w-8 md:h-8 object-contain rounded flex-shrink-0">
+                                        @endif
+                                    </div>
                                     @if ($product->description)
                                         <flux:subheading size="sm" class="mt-1 text-xs line-clamp-2">
                                             {{ $product->description }}

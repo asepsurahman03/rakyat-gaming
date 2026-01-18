@@ -92,7 +92,7 @@ class DigiflazzService
     protected function buildCustomerNo(array $dataPlayer): string
     {
         $playerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-        $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? '';
+        $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? $dataPlayer['server'] ?? '';
 
         // If both player_id and server_id exist, combine them
         // Format: player_id(server_id) - e.g., "123456789(1234)"

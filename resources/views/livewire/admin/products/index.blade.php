@@ -2,6 +2,7 @@
 
 use App\Models\Product;
 use App\Models\Game;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\{Layout, Title};
@@ -61,6 +62,11 @@ new #[Layout('components.layouts.app'), Title('Products Management')] class exte
     {
         $product = Product::find($id);
         if ($product) {
+            // Delete icon file if exists
+            if ($product->icon) {
+                Storage::disk('public')->delete($product->icon);
+            }
+
             $product->delete();
             Flux::toast(heading: 'Produk berhasil dihapus!', text: 'Produk telah dihapus dari sistem.', variant: 'success', duration: 3000, position: 'top-right');
         }

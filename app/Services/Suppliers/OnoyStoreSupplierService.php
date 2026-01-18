@@ -236,8 +236,8 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 ? json_decode($order->data_player, true)
                 : $order->data_player;
 
-            $userId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-            $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? '';
+                $userId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
+                $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? $dataPlayer['server'] ?? '';
 
             // Build payload according to OnoyStore API
             $payload = [
@@ -645,7 +645,7 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 : $dataPlayer;
 
             $userId = $dataPlayerArr['player_id'] ?? $dataPlayerArr['user_id'] ?? '';
-            $serverId = $dataPlayerArr['server_id'] ?? $dataPlayerArr['zone_id'] ?? '';
+            $serverId = $dataPlayerArr['server_id'] ?? $dataPlayerArr['zone_id'] ?? $dataPlayerArr['server'] ?? '';
 
             $inquiry = 'cekml';
 

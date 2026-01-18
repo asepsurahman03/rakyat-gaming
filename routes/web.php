@@ -157,6 +157,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Volt::route('admin/settings/suppliers/digiflazz', 'admin.settings.suppliers.digiflazz')->name('admin.settings.suppliers.digiflazz');
     Volt::route('admin/settings/suppliers/onoystore', 'admin.settings.suppliers.onoystore')->name('admin.settings.suppliers.onoystore');
     Volt::route('admin/settings/suppliers/byxstore', 'admin.settings.suppliers.byxstore')->name('admin.settings.suppliers.byxstore');
+    Volt::route('admin/settings/suppliers/yokkstore', 'admin.settings.suppliers.yokkstore')->name('admin.settings.suppliers.yokkstore');
 
     Volt::route('admin/settings/payment-gateways', 'admin.settings.payment-gateways')->name('admin.settings.payment-gateways');
 });

@@ -18,6 +18,7 @@ class Product extends Model
         'product_type',
         'supplier_product_id',
         'name',
+        'icon',
         'selling_price',
         'stock',
         'is_auto_price',

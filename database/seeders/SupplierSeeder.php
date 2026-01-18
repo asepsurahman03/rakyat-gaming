@@ -50,5 +50,18 @@ class SupplierSeeder extends Seeder
                 'is_active' => false, // Set to false by default until configured
             ]
         );
+
+        // YokkStore
+        Supplier::updateOrCreate(
+            ['code' => 'yokkstore'],
+            [
+                'username' => null,
+                'name' => 'YokkStore',
+                'api_url' => config('services.yokkstore.url', 'https://api.yokkstore.com'),
+                'api_key' => config('services.yokkstore.api_key'),
+                'secret' => config('services.yokkstore.secret'),
+                'is_active' => false, // Set to false by default until configured
+            ]
+        );
     }
 }

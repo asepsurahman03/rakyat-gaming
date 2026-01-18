@@ -166,7 +166,7 @@ abstract class BaseSupplierService implements SupplierServiceInterface
             : $order->data_player;
 
         $playerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-        $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? '';
+        $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? $dataPlayer['server'] ?? '';
 
         // If both exist, combine them (e.g., Mobile Legends format)
         if (!empty($playerId) && !empty($serverId)) {

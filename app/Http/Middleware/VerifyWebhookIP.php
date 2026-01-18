@@ -76,6 +76,9 @@ class VerifyWebhookIP
                 // Example supplier IPs (replace with actual supplier IPs)
                 '52.74.250.133', // Supplier Digiflazz IP
                 '159.223.78.143', // Supplier OnoyStore IP
+                '103.180.125.252', // Supplier YokkStore IP
+                // Tambahkan IP YokkStore di sini setelah mendapatkan dari YokkStore
+                // Contoh: '103.xxx.xxx.xxx', // YokkStore IP
             ],
             default => [],
         };

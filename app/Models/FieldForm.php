@@ -15,11 +15,13 @@ class FieldForm extends Model
         'label',
         'name',
         'type',
+        'options',
         'is_required',
     ];
 
     protected $casts = [
         'is_required' => 'boolean',
+        'options' => 'array',
     ];
 
     /**

@@ -373,7 +373,7 @@ class ByxStoreSupplierService extends BaseSupplierService
     {
         // ByxStore expects target in "ID|ZoneID" format
         $playerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-        $zoneId = $dataPlayer['zone_id'] ?? $dataPlayer['server_id'] ?? '';
+        $zoneId = $dataPlayer['zone_id'] ?? $dataPlayer['server_id'] ?? $dataPlayer['server'] ?? '';
 
         if (!empty($playerId) && !empty($zoneId)) {
             return $playerId . '|' . $zoneId;
@@ -600,7 +600,7 @@ class ByxStoreSupplierService extends BaseSupplierService
                     'invoice' => $invoice,
                     'data' => $transactionData,
                 ];
-                
+
             case 'gagal':
             case 'failed':
             default:

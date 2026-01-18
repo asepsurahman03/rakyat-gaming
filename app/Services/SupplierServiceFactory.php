@@ -6,6 +6,7 @@ use App\Services\Contracts\SupplierServiceInterface;
 use App\Services\Suppliers\DigiflazzSupplierService;
 use App\Services\Suppliers\OnoyStoreSupplierService;
 use App\Services\Suppliers\ByxStoreSupplierService;
+use App\Services\Suppliers\YokkStoreSupplierService;
 use Illuminate\Support\Facades\Log;
 
 class SupplierServiceFactory
@@ -20,6 +21,7 @@ class SupplierServiceFactory
         'digiflazz' => DigiflazzSupplierService::class,
         'onoystore' => OnoyStoreSupplierService::class,
         'byxstore' => ByxStoreSupplierService::class,
+        'yokkstore' => YokkStoreSupplierService::class,
     ];
 
     /**
