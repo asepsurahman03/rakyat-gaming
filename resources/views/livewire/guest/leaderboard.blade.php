@@ -33,6 +33,13 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
         return $data;
     }
 
+    public function getActiveBuyersCount($period)
+    {
+        return Leaderboard::where('period', $period)
+            ->where('is_active', true)
+            ->count();
+    }
+
     public function censorName($name)
     {
         $words = explode(' ', $name);
@@ -53,6 +60,9 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
             'weeklyData' => $this->getLeaderboardData('week'),
             'monthlyData' => $this->getLeaderboardData('month'),
             'allTimeData' => $this->getLeaderboardData('all'),
+            'weeklyBuyersCount' => $this->getActiveBuyersCount('week'),
+            'monthlyBuyersCount' => $this->getActiveBuyersCount('month'),
+            'allTimeBuyersCount' => $this->getActiveBuyersCount('all'),
         ];
     }
 }; ?>
@@ -317,6 +327,11 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
             const weeklyDataFromDB = @json($weeklyData ?? []);
             const monthlyDataFromDB = @json($monthlyData ?? []);
             const allTimeDataFromDB = @json($allTimeData ?? []);
+
+            // Load active buyers count from database
+            const weeklyBuyersCount = @json($weeklyBuyersCount ?? 0);
+            const monthlyBuyersCount = @json($monthlyBuyersCount ?? 0);
+            const allTimeBuyersCount = @json($allTimeBuyersCount ?? 0);
 
             // Fallback dummy data if database is empty
             const weeklyDataDummy = [{
@@ -609,7 +624,19 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
                 updateStats() {
                     this.stats.totalTransactions = this.currentBuyers.reduce((sum, buyer) => sum + buyer.txCount, 0);
                     this.stats.totalRevenue = this.currentBuyers.reduce((sum, buyer) => sum + buyer.totalSpent, 0);
-                    this.stats.activeBuyers = this.currentBuyers.length;
+
+                    // Get active buyers count based on current period
+                    switch (this.period) {
+                        case 'week':
+                            this.stats.activeBuyers = weeklyBuyersCount || weeklyData.length;
+                            break;
+                        case 'month':
+                            this.stats.activeBuyers = monthlyBuyersCount || monthlyData.length;
+                            break;
+                        case 'all':
+                            this.stats.activeBuyers = allTimeBuyersCount || allTimeData.length;
+                            break;
+                    }
                 }
             }
         }
