@@ -16,26 +16,48 @@ class ParticleSystem {
         this.canvas = document.getElementById(canvasId);
         if (!this.canvas) return;
 
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.canvas.getContext('2d', { alpha: true, desynchronized: true });
         this.particles = [];
         this.animationId = null;
         this.resizeHandler = null;
 
+        // Detect device performance
+        this.isLowPerformance = this.detectPerformance();
+
+        // Adjust settings based on device - more aggressive reduction for mobile
+        const particleCount = this.isMobile ? 15 : (this.isLowPerformance ? 20 : (options.particleCount || 40));
+        const trailLength = this.isMobile ? 3 : (this.isLowPerformance ? 5 : 10);
+
         // Fixed options - tidak boleh berubah
         this.options = {
-            particleCount: options.particleCount || 40,
+            particleCount: particleCount,
             particleColor: options.particleColor || 'rgba(255, 215, 0, 0.7)',
             particleSize: { min: 1.5, max: 3 }, // Fixed size
             shapes: options.shapes || ['star'],
-            glow: options.glow !== false
+            glow: options.glow !== false && !this.isLowPerformance, // Disable glow on low-end
+            trailLength: trailLength
         };
 
         ParticleSystem.instance = this;
         this.init();
     }
 
+    detectPerformance() {
+        // Check for low-end device indicators
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const cores = navigator.hardwareConcurrency || 2;
+        const memory = navigator.deviceMemory || 4;
+
+        // Low performance if mobile with few cores or low memory
+        return this.isMobile && (cores <= 4 || memory <= 4);
+    }
+
     init() {
-        this.resizeHandler = () => this.resizeCanvas();
+        // Only add resize listener on desktop to prevent scroll/touch interference
+        if (!this.isMobile) {
+            this.resizeHandler = () => this.resizeCanvas();
+            window.addEventListener('resize', this.resizeHandler);
+        }
 
         // Stop any existing animation first
         if (this.animationId) {
@@ -51,7 +73,6 @@ class ParticleSystem {
         this.resizeCanvas();
         this.createParticles();
         this.animate();
-        window.addEventListener('resize', this.resizeHandler);
     }
 
     resizeCanvas() {
@@ -118,7 +139,7 @@ class ParticleSystem {
             velocityX: Math.cos(angleRad) * velocityX,
             velocityY: Math.sin(angleRad) * velocityY,
             trail: [],
-            trailLength: 10
+            trailLength: this.options.trailLength
         };
     }
 
@@ -140,11 +161,12 @@ class ParticleSystem {
     }
 
     drawParticle(particle) {
-        // Draw trail
+        // Draw trail with optimized rendering
         if (particle.trail.length > 1) {
             this.ctx.lineCap = 'round';
             this.ctx.lineJoin = 'round';
 
+            // Draw trail in single path for better performance
             for (let i = 0; i < particle.trail.length - 1; i++) {
                 const current = particle.trail[i];
                 const next = particle.trail[i + 1];
@@ -153,15 +175,19 @@ class ParticleSystem {
                 const trailOpacity = particle.opacity * fadeRatio * 0.6;
                 const trailSize = particle.size * (0.2 + fadeRatio * 0.4);
 
-                const gradient = this.ctx.createLinearGradient(
-                    current.x, current.y,
-                    next.x, next.y
-                );
+                // Use solid color instead of gradient for low-end devices
+                if (this.isLowPerformance) {
+                    this.ctx.strokeStyle = this.options.particleColor.replace('0.7', trailOpacity);
+                } else {
+                    const gradient = this.ctx.createLinearGradient(
+                        current.x, current.y,
+                        next.x, next.y
+                    );
+                    gradient.addColorStop(0, this.options.particleColor.replace('0.7', trailOpacity));
+                    gradient.addColorStop(1, this.options.particleColor.replace('0.7', trailOpacity * 0.5));
+                    this.ctx.strokeStyle = gradient;
+                }
 
-                gradient.addColorStop(0, this.options.particleColor.replace('0.7', trailOpacity));
-                gradient.addColorStop(1, this.options.particleColor.replace('0.7', trailOpacity * 0.5));
-
-                this.ctx.strokeStyle = gradient;
                 this.ctx.lineWidth = trailSize * 1.5;
 
                 if (this.options.glow) {

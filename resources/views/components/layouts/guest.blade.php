@@ -5,7 +5,7 @@
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-gradient-to-bl from-[#7E0000] to-[#470000] font-sans antialiased dark">
+<body class="min-h-screen bg-[#6F1010] font-sans antialiased dark">
     <!-- Navbar -->
     <div class="bg-black border-b border-zinc-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4">
