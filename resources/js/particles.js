@@ -1,15 +1,15 @@
 /**
- * Particle Effect System
- * Creates falling particles with various effects
+ * Particle Effect System - Shooting Stars
+ * Bintang jatuh diagonal dengan trail panjang
  */
 
 class ParticleSystem {
-    static instances = new Map();
+    static instance = null;
 
     constructor(canvasId, options = {}) {
-        // Prevent multiple instances for same canvas
-        if (ParticleSystem.instances.has(canvasId)) {
-            return ParticleSystem.instances.get(canvasId);
+        // Destroy existing instance
+        if (ParticleSystem.instance) {
+            ParticleSystem.instance.destroy();
         }
 
         this.canvasId = canvasId;
@@ -19,35 +19,79 @@ class ParticleSystem {
         this.ctx = this.canvas.getContext('2d');
         this.particles = [];
         this.animationId = null;
+        this.resizeHandler = null;
 
-        // Default options
+        // Fixed options - tidak boleh berubah
         this.options = {
-            particleCount: options.particleCount || 50,
-            particleColor: options.particleColor || 'rgba(255, 215, 0, 0.8)',
-            particleSize: options.particleSize || { min: 2, max: 5 },
-            speed: options.speed || { min: 1, max: 3 },
-            shapes: options.shapes || ['circle', 'star', 'diamond'],
-            glow: options.glow !== false,
-            ...options
+            particleCount: options.particleCount || 40,
+            particleColor: options.particleColor || 'rgba(255, 215, 0, 0.7)',
+            particleSize: { min: 1.5, max: 3 }, // Fixed size
+            shapes: options.shapes || ['star'],
+            glow: options.glow !== false
         };
 
-        ParticleSystem.instances.set(canvasId, this);
+        ParticleSystem.instance = this;
         this.init();
     }
 
     init() {
+        this.resizeHandler = () => this.resizeCanvas();
+
+        // Stop any existing animation first
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+
+        // Clear canvas completely
+        if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+
         this.resizeCanvas();
         this.createParticles();
         this.animate();
-
-        // Handle window resize
-        window.addEventListener('resize', () => this.resizeCanvas());
+        window.addEventListener('resize', this.resizeHandler);
     }
 
     resizeCanvas() {
         const parent = this.canvas.parentElement;
-        this.canvas.width = parent.offsetWidth;
-        this.canvas.height = parent.offsetHeight;
+        if (!parent) return;
+
+        // Stop animation during resize
+        const wasAnimating = !!this.animationId;
+        if (wasAnimating) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+
+        // For absolute positioned parent, get dimensions from its parent container
+        const rect = parent.getBoundingClientRect();
+        const width = Math.floor(rect.width || parent.clientWidth || parent.offsetWidth);
+        const height = Math.floor(rect.height || parent.clientHeight || parent.offsetHeight);
+
+        // Only resize if dimensions are valid and different
+        if (width > 0 && height > 0) {
+            // Set canvas internal dimensions
+            this.canvas.width = width;
+            this.canvas.height = height;
+
+            // Remove any conflicting inline styles
+            this.canvas.style.width = '100%';
+            this.canvas.style.height = '100%';
+            this.canvas.style.display = 'block';
+        }
+
+        // Clear canvas after resize
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Recreate particles with fresh state
+        this.createParticles();
+
+        // Resume animation
+        if (wasAnimating) {
+            this.animate();
+        }
     }
 
     createParticles() {
@@ -58,18 +102,96 @@ class ParticleSystem {
     }
 
     createParticle() {
-        const shapes = this.options.shapes;
+        // Fixed angle and velocity
+        const angle = 45;
+        const angleRad = (angle * Math.PI) / 180;
+        const size = 2.25; // Fixed size (average of 1.5 and 3)
+        const velocityX = 3.0; // Fixed velocity
+        const velocityY = 3.0; // Fixed velocity
+
         return {
-            x: Math.random() * this.canvas.width,
-            y: Math.random() * this.canvas.height - this.canvas.height,
-            size: Math.random() * (this.options.particleSize.max - this.options.particleSize.min) + this.options.particleSize.min,
-            speed: Math.random() * (this.options.speed.max - this.options.speed.min) + this.options.speed.min,
-            opacity: Math.random() * 0.5 + 0.3,
-            shape: shapes[Math.floor(Math.random() * shapes.length)],
-            rotation: Math.random() * 360,
-            rotationSpeed: (Math.random() - 0.5) * 2,
-            drift: (Math.random() - 0.5) * 0.5
+            x: Math.random() * (this.canvas.width + 300) - 200,
+            y: Math.random() * this.canvas.height - this.canvas.height - 100,
+            size: size,
+            opacity: Math.random() * 0.2 + 0.6,
+            shape: this.options.shapes[Math.floor(Math.random() * this.options.shapes.length)],
+            velocityX: Math.cos(angleRad) * velocityX,
+            velocityY: Math.sin(angleRad) * velocityY,
+            trail: [],
+            trailLength: 10
         };
+    }
+
+    updateParticle(particle) {
+        particle.trail.unshift({ x: particle.x, y: particle.y });
+        if (particle.trail.length > particle.trailLength) {
+            particle.trail.pop();
+        }
+
+        particle.x += particle.velocityX;
+        particle.y += particle.velocityY;
+
+        if (particle.y > this.canvas.height + 50 || particle.x > this.canvas.width + 50) {
+            particle.y = Math.random() * -300 - 100;
+            particle.x = Math.random() * (this.canvas.width * 0.6) - 200;
+            particle.trail = [];
+            particle.opacity = Math.random() * 0.2 + 0.6;
+        }
+    }
+
+    drawParticle(particle) {
+        // Draw trail
+        if (particle.trail.length > 1) {
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+
+            for (let i = 0; i < particle.trail.length - 1; i++) {
+                const current = particle.trail[i];
+                const next = particle.trail[i + 1];
+                const fadeRatio = 1 - i / particle.trail.length;
+
+                const trailOpacity = particle.opacity * fadeRatio * 0.6;
+                const trailSize = particle.size * (0.2 + fadeRatio * 0.4);
+
+                const gradient = this.ctx.createLinearGradient(
+                    current.x, current.y,
+                    next.x, next.y
+                );
+
+                gradient.addColorStop(0, this.options.particleColor.replace('0.7', trailOpacity));
+                gradient.addColorStop(1, this.options.particleColor.replace('0.7', trailOpacity * 0.5));
+
+                this.ctx.strokeStyle = gradient;
+                this.ctx.lineWidth = trailSize * 1.5;
+
+                if (this.options.glow) {
+                    this.ctx.shadowBlur = 6 * fadeRatio;
+                    this.ctx.shadowColor = this.options.particleColor;
+                }
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(current.x, current.y);
+                this.ctx.lineTo(next.x, next.y);
+                this.ctx.stroke();
+            }
+        }
+
+        // Draw main particle
+        this.ctx.fillStyle = this.options.particleColor.replace('0.7', particle.opacity);
+
+        if (this.options.glow) {
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = this.options.particleColor;
+        }
+
+        if (particle.shape === 'star') {
+            this.drawStar(particle);
+        } else if (particle.shape === 'diamond') {
+            this.drawDiamond(particle);
+        } else {
+            this.drawCircle(particle);
+        }
+        this.ctx.shadowBlur = 0;
     }
 
     drawCircle(particle) {
@@ -87,7 +209,7 @@ class ParticleSystem {
 
         this.ctx.save();
         this.ctx.translate(particle.x, particle.y);
-        this.ctx.rotate((particle.rotation * Math.PI) / 180);
+        this.ctx.rotate(-45 * Math.PI / 180);
         this.ctx.beginPath();
         this.ctx.moveTo(0, -outerRadius);
 
@@ -107,7 +229,7 @@ class ParticleSystem {
     drawDiamond(particle) {
         this.ctx.save();
         this.ctx.translate(particle.x, particle.y);
-        this.ctx.rotate((particle.rotation * Math.PI) / 180);
+        this.ctx.rotate(-45 * Math.PI / 180);
         this.ctx.beginPath();
         this.ctx.moveTo(0, -particle.size);
         this.ctx.lineTo(particle.size, 0);
@@ -116,48 +238,6 @@ class ParticleSystem {
         this.ctx.closePath();
         this.ctx.fill();
         this.ctx.restore();
-    }
-
-    updateParticle(particle) {
-        particle.y += particle.speed;
-        particle.x += particle.drift;
-        particle.rotation += particle.rotationSpeed;
-
-        // Reset particle when it goes off screen
-        if (particle.y > this.canvas.height) {
-            particle.y = -10;
-            particle.x = Math.random() * this.canvas.width;
-        }
-
-        if (particle.x > this.canvas.width) {
-            particle.x = 0;
-        } else if (particle.x < 0) {
-            particle.x = this.canvas.width;
-        }
-    }
-
-    drawParticle(particle) {
-        this.ctx.fillStyle = this.options.particleColor.replace('0.8', particle.opacity);
-
-        if (this.options.glow) {
-            this.ctx.shadowBlur = 10;
-            this.ctx.shadowColor = this.options.particleColor;
-        }
-
-        switch (particle.shape) {
-            case 'star':
-                this.drawStar(particle);
-                break;
-            case 'diamond':
-                this.drawDiamond(particle);
-                break;
-            default:
-                this.drawCircle(particle);
-        }
-
-        if (this.options.glow) {
-            this.ctx.shadowBlur = 0;
-        }
     }
 
     animate() {
@@ -174,15 +254,26 @@ class ParticleSystem {
     destroy() {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
+            this.animationId = null;
         }
+
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+            this.resizeHandler = null;
+        }
+
         this.particles = [];
-        window.removeEventListener('resize', () => this.resizeCanvas());
-        ParticleSystem.instances.delete(this.canvasId);
+
+        if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        // Clear singleton reference
+        if (ParticleSystem.instance === this) {
+            ParticleSystem.instance = null;
+        }
     }
 }
 
-// Make ParticleSystem available globally
 window.ParticleSystem = ParticleSystem;
-
-// Export for use in other files
 export default ParticleSystem;

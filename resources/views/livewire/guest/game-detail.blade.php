@@ -368,15 +368,15 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             <div class="items-end gap-2 hidden md:flex">
                                 <div class="flex gap-0.5 items-center">
                                     <flux:icon.zap class="w-5 h-5 text-yellow-400 animate-pulse" />
-                                    <span class="text-xs">Proses Cepat</span>
+                                    <span class="text-xs">{{ __('messages.fast_process') }}</span>
                                 </div>
                                 <div class="flex gap-0.5 items-center">
                                     <flux:icon.messages-square class="w-5 h-5 text-yellow-400 animate-pulse" />
-                                    <span class="text-xs">Layanan Chat 24/7</span>
+                                    <span class="text-xs">{{ __('messages.support_247') }}</span>
                                 </div>
                                 <div class="flex gap-0.5 items-center">
                                     <flux:icon.credit-card class="w-5 h-5 text-yellow-400 animate-pulse" />
-                                    <span class="text-xs">Pembayaran Aman!</span>
+                                    <span class="text-xs">{{ __('messages.secure_payment') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -391,39 +391,39 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             class="flex items-center justify-center gap-2 md:hidden bg-white/70 dark:bg-black/70 px-4 py-2 rounded-full mb-4">
             <div class="flex gap-0.5 items-center">
                 <flux:icon.zap class="w-5 h-5 text-yellow-400 animate-pulse" />
-                <span class="text-xs">Proses Cepat</span>
+                <span class="text-xs">{{ __('messages.fast_process') }}</span>
             </div>
             <div class="flex gap-0.5 items-center">
                 <flux:icon.messages-square class="w-5 h-5 text-yellow-400 animate-pulse" />
-                <span class="text-xs">Layanan Chat 24/7</span>
+                <span class="text-xs">{{ __('messages.support_247') }}</span>
             </div>
             <div class="flex gap-0.5 items-center">
                 <flux:icon.credit-card class="w-5 h-5 text-yellow-400 animate-pulse" />
-                <span class="text-xs">Pembayaran Aman!</span>
+                <span class="text-xs">{{ __('messages.secure_payment') }}</span>
             </div>
         </div>
         <div class="grid lg:grid-cols-3 gap-6">
             <!-- Left: Product Selection -->
             <div class="lg:col-span-2">
                 <flux:card class="mb-4">
-                    <flux:heading size="lg" class="mb-4">Data Player</flux:heading>
+                    <flux:heading size="lg" class="mb-4">{{ __('messages.player_data') }}</flux:heading>
 
                     @if ($game->fieldForms->isEmpty())
                         <flux:callout variant="info" icon="triangle-alert" class="mb-4">
-                            Tidak ada data yang perlu diisi
+                            {{ __('messages.no_data_required') }}
                         </flux:callout>
                     @else
-                        <div class="grid md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             @foreach ($game->fieldForms as $fieldForm)
                                 <div class="form-control mb-4">
                                     @if ($fieldForm->type === 'textarea')
                                         <flux:textarea id="field-{{ $fieldForm->name }}"
                                             wire:model="fields.{{ $fieldForm->name }}"
-                                            placeholder="Masukkan {{ strtolower($fieldForm->label) }}" />
+                                            placeholder="{{ __('messages.enter') }} {{ strtolower($fieldForm->label) }}" />
                                     @elseif($fieldForm->type === 'select')
                                         <flux:select id="field-{{ $fieldForm->name }}"
                                             wire:model="fields.{{ $fieldForm->name }}"
-                                            placeholder="Pilih {{ strtolower($fieldForm->label) }}"
+                                            placeholder="{{ __('messages.select') }} {{ strtolower($fieldForm->label) }}"
                                             label="{{ $fieldForm->label }}">
                                             @if ($fieldForm->options && is_array($fieldForm->options))
                                                 @foreach ($fieldForm->options as $option)
@@ -434,12 +434,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                     @elseif($fieldForm->type === 'number')
                                         <flux:input type="number" id="field-{{ $fieldForm->name }}"
                                             wire:model="fields.{{ $fieldForm->name }}"
-                                            placeholder="Masukkan {{ strtolower($fieldForm->label) }}"
+                                            placeholder="{{ __('messages.enter') }} {{ strtolower($fieldForm->label) }}"
                                             label="{{ $fieldForm->label }}" />
                                     @else
                                         <flux:input type="text" id="field-{{ $fieldForm->name }}"
                                             wire:model="fields.{{ $fieldForm->name }}"
-                                            placeholder="Masukkan {{ strtolower($fieldForm->label) }}"
+                                            placeholder="{{ __('messages.enter') }} {{ strtolower($fieldForm->label) }}"
                                             label="{{ $fieldForm->label }}" />
                                     @endif
                                 </div>
@@ -447,10 +447,10 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                         </div>
                         @if ($game->inquiry)
                             <div class="mt-2 md:flex gap-2 w-full items-start">
-                                <flux:button wire:click="cekName">Cek Name</flux:button>
+                                <flux:button wire:click="cekName">{{ __('messages.check_name') }}</flux:button>
                                 @if ($playerName)
                                     <flux:badge color="yellow" class="mt-2 md:mt-0">
-                                        Nickname: <strong>{{ $playerName }}</strong>
+                                        {{ __('messages.nickname') }}: <strong>{{ $playerName }}</strong>
                                     </flux:badge>
                                 @endif
                             </div>
@@ -464,12 +464,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                         <div class="md:flex items-center justify-between gap-2 mb-4">
                             <div class="mb-2">
                                 <flux:icon.fire class="text-red-500" />
-                                <flux:heading size="lg" class="text-red-600">FlazzSell - Diskon Terbatas!
+                                <flux:heading size="lg" class="text-red-600">{{ __('messages.flazzsell_discount') }}
                                 </flux:heading>
                             </div>
                             <!-- Countdown Timer -->
                             <div class="mt-3 pt-3">
-                                <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Berakhir dalam:</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">{{ __('messages.ends_in') }}:</div>
                                 <div class="flex gap-2 text-center" x-data="{
                                     days: {{ $timeRemaining['days'] }},
                                     hours: {{ $timeRemaining['hours'] }},
@@ -492,19 +492,19 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 }, 1000)">
                                     <div class="flex-1 bg-white rounded px-2 py-1">
                                         <div class="text-lg font-bold text-red-600" x-text="days"></div>
-                                        <div class="text-xs text-gray-500">Hari</div>
+                                        <div class="text-xs text-gray-500">{{ __('messages.days') }}</div>
                                     </div>
                                     <div class="flex-1 bg-white rounded px-2 py-1">
                                         <div class="text-lg font-bold text-red-600" x-text="hours"></div>
-                                        <div class="text-xs text-gray-500">Jam</div>
+                                        <div class="text-xs text-gray-500">{{ __('messages.hours') }}</div>
                                     </div>
                                     <div class="flex-1 bg-white rounded px-2 py-1">
                                         <div class="text-lg font-bold text-red-600" x-text="minutes"></div>
-                                        <div class="text-xs text-gray-500">Menit</div>
+                                        <div class="text-xs text-gray-500">{{ __('messages.minutes') }}</div>
                                     </div>
                                     <div class="flex-1 bg-white rounded px-2 py-1">
                                         <div class="text-lg font-bold text-red-600" x-text="seconds"></div>
-                                        <div class="text-xs text-gray-500">Detik</div>
+                                        <div class="text-xs text-gray-500">{{ __('messages.seconds') }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -565,7 +565,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                             @endif
                                         </div>
                                         <div class="text-xs text-green-600 font-semibold mt-1">
-                                            Hemat Rp
+                                            {{ __('messages.save_amount') }} Rp
                                             {{ number_format($product->selling_price - $discountedPrice, 0, ',', '.') }}
                                         </div>
                                     </div>
@@ -624,7 +624,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 <!-- Ungrouped Products -->
                 @if ($ungroupedProducts->isNotEmpty())
                     <flux:card class="mb-4">
-                        <flux:heading size="lg" class="mb-4">Pilih Nominal</flux:heading>
+                        <flux:heading size="lg" class="mb-4">{{ __('messages.select_nominal') }}</flux:heading>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             @foreach ($ungroupedProducts as $product)
                                 <div wire:click="selectProduct({{ $product->id }})"
@@ -666,13 +666,13 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 @if ($productGroups->isEmpty() && $ungroupedProducts->isEmpty())
                     <flux:card class="mb-4">
                         <flux:callout variant="warning" icon="exclamation-triangle">
-                            Produk tidak tersedia saat ini
+                            {{ __('messages.product_unavailable') }}
                         </flux:callout>
                     </flux:card>
                 @endif
 
                 <flux:card class="mb-4 hidden md:block">
-                    <flux:heading class="mb-4">Deskripsi {{ $game->name }}</flux:heading>
+                    <flux:heading class="mb-4">{{ __('messages.description_of') }} {{ $game->name }}</flux:heading>
                     <flux:text class="whitespace-pre-line text-justify">
                         {{ $game->description }}
                     </flux:text>
@@ -682,7 +682,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             <!-- Right: Player Data Form -->
             <div class="lg:col-span-1 mb-4">
                 <div class="p-4 rounded-xl mb-4 bg-zinc-900 border border-zinc-800 shadow-sm">
-                    <flux:heading>Ulasan dan rating</flux:heading>
+                    <flux:heading>{{ __('messages.reviews_rating') }}</flux:heading>
                     <div class="flex gap-2">
                         <h1 class="text-5xl font-bold">4.9</h1>
                         <div>
@@ -691,27 +691,25 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                     <flux:icon.star class="w-10 h-10 text-yellow-400" variant="solid" />
                                 @endfor
                             </div>
-                            <div class="text-sm text-zinc-300">Berdasarkan 3.421 ulasan</div>
+                            <div class="text-sm text-zinc-300">{{ __('messages.based_on_reviews', ['count' => '3.421']) }}</div>
                         </div>
                     </div>
                 </div>
                 <flux:card class="sticky top-30">
-                    <flux:heading size="lg" class="mb-4">Informasi Kontak</flux:heading>
+                    <flux:heading size="lg" class="mb-4">{{ __('messages.contact_info') }}</flux:heading>
 
                     <flux:callout variant="info" icon="information-circle" class="mb-4 text-xs">
-                        Pastikan data yang Anda masukkan sudah benar. kontak ini akan digunakan untuk menghubungi
-                        Anda jika
-                        terjadi masalah pada pesanan.
+                        {{ __('messages.contact_notice') }}
                     </flux:callout>
 
                     <div class="space-y-4 mb-4">
                         <div>
-                            <flux:input type="email" wire:model="email" label="Email *"
+                            <flux:input type="email" wire:model="email" label="{{ __('messages.email') }} *"
                                 placeholder="email@example.com" />
                         </div>
 
                         <div>
-                            <flux:label>WhatsApp *</flux:label>
+                            <flux:label>{{ __('messages.whatsapp_number') }} *</flux:label>
                             <flux:input.group>
                                 <flux:input.group.prefix>
                                     <span class="text-zinc-500 text-sm">+62</span>
@@ -721,12 +719,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             <flux:error name="whatsapp" />
                             <flux:text class="text-xs text-zinc-300 mt-1 flex">
                                 <flux:icon.triangle-alert variant="outline" class="w-4 h-4 text-yellow-600 inline" />
-                                Tulis tanpa angka 0 di depan. Contoh: 81234567890
+                                {{ __('messages.whatsapp_notice') }}
                             </flux:text>
                         </div>
 
                         <div x-data="{ openGroup: 'Virtual Account' }">
-                            <flux:label>Metode Pembayaran *</flux:label>
+                            <flux:label>{{ __('messages.payment_method') }} *</flux:label>
 
                             @if ($paymentMethodsError)
                                 <flux:callout variant="error" icon="exclamation-circle" class="text-sm mt-2">
@@ -734,7 +732,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 </flux:callout>
                             @elseif (!$paymentMethods || count($paymentMethods) === 0)
                                 <flux:callout variant="warning" icon="exclamation-triangle" class="text-sm mt-2">
-                                    Pilih produk terlebih dahulu untuk melihat metode pembayaran
+                                    {{ __('messages.select_product_first') }}
                                 </flux:callout>
                             @else
                                 @php
@@ -824,7 +822,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 @if ($paymentMethodsCached)
                                     <flux:text class="text-xs text-zinc-400 mt-2 flex items-center gap-1">
                                         <flux:icon.information-circle class="w-3 h-3" />
-                                        Metode pembayaran dari cache
+                                        {{ __('messages.payment_methods_from_cache') }}
                                     </flux:text>
                                 @endif
                             @endif
@@ -835,7 +833,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 
                     <flux:separator class="mb-4" />
 
-                    <flux:heading size="lg" class="mb-4">Detail Pembayaran</flux:heading>
+                    <flux:heading size="lg" class="mb-4">{{ __('messages.payment_details') }}</flux:heading>
 
                     @if ($selectedProduct)
                         @php
@@ -867,15 +865,15 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                     <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                                         <div class="flex items-center gap-2 text-red-600 text-sm font-semibold mb-2">
                                             <flux:icon.fire class="w-4 h-4" />
-                                            <span>FlazzSell Aktif!</span>
+                                            <span>{{ __('messages.flazzsell_active') }}</span>
                                         </div>
                                         <div class="flex justify-between text-sm mb-1">
-                                            <span class="text-zinc-600 dark:text-zinc-300">Harga Normal:</span>
+                                            <span class="text-zinc-600 dark:text-zinc-300">{{ __('messages.normal_price') }}:</span>
                                             <span class="line-through text-zinc-300">Rp
                                                 {{ number_format($product->selling_price, 0, ',', '.') }}</span>
                                         </div>
                                         <div class="flex justify-between text-sm text-green-600 font-semibold">
-                                            <span>Hemat:</span>
+                                            <span>{{ __('messages.save_amount') }}:</span>
                                             <span>- Rp
                                                 {{ number_format($product->selling_price - $displayPrice, 0, ',', '.') }}</span>
                                         </div>
@@ -883,20 +881,20 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 @endif
 
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-zinc-600 dark:text-zinc-300">Harga Produk:</span>
+                                    <span class="text-zinc-600 dark:text-zinc-300">{{ __('messages.product_price') }}:</span>
                                     <span class="font-medium">Rp
                                         {{ number_format($displayPrice, 0, ',', '.') }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-zinc-600 dark:text-zinc-300">Biaya Admin:</span>
+                                    <span class="text-zinc-600 dark:text-zinc-300">{{ __('messages.admin_fee') }}:</span>
                                     <span class="font-medium">Rp
                                         {{ number_format($paymentFee, 0, ',', '.') }}</span>
                                 </div>
 
                                 <div class="border-t border-zinc-300 dark:border-zinc-600 pt-3">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-bold">Total Pembayaran:</span>
+                                        <span class="font-bold">{{ __('messages.total_payment') }}:</span>
                                         <span
                                             class="text-2xl font-bold {{ $isFlazzSell ? 'text-red-600' : 'text-yellow-400' }}">
                                             Rp {{ number_format($totalAmount, 0, ',', '.') }}
@@ -906,12 +904,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             </div>
                         @endif
                     @else
-                        <flux:text class="text-center text-zinc-300">Pilih produk terlebih dahulu</flux:text>
+                        <flux:text class="text-center text-zinc-300">{{ __('messages.select_product_first_simple') }}</flux:text>
                     @endif
 
                     <flux:button wire:click="createOrder" variant="primary" class="w-full mt-6"
                         wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="createOrder">Bayar Sekarang</span>
+                        <span wire:loading.remove wire:target="createOrder">{{ __('messages.pay_now') }}</span>
                         <span wire:loading wire:target="createOrder">
                             <svg class="animate-spin h-5 w-5 inline-block mr-2" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 24 24">
@@ -921,12 +919,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            Memproses...
+                            {{ __('messages.processing_order') }}
                         </span>
                     </flux:button>
 
                     <flux:text class="text-xs flex text-center text-zinc-300 mt-3">
-                        Pesanan akan diproses otomatis setelah pembayaran terverifikasi
+                        {{ __('messages.order_auto_process') }}
                     </flux:text>
                 </flux:card>
             </div>
@@ -967,7 +965,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                     <div class="mt-4 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <flux:checkbox wire:model.live="dontShowAgain"></flux:checkbox>
-                            <flux:label>Jangan tampilkan lagi</flux:label>
+                            <flux:label>{{ __('messages.dont_show_again') }}</flux:label>
                         </div>
                     </div>
                 </div>

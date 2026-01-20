@@ -50,6 +50,8 @@ new #[Layout('components.layouts.app'), Title('FlazzSell')] class extends Compon
         $flazzSell = FlazzSell::findOrFail($id);
         $flazzSell->delete();
 
+        Flux::modal('delete-flazz-sell-' . $id)->close();
+
         Flux::toast(
             heading: 'FlazzSell berhasil dihapus!',
             text: 'Data FlazzSell telah dihapus dari sistem.',
@@ -88,7 +90,7 @@ new #[Layout('components.layouts.app'), Title('FlazzSell')] class extends Compon
         </div>
 
         <!-- Table -->
-        <flux:table>
+        <flux:table :paginate="$flazzSells">
             <flux:table.columns>
                 <flux:table.column>Nama Event</flux:table.column>
                 <flux:table.column>Jumlah Produk</flux:table.column>
@@ -129,9 +131,27 @@ new #[Layout('components.layouts.app'), Title('FlazzSell')] class extends Compon
                                     icon="pencil" variant="ghost" />
                                 <flux:button size="sm" wire:click="toggleActive({{ $flazzSell->id }})"
                                     icon="{{ $flazzSell->is_active ? 'eye-slash' : 'eye' }}" variant="ghost" />
-                                <flux:button size="sm" wire:click="delete({{ $flazzSell->id }})"
-                                    wire:confirm="Yakin ingin menghapus event FlazzSell ini?" icon="trash" variant="ghost"
-                                    color="red" />
+                                <flux:modal.trigger name="delete-flazz-sell-{{ $flazzSell->id }}">
+                                    <flux:button size="sm" icon="trash" variant="ghost" color="red" />
+                                </flux:modal.trigger>
+                                <flux:modal name="delete-flazz-sell-{{ $flazzSell->id }}" :close-on-outside-click="false">
+                                    <flux:heading>
+                                        Hapus FlazzSell "{{ $flazzSell->name }}"?
+                                    </flux:heading>
+                                    <p class="mt-4">
+                                        Apakah Anda yakin ingin menghapus event FlazzSell ini? Tindakan ini
+                                        tidak dapat dibatalkan dan semua data terkait event ini akan dihapus.
+                                    </p>
+                                    <div class="mt-6 flex items-center justify-end gap-3">
+                                        <flux:modal.close variant="secondary">
+                                            <flux:button>Batal</flux:button>
+                                        </flux:modal.close>
+                                        <flux:button variant="danger" wire:click="delete({{ $flazzSell->id }})"
+                                            wire:loading.attr="disabled">
+                                            Hapus
+                                        </flux:button>
+                                    </div>
+                                </flux:modal>
                             </div>
                         </flux:table.cell>
                     </flux:table.row>
@@ -148,8 +168,4 @@ new #[Layout('components.layouts.app'), Title('FlazzSell')] class extends Compon
             </flux:table.rows>
         </flux:table>
     </flux:card>
-
-    <div class="mt-6">
-        {{ $flazzSells->links() }}
-    </div>
 </div>

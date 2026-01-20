@@ -9,8 +9,6 @@ new #[Layout('components.layouts.app'), Title('Carousel Management')] class exte
     use WithPagination;
 
     public $search = '';
-    public $deleteId = null;
-    public $showDeleteModal = false;
 
     public function updatingSearch()
     {
@@ -29,30 +27,14 @@ new #[Layout('components.layouts.app'), Title('Carousel Management')] class exte
         $this->showDeleteModal = false;
     }
 
-    public function delete()
+    public function delete($id)
     {
-        if ($this->deleteId) {
-            $carousel = Carousel::find($this->deleteId);
+        $carousel = Carousel::findOrFail($id);
+        $carousel->delete($id);
 
-            if ($carousel) {
-                // Delete image file if exists
-                if ($carousel->image_path && \Storage::disk('public')->exists($carousel->image_path)) {
-                    \Storage::disk('public')->delete($carousel->image_path);
-                }
+        Flux::modal('delete-carousel-' . $id)->close();
 
-                $carousel->delete();
-                Flux::toast(
-                    heading: 'Carousel berhasil dihapus!',
-                    text: 'Data carousel telah dihapus dari sistem.',
-                    variant: 'success',
-                    duration: 3000,
-                    position: 'top-right',
-                );
-            }
-
-            $this->deleteId = null;
-            $this->showDeleteModal = false;
-        }
+        Flux::toast(heading: 'Carousel berhasil dihapus!', text: 'Data carousel telah dihapus dari sistem.', variant: 'success', duration: 3000, position: 'top-right');
     }
 
     public function with(): array
@@ -83,17 +65,14 @@ new #[Layout('components.layouts.app'), Title('Carousel Management')] class exte
     <!-- Search -->
     <flux:card class="mb-6">
         <flux:field>
-            <flux:input
-                wire:model.live.debounce.300ms="search"
-                placeholder="Cari carousel berdasarkan judul atau deskripsi..."
-                icon="magnifying-glass"
-            />
+            <flux:input wire:model.live.debounce.300ms="search"
+                placeholder="Cari carousel berdasarkan judul atau deskripsi..." icon="magnifying-glass" />
         </flux:field>
     </flux:card>
 
     <!-- Carousel List -->
     <flux:card>
-        <flux:table>
+        <flux:table :paginate="$carousels">
             <flux:table.columns>
                 <flux:table.column>🖼️ Gambar</flux:table.column>
                 <flux:table.column>📝 Judul</flux:table.column>
@@ -108,11 +87,11 @@ new #[Layout('components.layouts.app'), Title('Carousel Management')] class exte
                         <flux:table.cell>
                             <div class="w-32 h-20 rounded overflow-hidden">
                                 @if ($carousel->image_path)
-                                    <img src="{{ Storage::url($carousel->image_path) }}"
-                                        alt="{{ $carousel->title }}"
+                                    <img src="{{ Storage::url($carousel->image_path) }}" alt="{{ $carousel->title }}"
                                         class="w-full h-full object-cover" />
                                 @else
-                                    <div class="bg-zinc-100 dark:bg-zinc-800 w-full h-full flex items-center justify-center">
+                                    <div
+                                        class="bg-zinc-100 dark:bg-zinc-800 w-full h-full flex items-center justify-center">
                                         <span class="text-zinc-400 text-xs">No Image</span>
                                     </div>
                                 @endif
@@ -133,23 +112,36 @@ new #[Layout('components.layouts.app'), Title('Carousel Management')] class exte
                         </flux:table.cell>
                         <flux:table.cell>
                             <div class="flex gap-2">
-                                <flux:button
-                                    href="{{ route('carousel.edit', $carousel) }}"
-                                    wire:navigate
-                                    size="sm"
-                                    variant="filled"
-                                    icon="pencil"
-                                >
+                                <flux:button href="{{ route('carousel.edit', $carousel) }}" wire:navigate size="sm"
+                                    variant="filled" icon="pencil">
                                     Edit
                                 </flux:button>
-                                <flux:button
-                                    wire:click="confirmDelete({{ $carousel->id }})"
-                                    size="sm"
-                                    variant="danger"
-                                    icon="trash"
-                                >
-                                    Hapus
-                                </flux:button>
+                                <flux:modal.trigger name="delete-carousel-{{ $carousel->id }}">
+                                    <flux:button size="sm" variant="danger" icon="trash">
+                                        Hapus
+                                    </flux:button>
+                                </flux:modal.trigger>
+
+                                <flux:modal name="delete-carousel-{{ $carousel->id }}">
+                                    <div class="space-y-6">
+                                        <flux:heading>
+                                            Hapus Carousel "{{ $carousel->title }}"?
+                                        </flux:heading>
+                                        <flux:text>
+                                            Apakah Anda yakin ingin menghapus carousel ini? Tindakan ini tidak dapat
+                                            dibatalkan.
+                                        </flux:text>
+                                        <div class="mt-6 flex items-center justify-end gap-3">
+                                            <flux:modal.close variant="secondary">
+                                                <flux:button>Batal</flux:button>
+                                            </flux:modal.close>
+                                            <flux:button variant="danger" wire:click="delete({{ $carousel->id }})"
+                                                wire:loading.attr="disabled">
+                                                Hapus
+                                            </flux:button>
+                                        </div>
+                                    </div>
+                                </flux:modal>
                             </div>
                         </flux:table.cell>
                     </flux:table.row>
@@ -166,29 +158,5 @@ new #[Layout('components.layouts.app'), Title('Carousel Management')] class exte
             </flux:table.rows>
         </flux:table>
 
-        <!-- Pagination -->
-        <div class="mt-4">
-            {{ $carousels->links() }}
-        </div>
     </flux:card>
-
-    <!-- Delete Confirmation Modal -->
-    <flux:modal name="delete-carousel" wire:model="showDeleteModal">
-        <flux:heading size="lg">Hapus Data?</flux:heading>
-        <flux:subheading>Apakah Anda yakin ingin menghapus data ini?</flux:subheading>
-
-        <div class="flex gap-3 mt-6">
-            <flux:button wire:click="closeModal" variant="ghost" class="flex-1">
-                Batal
-            </flux:button>
-            <flux:button
-                wire:click="delete"
-                variant="danger"
-                class="flex-1"
-                wire:loading.attr="disabled"
-            >
-                Hapus
-            </flux:button>
-        </div>
-    </flux:modal>
 </div>

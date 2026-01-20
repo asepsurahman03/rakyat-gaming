@@ -19,6 +19,9 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
     public function delete(Game $game)
     {
         $game->delete();
+
+        Flux::modal('delete-game-' . $game->id)->close();
+
         Flux::toast(
             heading: 'Game berhasil dihapus!',
             text: 'Data game telah dihapus dari sistem.',
@@ -105,7 +108,6 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
 
                     <flux:modal name="delete-game-{{ $game->id }}" title="Hapus Game">
                         <div class="space-y-6">
-                            <div class="text-red-500">
                                 <flux:icon.info class="w-12 h-12 mx-auto mb-4" />
                                 <flux:heading size="lg" class="text-center">Peringatan!</flux:heading>
                                 <flux:text>Apakah kamu yakin ingin menghapus game {{ $game->name }}? Tindakan ini akan menghapus seluruh data yang terkait pada game {{ $game->name }} dan akan terhapus secara permanen.</flux:text>
@@ -115,9 +117,7 @@ new #[Layout('components.layouts.app'), Title('Games')] class extends Component 
                             <flux:modal.close>
                                 <flux:button variant="ghost">Batal</flux:button>
                             </flux:modal.close>
-                            <flux:modal.close>
                                 <flux:button variant="danger" wire:click="delete({{ $game->id }})">Hapus</flux:button>
-                            </flux:modal.close>
                         </div>
                     </flux:modal>
                 </div>

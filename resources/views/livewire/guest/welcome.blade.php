@@ -262,10 +262,11 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
         </style>
 
         {{-- section carousel --}}
-        <div class="px-4 md:px-6 py-10 md:py-20 relative">
+        <div
+            class="px-4 md:px-6 py-10 md:py-20 relative h-[200px] sm:h-[300px] md:h-[500px] lg:h-[700px] overflow-hidden">
             <!-- Particle Canvas - wire:ignore to prevent Livewire from touching it -->
             <div wire:ignore class="absolute inset-0 w-full h-full pointer-events-none z-0">
-                <canvas id="particleCanvas" class="w-full h-full"></canvas>
+                <canvas id="particleCanvas" style="display: block; width: 100%; height: 100%;"></canvas>
             </div>
 
             {{-- carousel --}}
@@ -357,154 +358,152 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
 
     <!-- FlazzSell Section -->
     @if (count($flazzSellProducts) > 0)
-        <div class="mt-10">
-            <div class="container mx-auto px-4 max-w-7xl">
-                <div class="w-full sm:flex justify-between items-center mb-4 md:mb-6">
-                    <div class="w-full">
-                        <div class="flex items-start justify-between gap-3 md:mb-2 w-full">
-                            <div class="flex gap-0.5">
-                                <flux:icon.bolt class="w-8 h-8 text-yellow-400 animate-pulse" />
-                                <flux:heading size="xl" class="text-white">{{ __('messages.flash_sale') }}
-                                </flux:heading>
-                            </div>
-                            <!-- Countdown Timer -->
-                            <div class="">
-                                <div class="flex gap-0.5 md:gap-1.5" x-data="{
-                                    days: {{ $timeRemaining['days'] }},
-                                    hours: {{ $timeRemaining['hours'] }},
-                                    minutes: {{ $timeRemaining['minutes'] }},
-                                    seconds: {{ $timeRemaining['seconds'] }},
-                                    endTime: new Date('{{ $event->end_at->toIso8601String() }}').getTime()
-                                }" x-init="setInterval(() => {
-                                    let now = new Date().getTime();
-                                    let distance = endTime - now;
+        <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
+            <div class="w-full sm:flex justify-between items-center mb-4 md:mb-6">
+                <div class="w-full">
+                    <div class="flex items-start justify-between gap-3 md:mb-2 w-full">
+                        <div class="flex gap-0.5">
+                            <flux:icon.bolt class="w-8 h-8 text-yellow-400 animate-pulse" />
+                            <flux:heading size="xl" class="text-white">{{ __('messages.flash_sale') }}
+                            </flux:heading>
+                        </div>
+                        <!-- Countdown Timer -->
+                        <div class="">
+                            <div class="flex gap-0.5 md:gap-1.5" x-data="{
+                                days: {{ $timeRemaining['days'] }},
+                                hours: {{ $timeRemaining['hours'] }},
+                                minutes: {{ $timeRemaining['minutes'] }},
+                                seconds: {{ $timeRemaining['seconds'] }},
+                                endTime: new Date('{{ $event->end_at->toIso8601String() }}').getTime()
+                            }" x-init="setInterval(() => {
+                                let now = new Date().getTime();
+                                let distance = endTime - now;
 
-                                    if (distance < 0) {
-                                        days = hours = minutes = seconds = 0;
-                                        return;
-                                    }
+                                if (distance < 0) {
+                                    days = hours = minutes = seconds = 0;
+                                    return;
+                                }
 
-                                    days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                                    hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                    minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                    seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                                }, 1000)">
-                                    <div class="flex-1 rounded px-2 py-1.5 text-center">
-                                        <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="days"></div>
-                                        <div class="text-xs text-zinc-300">Hari</div>
-                                    </div>
-                                    <h1 class="font-medium text-zinc-50 text-xl md:text-4xl">:</h1>
-                                    <div class="flex-1 rounded px-2 py-1.5 text-center">
-                                        <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="hours"></div>
-                                        <div class="text-xs text-zinc-300">Jam</div>
-                                    </div>
-                                    <h1 class="font-medium text-zinc-50 text-xl md:text-4xl">:</h1>
-                                    <div class="flex-1 rounded px-2 py-1.5 text-center">
-                                        <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="minutes"></div>
-                                        <div class="text-xs text-zinc-300">Menit</div>
-                                    </div>
-                                    <h1 class="font-medium text-zinc-50 text-xl md:text-4xl">:</h1>
-                                    <div class="flex-1 rounded px-2 py-1.5 text-center">
-                                        <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="seconds"></div>
-                                        <div class="text-xs text-zinc-300">Detik</div>
-                                    </div>
+                                days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                            }, 1000)">
+                                <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                    <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="days"></div>
+                                    <div class="text-xs text-zinc-300">Hari</div>
+                                </div>
+                                <h1 class="font-medium text-zinc-50 text-xl md:text-4xl">:</h1>
+                                <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                    <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="hours"></div>
+                                    <div class="text-xs text-zinc-300">Jam</div>
+                                </div>
+                                <h1 class="font-medium text-zinc-50 text-xl md:text-4xl">:</h1>
+                                <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                    <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="minutes"></div>
+                                    <div class="text-xs text-zinc-300">Menit</div>
+                                </div>
+                                <h1 class="font-medium text-zinc-50 text-xl md:text-4xl">:</h1>
+                                <div class="flex-1 rounded px-2 py-1.5 text-center">
+                                    <div class="font-medium text-zinc-50 text-xl md:text-4xl" x-text="seconds"></div>
+                                    <div class="text-xs text-zinc-300">Detik</div>
                                 </div>
                             </div>
                         </div>
-                        <flux:text class="text-white/90">{{ __('messages.flash_sale_description') }}
-                        </flux:text>
                     </div>
+                    <flux:text class="text-white/90">{{ __('messages.flash_sale_description') }}
+                    </flux:text>
                 </div>
+            </div>
 
-                <!-- Horizontal Scrollable Flash Sale Products -->
-                <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
-                    @foreach ($flazzSellProducts as $item)
-                        @php
-                            $event = $item['event'];
-                            $flazzSellProduct = $item['flazzSellProduct'];
-                            $product = $item['product'];
-                            $discountedPrice = $flazzSellProduct->getDiscountedPrice();
-                            $timeRemaining = $event->getTimeRemaining();
-                        @endphp
-                        <a href="{{ route('game.detail', $product->game->slug) }}" wire:navigate
-                            class="group flex-shrink-0 w-[220px] sm:w-[260px] snap-start">
-                            <div
-                                class="relative border-2 border-red-400 dark:border-red-600 rounded-xl overflow-hidden hover:shadow-md hover:shadow-red-500/50 transition-all duration-300 h-full">
+            <!-- Horizontal Scrollable Flash Sale Products -->
+            <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
+                @foreach ($flazzSellProducts as $item)
+                    @php
+                        $event = $item['event'];
+                        $flazzSellProduct = $item['flazzSellProduct'];
+                        $product = $item['product'];
+                        $discountedPrice = $flazzSellProduct->getDiscountedPrice();
+                        $timeRemaining = $event->getTimeRemaining();
+                    @endphp
+                    <a href="{{ route('game.detail', $product->game->slug) }}" wire:navigate
+                        class="group flex-shrink-0 w-[220px] sm:w-[260px] snap-start">
+                        <div
+                            class="relative border-2 border-red-400 dark:border-red-600 rounded-xl overflow-hidden hover:shadow-md hover:shadow-red-500/50 transition-all duration-300 h-full">
 
-                                <!-- Product Image with Overlay -->
-                                <div class="relative overflow-hidden bg-zinc-900">
-                                    @if ($product->game->image)
-                                        <img src="{{ Storage::url($product->game->image) }}"
-                                            alt="{{ $product->game->name }}"
-                                            class="w-full h-46 object-cover object-top group-hover:scale-110 transition-transform duration-300">
-                                    @else
-                                        <div
-                                            class="w-full h-full bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center">
-                                            <flux:icon.fire class="w-16 h-16 text-white opacity-50" />
+                            <!-- Product Image with Overlay -->
+                            <div class="relative overflow-hidden bg-zinc-900">
+                                @if ($product->game->image)
+                                    <img src="{{ Storage::url($product->game->image) }}"
+                                        alt="{{ $product->game->name }}"
+                                        class="w-full h-46 object-cover object-top group-hover:scale-110 transition-transform duration-300">
+                                @else
+                                    <div
+                                        class="w-full h-full bg-gradient-to-br from-red-600 to-orange-600 flex items-center justify-center">
+                                        <flux:icon.fire class="w-16 h-16 text-white opacity-50" />
+                                    </div>
+                                @endif
+
+                                <!-- Dark Gradient Overlay -->
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                                </div>
+
+                                <!-- Product Info Overlay -->
+                                <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
+                                    <!-- Product Name -->
+                                    <div class="mb-3">
+                                        <h3 class="text-sm font-bold text-white line-clamp-1 drop-shadow-lg">
+                                            {{ $product->game->name }}
+                                        </h3>
+                                        <p class="text-xs text-zinc-200 line-clamp-1 mt-1 drop-shadow-lg">
+                                            {{ $product->name }}
+                                        </p>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="mb-3">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-xs text-zinc-300 line-through drop-shadow-lg">
+                                                Rp {{ number_format($product->selling_price, 0, ',', '.') }}
+                                            </span>
+                                            <span
+                                                class="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full font-semibold shadow-lg">
+                                                Hemat
+                                                {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
+                                            </span>
+                                        </div>
+                                        <div class="text-2xl font-bold text-yellow-400 drop-shadow-lg">
+                                            Rp {{ number_format($discountedPrice, 0, ',', '.') }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Quota Info -->
+                                    @if ($flazzSellProduct->quota)
+                                        <div class="bg-black/40 backdrop-blur-sm rounded-lg p-2">
+                                            <div class="flex items-center justify-between text-xs mb-1">
+                                                <span class="text-white font-medium">Stok tersisa:</span>
+                                                <span
+                                                    class="font-bold text-orange-400">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}/{{ $flazzSellProduct->quota }}</span>
+                                            </div>
+                                            <div class="w-full bg-zinc-700 rounded-full h-2">
+                                                <div class="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all shadow-lg"
+                                                    style="width: {{ (($flazzSellProduct->quota - $flazzSellProduct->sold_count) / $flazzSellProduct->quota) * 100 }}%">
+                                                </div>
+                                            </div>
                                         </div>
                                     @endif
-
-                                    <!-- Dark Gradient Overlay -->
-                                    <div
-                                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
-                                    </div>
-
-                                    <!-- Product Info Overlay -->
-                                    <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
-                                        <!-- Product Name -->
-                                        <div class="mb-3">
-                                            <h3 class="text-sm font-bold text-white line-clamp-1 drop-shadow-lg">
-                                                {{ $product->game->name }}
-                                            </h3>
-                                            <p class="text-xs text-zinc-200 line-clamp-1 mt-1 drop-shadow-lg">
-                                                {{ $product->name }}
-                                            </p>
-                                        </div>
-
-                                        <!-- Price -->
-                                        <div class="mb-3">
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <span class="text-xs text-zinc-300 line-through drop-shadow-lg">
-                                                    Rp {{ number_format($product->selling_price, 0, ',', '.') }}
-                                                </span>
-                                                <span
-                                                    class="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full font-semibold shadow-lg">
-                                                    Hemat
-                                                    {{ number_format($flazzSellProduct->getSavings(), 0, ',', '.') }}
-                                                </span>
-                                            </div>
-                                            <div class="text-2xl font-bold text-yellow-400 drop-shadow-lg">
-                                                Rp {{ number_format($discountedPrice, 0, ',', '.') }}
-                                            </div>
-                                        </div>
-
-                                        <!-- Quota Info -->
-                                        @if ($flazzSellProduct->quota)
-                                            <div class="bg-black/40 backdrop-blur-sm rounded-lg p-2">
-                                                <div class="flex items-center justify-between text-xs mb-1">
-                                                    <span class="text-white font-medium">Stok tersisa:</span>
-                                                    <span
-                                                        class="font-bold text-orange-400">{{ $flazzSellProduct->quota - $flazzSellProduct->sold_count }}/{{ $flazzSellProduct->quota }}</span>
-                                                </div>
-                                                <div class="w-full bg-zinc-700 rounded-full h-2">
-                                                    <div class="bg-gradient-to-r from-orange-500 to-red-600 h-2 rounded-full transition-all shadow-lg"
-                                                        style="width: {{ (($flazzSellProduct->quota - $flazzSellProduct->sold_count) / $flazzSellProduct->quota) * 100 }}%">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
                                 </div>
                             </div>
-                        </a>
-                    @endforeach
-                </div>
+                        </div>
+                    </a>
+                @endforeach
             </div>
         </div>
     @endif
 
     <!-- Popular Games Section (Berdasarkan Penjualan Terbanyak) -->
-    <div class="container mx-auto px-4 max-w-7xl py-10 md:py-20">
+    <div class="container mx-auto px-4 max-w-7xl mb-10 md:mb-20">
         <div class="mb-2 flex items-center gap-2">
             <img src="{{ asset('images/fire.webp') }}" alt="fire icon" class="w-8 h-8 inline-block mb-1 mr-2" />
             <flux:heading size="xl" class="mb-2 text-white">{{ __('messages.popular_games') }}</flux:heading>
@@ -615,7 +614,8 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
             @empty
                 <div class="col-span-full text-center py-12">
                     <x-icon name="puzzle-piece" class="w-16 h-16 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
-                    <flux:heading size="md" class="mb-2 text-white">{{ __('messages.no_games_found') }}</flux:heading>
+                    <flux:heading size="md" class="mb-2 text-white">{{ __('messages.no_games_found') }}
+                    </flux:heading>
                     <flux:subheading class="text-zinc-400">{{ __('messages.desk_no_games_found') }}</flux:subheading>
                 </div>
             @endforelse
@@ -625,9 +625,10 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
         @php
             $totalProducts = $this->getTotalFilteredProducts();
         @endphp
-        @if($totalProducts > $perPage)
+        @if ($totalProducts > $perPage)
             <div class="flex justify-center mt-8">
-                <flux:button wire:click="loadMore" icon="arrow-down" variant="primary">{{ __('messages.view_game') }}</flux:button>
+                <flux:button wire:click="loadMore" icon="arrow-down" variant="primary">
+                    {{ __('messages.view_game') }}</flux:button>
             </div>
         @endif
     </div>
@@ -691,73 +692,79 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
 
 <script>
     let particleSystemInstance = null;
+    let initTimeout = null;
 
-    function initializeParticles() {
-        const canvas = document.getElementById('particleCanvas');
-        if (!canvas) {
-            console.error('Particle canvas not found');
-            return;
+    function cleanupParticles() {
+        if (initTimeout) {
+            clearTimeout(initTimeout);
+            initTimeout = null;
         }
 
-        // Clean up existing instance if any
         if (particleSystemInstance) {
             try {
                 particleSystemInstance.destroy();
-            } catch (error) {
-                console.log('Error destroying previous particle system:', error);
-            }
+            } catch (e) {}
             particleSystemInstance = null;
-        }
-
-        console.log('Initializing particle system...');
-
-        // Check if ParticleSystem is available
-        if (typeof ParticleSystem === 'undefined') {
-            console.error('ParticleSystem class not loaded');
-            return;
-        }
-
-        // Initialize particle system with golden theme
-        try {
-            particleSystemInstance = new ParticleSystem('particleCanvas', {
-                particleCount: 80,
-                particleColor: 'rgba(255, 215, 0, 0.7)', // Golden color
-                particleSize: {
-                    min: 1,
-                    max: 3
-                },
-                speed: {
-                    min: 0.5,
-                    max: 1
-                },
-                shapes: ['circle', 'star', 'diamond'],
-                glow: true
-            });
-            console.log('Particles initialized successfully');
-        } catch (error) {
-            console.error('Error initializing particles:', error);
         }
     }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(initializeParticles, 100);
-    });
+    function initializeParticles() {
+        const canvas = document.getElementById('particleCanvas');
+        if (!canvas) return;
 
-    // Re-initialize on Livewire navigation
-    document.addEventListener('livewire:navigated', function() {
-        setTimeout(initializeParticles, 100);
-    });
+        // Full cleanup
+        cleanupParticles();
 
-    // Cleanup on page leave
-    document.addEventListener('livewire:navigating', function() {
-        if (particleSystemInstance) {
-            try {
-                particleSystemInstance.destroy();
-            } catch (error) {
-                console.log('Error cleaning up particles:', error);
-            }
-            particleSystemInstance = null;
+        // Wait for ParticleSystem class
+        if (typeof ParticleSystem === 'undefined') {
+            initTimeout = setTimeout(initializeParticles, 100);
+            return;
         }
-    });
+
+        // Ensure parent has dimensions
+        const parent = canvas.parentElement;
+        const rect = parent.getBoundingClientRect();
+
+        if (!parent || rect.width === 0 || rect.height === 0) {
+            initTimeout = setTimeout(initializeParticles, 150);
+            return;
+        }
+
+        // Clear canvas manually before init
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Initialize with delay for consistency
+        initTimeout = setTimeout(() => {
+            try {
+                particleSystemInstance = new ParticleSystem('particleCanvas', {
+                    particleCount: 40,
+                    particleColor: 'rgba(255, 215, 0, 0.7)',
+                    particleSize: {
+                        min: 1.5,
+                        max: 3
+                    },
+                    shapes: ['star', 'circle', 'diamond'],
+                    glow: true
+                });
+            } catch (error) {
+                console.error('Init error:', error);
+            }
+        }, 150);
+    }
+
+    // Initialize on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeParticles);
+    } else {
+        initializeParticles();
+    }
+
+    // Re-initialize on navigation (same as initial load)
+    document.addEventListener('livewire:navigated', initializeParticles);
+
+    // Full cleanup on leave
+    document.addEventListener('livewire:navigating', cleanupParticles);
 </script>
