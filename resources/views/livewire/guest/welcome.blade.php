@@ -263,13 +263,11 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
 
         {{-- section carousel --}}
         <div
-            class="px-4 md:px-6 py-10 md:py-20 relative mb-5 md:mb-10 overflow-hidden" style="background-image: url('images/Presentasi1.gif'); background-size: cover; background-position: center;">
+            class="px-4 md:px-6 py-10 md:py-20 relative mb-5 md:mb-10 h-[250px] sm:h-[300px] md:h-[450px] lg:h-[600px] overflow-hidden">
             <!-- Particle Canvas - wire:ignore to prevent Livewire from touching it -->
-            {{-- <div wire:ignore class="absolute inset-0 w-full h-full z-0">
+            <div wire:ignore class="absolute inset-0 w-full h-full z-0">
                 <canvas id="particleCanvas" style="display: block; width: 100%; height: 100%;"></canvas>
-                <img src="{{ asset('images/Presentasi1.gif') }}" alt="Particles"
-                    class="w-full h-full object-cover opacity-30" />
-            </div> --}}
+            </div>
 
             {{-- carousel --}}
             <div class="relative max-w-7xl mx-auto rounded-2xl z-10">

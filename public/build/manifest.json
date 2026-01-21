@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-B5so5r4C.css",
+    "file": "assets/app-C0ysMM6d.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "names": [
@@ -14,7 +14,7 @@
     "isEntry": true
   },
   "resources/js/particles.js": {
-    "file": "assets/particles-BchkT1db.js",
+    "file": "assets/particles-jVFMuF0K.js",
     "name": "particles",
     "src": "resources/js/particles.js",
     "isEntry": true
