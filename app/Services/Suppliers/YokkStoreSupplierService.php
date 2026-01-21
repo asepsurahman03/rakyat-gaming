@@ -50,8 +50,8 @@ class YokkStoreSupplierService extends BaseSupplierService
                         'success' => true,
                         'message' => 'Koneksi berhasil',
                         'data' => [
-                            'saldo' => $data['data']['saldo'] ?? 0,
-                            'formatted_balance' => 'Saldo: Rp ' . number_format($data['data']['saldo'] ?? 0, 0, ',', '.'),
+                            'saldo' => $data['saldo'] ?? 0,
+                            'formatted_balance' => 'Saldo: Rp ' . number_format($data['saldo'] ?? 0, 0, ',', '.'),
                         ],
                     ];
                 }
@@ -97,7 +97,7 @@ class YokkStoreSupplierService extends BaseSupplierService
                 $data = $response->json();
 
                 if (isset($data['status']) && $data['status'] == true) {
-                    return (float) ($data['data']['saldo'] ?? 0);
+                    return (float) ($data['saldo'] ?? 0);
                 }
             }
 
