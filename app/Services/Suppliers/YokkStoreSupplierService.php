@@ -273,7 +273,7 @@ class YokkStoreSupplierService extends BaseSupplierService
                 ]);
 
                 $order->update([
-                    'status' => 'process',
+                    'status' => $orderData['status'] ?? 'pending',
                     'note' => json_encode($responseData),
                 ]);
 
@@ -320,6 +320,12 @@ class YokkStoreSupplierService extends BaseSupplierService
                     'message' => 'Supplier tidak aktif atau API Key tidak ditemukan',
                 ];
             }
+
+            Log::info('Checking YokkStore transaction status', [
+                'api_key' => $this->apiKey,
+                'action' => 'status',
+                'order_id' => $order->note['data']['id'] ?? '',
+            ]);
 
             $payload = [
                 'api_key' => $this->apiKey,
