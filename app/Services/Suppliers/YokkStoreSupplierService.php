@@ -248,7 +248,7 @@ class YokkStoreSupplierService extends BaseSupplierService
                 'api_key' => $this->apiKey,
                 'service_id' => $supplierProduct->code,
                 'target' => $customerNo,
-                'kontak' => $order->user->phone ?? '',
+                'kontak' => $order->whatsapp ?? '',
                 'partner_id' => $order->order_code,
                 'callback' => $callbackUrl,
             ];
@@ -270,6 +270,11 @@ class YokkStoreSupplierService extends BaseSupplierService
                     'order_code' => $order->order_code,
                     'yokkstore_order_id' => $orderData['id'] ?? null,
                     'status' => $orderData['status'] ?? null,
+                ]);
+
+                $order->update([
+                    'status' => 'process',
+                    'note' => json_encode($responseData),
                 ]);
 
                 return [
@@ -306,6 +311,61 @@ class YokkStoreSupplierService extends BaseSupplierService
         }
     }
 
+    public function checkTransactionStatus($order): array
+    {
+        try {
+            if (!$this->isActive() || empty($this->apiKey) || empty($this->baseUrl)) {
+                return [
+                    'success' => false,
+                    'message' => 'Supplier tidak aktif atau API Key tidak ditemukan',
+                ];
+            }
+
+            $payload = [
+                'api_key' => $this->apiKey,
+                'action' => 'status',
+                'order_id' => $order->note['data']['id'] ?? '',
+            ];
+
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($this->baseUrl . '/status', $payload);
+
+            $responseData = $response->json();
+
+            if ($response->successful() && isset($responseData['status']) && $responseData['status'] == true) {
+                $orderData = $responseData['data'] ?? [];
+
+                return [
+                    'success' => true,
+                    'message' => $responseData['msg'] ?? 'Status transaksi berhasil diambil',
+                    'data' => [
+                        'order_code' => $orderData['order_code'] ?? null,
+                        'status' => $orderData['status'] ?? 'pending',
+                        'sn' => $orderData['sn'] ?? null,
+                    ],
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => $responseData['msg'] ?? 'Gagal mengambil status transaksi',
+                'data' => $responseData,
+            ];
+        } catch (\Exception $e) {
+            Log::error('YokkStore check transaction status error', [
+                'order_code' => $order->order_code,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ];
+        }
+
+    }
+
     /**
      * Handle webhook callback from YokkStore
      *
@@ -322,9 +382,8 @@ class YokkStoreSupplierService extends BaseSupplierService
 
             $this->logWebhook($payload, $signature, $ipAddress, 'received');
 
-            $partnerId = $payload['partner_id'] ?? null;
+            $partnerId = $payload['data']['partner_id'] ?? null;
             $status = $payload['status'] ?? null;
-            $sn = $payload['sn'] ?? null;
 
             if (!$partnerId) {
                 Log::warning('YokkStore webhook missing partner_id', ['payload' => $payload]);
@@ -356,7 +415,6 @@ class YokkStoreSupplierService extends BaseSupplierService
 
             $order->update([
                 'status' => $orderStatus,
-                'sn' => $sn ?? $order->sn,
             ]);
 
             Log::info('YokkStore webhook processed', [
@@ -398,13 +456,13 @@ class YokkStoreSupplierService extends BaseSupplierService
         // Dan validasi partner_id yang harus ada di database kita
 
         // Pastikan partner_id ada dan valid
-        if (!isset($payload['partner_id']) || empty($payload['partner_id'])) {
+        if (!isset($payload['data']['partner_id']) || empty($payload['data']['partner_id'])) {
             Log::warning('YokkStore webhook: missing partner_id', ['payload' => $payload]);
             return false;
         }
 
         // Verifikasi bahwa partner_id adalah order_id yang valid di sistem kita
-        $partnerId = $payload['partner_id'];
+        $partnerId = $payload['data']['partner_id'];
         $orderExists = \App\Models\Order::where('order_code', $partnerId)->exists();
 
         if (!$orderExists) {
