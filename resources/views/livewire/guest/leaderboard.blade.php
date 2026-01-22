@@ -122,7 +122,7 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            {{-- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <flux:card class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white border-0">
                     <div class="flex items-center justify-between">
                         <div>
@@ -169,7 +169,7 @@ new #[Layout('components.layouts.guest'), Title('Leaderboard')] class extends Co
                         </div>
                     </div>
                 </flux:card>
-            </div>
+            </div> --}}
 
             <!-- Leaderboard Table -->
             <flux:card class="overflow-hidden">
