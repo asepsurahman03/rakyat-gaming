@@ -321,10 +321,13 @@ class YokkStoreSupplierService extends BaseSupplierService
                 ];
             }
 
+            $noteData = is_string($order->note) ? json_decode($order->note, true) : $order->note;
+            $orderId = $noteData['data']['id'] ?? null;
+
             Log::info('Checking YokkStore transaction status', [
                 'api_key' => $this->apiKey,
                 'action' => 'status',
-                'order_id' => $order->note['data']['id'] ?? '',
+                'order_id' => $orderId,
             ]);
 
             $payload = [
@@ -388,14 +391,14 @@ class YokkStoreSupplierService extends BaseSupplierService
 
             $this->logWebhook($payload, $signature, $ipAddress, 'received');
 
-            $partnerId = $payload['data']['partner_id'] ?? null;
-            $status = $payload['status'] ?? null;
+            $partnerId = $payload['data']['partnerid'] ?? null;
+            $status = $payload['data']['status'] ?? null;
 
             if (!$partnerId) {
-                Log::warning('YokkStore webhook missing partner_id', ['payload' => $payload]);
+                Log::warning('YokkStore webhook missing partnerid', ['payload' => $payload]);
                 return [
                     'success' => false,
-                    'message' => 'Missing partner_id in webhook payload',
+                    'message' => 'Missing partnerid in webhook payload',
                 ];
             }
 
@@ -403,7 +406,7 @@ class YokkStoreSupplierService extends BaseSupplierService
 
             if (!$order) {
                 Log::warning('YokkStore webhook order not found', [
-                    'partner_id' => $partnerId,
+                    'partnerid' => $partnerId,
                 ]);
                 return [
                     'success' => false,
@@ -462,24 +465,24 @@ class YokkStoreSupplierService extends BaseSupplierService
         // Dan validasi partner_id yang harus ada di database kita
 
         // Pastikan partner_id ada dan valid
-        if (!isset($payload['data']['partner_id']) || empty($payload['data']['partner_id'])) {
-            Log::warning('YokkStore webhook: missing partner_id', ['payload' => $payload]);
+        if (!isset($payload['data']['partnerid']) || empty($payload['data']['partnerid'])) {
+            Log::warning('YokkStore webhook: missing partnerid', ['payload' => $payload]);
             return false;
         }
 
         // Verifikasi bahwa partner_id adalah order_id yang valid di sistem kita
-        $partnerId = $payload['data']['partner_id'];
+        $partnerId = $payload['data']['partnerid'];
         $orderExists = \App\Models\Order::where('order_code', $partnerId)->exists();
 
         if (!$orderExists) {
-            Log::warning('YokkStore webhook: invalid partner_id', [
-                'partner_id' => $partnerId,
+            Log::warning('YokkStore webhook: invalid partnerid', [
+                'partnerid' => $partnerId,
             ]);
             return false;
         }
 
         Log::info('YokkStore webhook validation passed', [
-            'partner_id' => $partnerId,
+            'partnerid' => $partnerId,
             'validation_method' => 'IP whitelist + partner_id verification',
         ]);
 
