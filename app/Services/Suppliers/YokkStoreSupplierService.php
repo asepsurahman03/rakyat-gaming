@@ -232,14 +232,7 @@ class YokkStoreSupplierService extends BaseSupplierService
                 ? json_decode($order->data_player, true)
                 : $order->data_player;
 
-            $userId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-            $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? $dataPlayer['server'] ?? '';
-
-            if (!empty($userId) && !empty($serverId)) {
-                $customerNo = $userId . '|' . $serverId;
-            } else {
-                $customerNo = $userId;
-            }
+            $customerNo = $this->formatDataPlayer($dataPlayer);
 
             // Build callback URL
             $callbackUrl = url('/webhook/yokkstore');
@@ -373,6 +366,25 @@ class YokkStoreSupplierService extends BaseSupplierService
             ];
         }
 
+    }
+
+    public function formatDataPlayer(array $dataPlayer): string
+    {
+        // ByxStore expects target in format with fields separated by "|"
+        // Collect all non-empty field values and join them with "|"
+        $fields = [];
+
+        foreach ($dataPlayer as $key => $value) {
+            if (!empty($value) && is_scalar($value)) {
+            $fields[] = $value;
+            }
+        }
+
+        if (empty($fields)) {
+            return '';
+        }
+
+        return implode('|', $fields);
     }
 
     /**

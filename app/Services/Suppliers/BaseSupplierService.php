@@ -165,15 +165,19 @@ abstract class BaseSupplierService implements SupplierServiceInterface
             ? json_decode($order->data_player, true)
             : $order->data_player;
 
-        $playerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-        $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? $dataPlayer['server'] ?? '';
+        $fields = [];
 
-        // If both exist, combine them (e.g., Mobile Legends format)
-        if (!empty($playerId) && !empty($serverId)) {
-            return $playerId . $serverId;
+        foreach ($dataPlayer as $key => $value) {
+            if (is_scalar($value) && !empty($value)) {
+                $fields[] = $value;
+            }
         }
 
-        return $playerId;
+        if (empty($fields)) {
+            return '';
+        }
+
+        return implode('.', $fields);
     }
 
     /**

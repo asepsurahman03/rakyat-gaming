@@ -371,15 +371,21 @@ class ByxStoreSupplierService extends BaseSupplierService
 
     public function formatDataPlayer(array $dataPlayer): string
     {
-        // ByxStore expects target in "ID|ZoneID" format
-        $playerId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-        $zoneId = $dataPlayer['zone_id'] ?? $dataPlayer['server_id'] ?? $dataPlayer['server'] ?? '';
+        // ByxStore expects target in format with fields separated by "|"
+        // Collect all non-empty field values and join them with "|"
+        $fields = [];
 
-        if (!empty($playerId) && !empty($zoneId)) {
-            return $playerId . '|' . $zoneId;
+        foreach ($dataPlayer as $key => $value) {
+            if (!empty($value) && is_scalar($value)) {
+            $fields[] = $value;
+            }
         }
 
-        return $playerId;
+        if (empty($fields)) {
+            return '';
+        }
+
+        return implode('|', $fields);
     }
 
     /**

@@ -236,8 +236,8 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 ? json_decode($order->data_player, true)
                 : $order->data_player;
 
-                $userId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
-                $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? $dataPlayer['server'] ?? '';
+            $userId = $dataPlayer['player_id'] ?? $dataPlayer['user_id'] ?? '';
+            $serverId = $dataPlayer['server_id'] ?? $dataPlayer['zone_id'] ?? $dataPlayer['server'] ?? '';
 
             // Build payload according to OnoyStore API
             $payload = [
