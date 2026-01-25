@@ -43,6 +43,7 @@ rules([
     'fieldForms.*.options' => 'nullable|array',
     'fieldForms.*.options.*' => 'required|string',
     'fieldForms.*.is_required' => 'boolean',
+    'fieldForms.*.description' => 'nullable|string',
     'productGroups.*.name' => 'required|string|max:100',
     'productGroups.*.is_active' => 'boolean',
     'inquiry' => 'nullable|string|max:255',
@@ -76,6 +77,7 @@ $addFieldForm = function () {
         'type' => 'text',
         'options' => [],
         'is_required' => true,
+        'description' => '',
     ];
 };
 
@@ -286,7 +288,7 @@ $save = function () {
                                         <flux:icon.trash class="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                                     <flux:field>
                                         <flux:label>Label</flux:label>
                                         <flux:input wire:model="fieldForms.{{ $index }}.label"
@@ -312,6 +314,13 @@ $save = function () {
                                             <option value="select">Select (Dropdown)</option>
                                         </flux:select>
                                         <flux:error name="fieldForms.{{ $index }}.type" />
+                                    </flux:field>
+
+                                    <flux:field>
+                                        <flux:label>Deskripsi (Opsional)</flux:label>
+                                        <flux:textarea wire:model="fieldForms.{{ $index }}.description"
+                                            placeholder="e.g., Masukkan ID karakter Anda" size="sm"></flux:textarea>
+                                        <flux:error name="fieldForms.{{ $index }}.description" />
                                     </flux:field>
 
                                     <flux:field>

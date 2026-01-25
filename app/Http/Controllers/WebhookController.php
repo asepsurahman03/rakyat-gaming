@@ -22,7 +22,13 @@ class WebhookController extends Controller
      */
     public function handle(Request $request, string $supplierCode): JsonResponse
     {
+        Log::info("Handling webhook for supplier: {$supplierCode}", [
+            'ip' => $request->ip(),
+            'headers' => $request->headers->all(),
+        ]);
+
         try {
+            Log::info("Processing webhook for supplier: {$supplierCode}");
             // Check if supplier service exists
             if (!$this->factory->has($supplierCode)) {
                 Log::warning("Webhook received for unknown supplier: {$supplierCode}");
@@ -45,6 +51,11 @@ class WebhookController extends Controller
                     'message' => 'Supplier is not active'
                 ], 403);
             }
+
+            Log::info("Webhook received from {$supplierCode}", [
+                'ip' => $request->ip(),
+                'headers' => $request->headers->all(),
+            ]);
 
             // Get raw payload content
             $rawPayload = $request->getContent();
@@ -74,6 +85,8 @@ class WebhookController extends Controller
                     'message' => 'Invalid signature'
                 ], 401);
             }
+
+            Log::info("Webhook signature validated for {$supplierCode}");
 
             // Handle webhook through supplier service
             $result = $service->handleWebhook($data);

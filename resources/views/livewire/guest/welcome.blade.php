@@ -148,7 +148,12 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
             $query->where('category_id', $this->filterCategoryId);
         }
 
-        return $query->orderBy('name', 'asc')->limit($this->perPage)->get();
+        return $query
+        ->withCount('orders')
+        ->orderBy('orders_count', 'desc')
+        ->orderBy('name', 'asc')
+        ->limit($this->perPage)
+        ->get();
     }
 
     public function getTotalFilteredProducts()

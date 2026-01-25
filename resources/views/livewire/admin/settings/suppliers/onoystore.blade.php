@@ -130,18 +130,35 @@ new #[Layout('components.layouts.app'), Title('OnoyStore - Supplier Configuratio
             $result = $service->testConnection();
 
             if ($result['success']) {
-                Log::info("message: " . ($result['data'] ?? 'No message'));
+
+                Log::info('OnoyStore connection result', $result);
+
                 $this->userInfo = [
                     'name' => $result['data']['user_name'] ?? '-',
                     'email' => $result['data']['user_email'] ?? '-',
                     'balance' => $result['data']['user_balance'] ?? 0,
                     'role' => $result['data']['role_name'] ?? '-',
                 ];
-                Flux::toast(heading: 'Koneksi Berhasil', text: $result['data']['formatted_balance'] ?? 'Koneksi ke OnoyStore berhasil', variant: 'success', duration: 5000, position: 'top-right');
+
+                Flux::toast(
+                    heading: 'Koneksi Berhasil',
+                    text: $result['data']['formatted_balance'] ?? 'Koneksi ke OnoyStore berhasil',
+                    variant: 'success',
+                    duration: 5000,
+                    position: 'top-right'
+                );
+
             } else {
 
-                Flux::toast(heading: 'Koneksi Gagal', text: $result['message'] ?? 'Gagal terhubung ke OnoyStore', variant: 'error', duration: 5000, position: 'top-right');
+                Flux::toast(
+                    heading: 'Koneksi Gagal',
+                    text: $result['message'] ?? 'Gagal terhubung ke OnoyStore',
+                    variant: 'error',
+                    duration: 5000,
+                    position: 'top-right'
+                );
             }
+
         } catch (\Exception $e) {
             Flux::toast(heading: 'Error', text: $e->getMessage(), variant: 'error', duration: 5000, position: 'top-right');
         }

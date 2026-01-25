@@ -17,6 +17,7 @@ class FieldForm extends Model
         'type',
         'options',
         'is_required',
+        'description',
     ];
 
     protected $casts = [

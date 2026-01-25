@@ -38,17 +38,24 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 'Authorization' => $this->apiKey,
             ])->get($this->baseUrl . '/v1/public/user');
 
-            if ($response->successful()) {
-                $data = $response->json();
+            $data = $response->json();
 
-                if (isset($data['statusCode']) && $data['statusCode'] == 200) {
+            if ($response->successful()) {
+
+                Log::info('OnoyStore test connection successful');
+                Log::info($data);
+
+                if (($data['statusCode'] ?? null) == 200) {
+
                     $userData = $data['data'];
+
                     return [
                         'success' => true,
                         'message' => 'Koneksi berhasil',
                         'data' => [
                             'balance' => $userData['user_balance'] ?? 0,
-                            'formatted_balance' => 'Saldo: Rp ' . number_format($userData['user_balance'] ?? 0, 0, ',', '.') . ' | User: ' . ($userData['user_name'] ?? 'Unknown'),
+                            'formatted_balance' => 'Saldo: Rp ' . number_format($userData['user_balance'] ?? 0, 0, ',', '.')
+                                                . ' | User: ' . ($userData['user_name'] ?? 'Unknown'),
                             'user_name' => $userData['user_name'] ?? null,
                             'user_email' => $userData['user_email'] ?? null,
                             'role_name' => $userData['role_name'] ?? null,
@@ -57,7 +64,6 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 }
             }
 
-            $data = $response->json();
             return [
                 'success' => false,
                 'message' => 'Gagal terhubung ke OnoyStore API. Status: ' . ($data['message'] ?? 'Unknown error'),
@@ -218,6 +224,13 @@ class OnoyStoreSupplierService extends BaseSupplierService
     public function processTransaction(Order $order, SupplierProduct $supplierProduct): array
     {
         try {
+
+            Log::info('Initiating OnoyStore transaction', [
+                'order_id' => $order->id,
+                'order_code' => $order->order_code,
+                'product_code' => $supplierProduct->code,
+            ]);
+
             if (!$this->isActive() || empty($this->apiKey) || empty($this->baseUrl)) {
                 return [
                     'success' => false,
@@ -265,6 +278,12 @@ class OnoyStoreSupplierService extends BaseSupplierService
 
             $body = $response->json();
 
+            Log::info('OnoyStore transaction response', [
+                'order_id' => $order->id,
+                'response_status' => $response->status(),
+                'response_body' => $body,
+            ]);
+
             // Log response
             $this->logTransaction($order, $payload, $body, $response->successful() ? 'success' : 'failed');
 
@@ -274,6 +293,11 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 $status = strtoupper($transactionData['status'] ?? '');
 
                 return $this->handleTransactionStatus($order, $status, $transactionData);
+
+                Log::info('OnoyStore transaction processed', [
+                    'order_id' => $order->id,
+                    'status' => $status,
+                ]);
             }
 
             // Invalid response
@@ -281,6 +305,11 @@ class OnoyStoreSupplierService extends BaseSupplierService
             $order->update([
                 'status' => 'failed',
                 'note' => json_encode($body)
+            ]);
+
+            Log::warning('OnoyStore transaction failed', [
+                'order_id' => $order->id,
+                'response_body' => $body,
             ]);
 
             return [
@@ -319,6 +348,12 @@ class OnoyStoreSupplierService extends BaseSupplierService
     {
         $invoiceNumber = $transactionData['invoice_number'] ?? null;
         $responseNote = $transactionData['response_note'] ?? '';
+
+        Log::info('Handling OnoyStore transaction status', [
+            'order_id' => $order->id,
+            'invoice_number' => $invoiceNumber,
+            'status' => $status,
+        ]);
 
         switch ($status) {
             case 'SUCCESS':
@@ -503,6 +538,11 @@ class OnoyStoreSupplierService extends BaseSupplierService
         $signature = request()->header('X-Signature') ?? request()->header('x-signature') ?? '';
         $ipAddress = request()->ip();
 
+        Log::info('OnoyStore webhook received', [
+            'ip' => $ipAddress,
+            'payload' => $payload,
+        ]);
+
         try {
             // Validate signature first
             if (!$this->validateWebhookSignature($payload, $signature)) {
@@ -551,7 +591,10 @@ class OnoyStoreSupplierService extends BaseSupplierService
                 ];
             }
 
-            $orderId = $order->id;
+            Log::info('OnoyStore webhook: order found', [
+                'trx_id' => $trxId,
+                'order_id' => $order->id,
+            ]);
 
             // Get status from payload (SUCCESS | PARTIAL_SUCCESS | REFUNDED | FAILED)
             $status = strtoupper($payload['status'] ?? '');
@@ -559,7 +602,6 @@ class OnoyStoreSupplierService extends BaseSupplierService
             $responseNote = $payload['response_note'] ?? '';
 
             Log::info('OnoyStore webhook received', [
-                'order_id' => $orderId,
                 'trx_id' => $trxId,
                 'invoice_number' => $invoiceNumber,
                 'status' => $status,
@@ -569,7 +611,12 @@ class OnoyStoreSupplierService extends BaseSupplierService
             $result = $this->handleTransactionStatus($order, $status, $payload);
 
             // Log successful webhook
-            $this->logWebhook($payload, $signature, $ipAddress, true, $result, $orderId, null);
+            $this->logWebhook($payload, $signature, $ipAddress, true, $result, $order->id, null);
+
+            Log::info('OnoyStore webhook processed successfully', [
+                'order_id' => $order->id,
+                'status' => $status,
+            ]);
 
             return [
                 'success' => true,
@@ -586,7 +633,7 @@ class OnoyStoreSupplierService extends BaseSupplierService
             ]);
 
             // Log failed webhook
-            $this->logWebhook($payload, $signature, $ipAddress, false, ['success' => false, 'message' => 'Exception occurred'], $orderId, $e->getMessage());
+            $this->logWebhook($payload, $signature, $ipAddress, false, ['success' => false, 'message' => 'Exception occurred'], $order->id ?? null, $e->getMessage());
 
             return [
                 'success' => false,

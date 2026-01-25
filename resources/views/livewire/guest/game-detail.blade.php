@@ -278,7 +278,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 'order_code' => 'RG-' . strtoupper(Str::random(10)),
                 'user_id' => auth()->id() ?? null,
                 'email' => $this->email,
-                'whatsapp' => $this->whatsapp,
+                'whatsapp' => '+62' . $this->whatsapp,
                 'game_id' => $this->game->id,
                 'product_id' => $this->selectedProduct,
                 'data_player' => $this->fields,
@@ -413,9 +413,17 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             {{ __('messages.no_data_required') }}
                         </flux:callout>
                     @else
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            @foreach ($game->fieldForms as $fieldForm)
-                                <div class="form-control mb-4">
+                        @php
+                            $totalFields = $game->fieldForms->count();
+                            $isOdd = $totalFields % 2 !== 0;
+                        @endphp
+                        <div class="grid grid-cols-2 gap-4 items-start">
+                            @foreach ($game->fieldForms as $index => $fieldForm)
+                                @php
+                                    $isLastItem = $index === $totalFields - 1;
+                                    $shouldSpan = $isOdd && $isLastItem;
+                                @endphp
+                                <div class="form-control mb-4 {{ $shouldSpan ? 'col-span-2' : '' }}">
                                     @if ($fieldForm->type === 'textarea')
                                         <flux:textarea id="field-{{ $fieldForm->name }}"
                                             wire:model="fields.{{ $fieldForm->name }}"
@@ -441,6 +449,11 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                             wire:model="fields.{{ $fieldForm->name }}"
                                             placeholder="{{ __('messages.enter') }} {{ strtolower($fieldForm->label) }}"
                                             label="{{ $fieldForm->label }}" />
+                                    @endif
+                                    @if ($fieldForm->description)
+                                        <flux:subheading size="xs" class="mt-1">
+                                            {{ $fieldForm->description }}
+                                        </flux:subheading>
                                     @endif
                                 </div>
                             @endforeach
