@@ -278,7 +278,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 'order_code' => 'RG-' . strtoupper(Str::random(10)),
                 'user_id' => auth()->id() ?? null,
                 'email' => $this->email,
-                'whatsapp' => '+62' . $this->whatsapp,
+                'whatsapp' => $this->whatsapp,
                 'game_id' => $this->game->id,
                 'product_id' => $this->selectedProduct,
                 'data_player' => $this->fields,

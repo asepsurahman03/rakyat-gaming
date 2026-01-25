@@ -30,8 +30,8 @@ class ProcessOrderBypass extends Command
     {
         $orderCode = $this->argument('order_code');
 
-        // Find order
-        $order = Order::where('order_code', $orderCode)->first();
+        // Find order with relations
+        $order = Order::with(['product.supplierProduct.supplier'])->where('order_code', $orderCode)->first();
 
         if (!$order) {
             $this->error("Order dengan code {$orderCode} tidak ditemukan!");
@@ -48,25 +48,36 @@ class ProcessOrderBypass extends Command
             return 0;
         }
 
-        // Get supplier product
-        $supplierProduct = SupplierProduct::where('id', $order->supplier_product_id)->first();
+        // Get supplier product through product relation
+        if (!$order->product) {
+            $this->error('Product tidak ditemukan pada order ini!');
+            return 1;
+        }
+
+        $supplierProduct = $order->product->supplierProduct;
 
         if (!$supplierProduct) {
             $this->error('Supplier product tidak ditemukan!');
             return 1;
         }
 
+        $this->info("Product: {$order->product->name}");
         $this->info("Supplier Product: {$supplierProduct->product_name}");
         $this->info("Supplier: {$supplierProduct->supplier->name}");
 
         // Update order status to paid (bypass payment)
-        $order->update([
-            'status' => 'paid',
-            'payment_status' => 'paid',
-            'paid_at' => now(),
-        ]);
+        $orderPayment = $order->orderPayment;
+        if ($orderPayment) {
+            $orderPayment->update([
+                'status' => 'paid',
+                'payment_reference' => 'BYPASS-' . strtoupper(uniqid()),
+            ]);
+            $this->info('Status pembayaran diupdate ke PAID (bypass payment)');
+        } else {
+            $this->warn('OrderPayment tidak ditemukan, melewati update status pembayaran.');
+        }
 
-        $this->info('Status order diupdate ke PAID (bypass payment)');
+        $this->info('Status order Payment diupdate ke PAID (bypass payment)');
 
         // Process transaction
         $this->info('Memproses transaksi ke supplier...');
