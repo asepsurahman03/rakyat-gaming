@@ -262,7 +262,7 @@ class OnoyStoreSupplierService extends BaseSupplierService
 
             // Add callback URL if configured
             // $callbackUrl = config('app.url') . '/api/webhooks/onoystore';
-            $callbackUrl = "https://rakyatgaming.id/webhook/onoystore";
+            $callbackUrl = "https://rakyatgaming.com/webhook/onoystore";
             if (!empty($callbackUrl)) {
                 $payload['callback_url'] = $callbackUrl;
             }
@@ -288,7 +288,7 @@ class OnoyStoreSupplierService extends BaseSupplierService
             $this->logTransaction($order, $payload, $body, $response->successful() ? 'success' : 'failed');
 
             // Process response
-            if ($response->successful() && isset($body['statusCode']) && $body['statusCode'] == 200) {
+            if ($response->successful() && isset($body['statusCode']) && ($body['statusCode'] == 201 || $body['statusCode'] == 200)) {
                 $transactionData = $body['data'];
                 $status = strtoupper($transactionData['status'] ?? '');
 
