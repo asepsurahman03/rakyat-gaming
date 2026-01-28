@@ -18,87 +18,85 @@ Route::get('/lang/{locale}', function ($locale) {
 })->name('lang.switch');
 
 // API Search Games
-Route::get('/api/search-games', function (Illuminate\Http\Request $request) {
-    $query = $request->input('q', '');
+Route::middleware('throttle:web')->group(function () {
+    Route::get('/api/search-games', function (Illuminate\Http\Request $request) {
+        $query = $request->input('q', '');
 
-    if (strlen($query) < 2) {
-        return response()->json(['games' => []]);
-    }
+        if (strlen($query) < 2) {
+            return response()->json(['games' => []]);
+        }
 
-    try {
-        $games = \App\Models\Game::with('category')
-            ->where('is_active', true)
-            ->where(function($q) use ($query) {
-                $q->where('name', 'like', '%' . $query . '%')
-                  ->orWhereHas('category', function($subQuery) use ($query) {
-                      $subQuery->where('name', 'like', '%' . $query . '%');
-                  });
-            })
-            ->orderBy('name', 'asc')
-            ->limit(10)
-            ->get()
-            ->map(function($game) {
-                return [
-                    'id' => $game->id,
-                    'name' => $game->name,
-                    'slug' => $game->slug,
-                    'category' => $game->category ? $game->category->name : 'Game',
-                    'image_url' => $game->image ? Storage::url($game->image) : asset('images/placeholder-game.png'),
-                ];
-            });
+        try {
+            $games = \App\Models\Game::with('category')
+                ->where('is_active', true)
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'like', '%' . $query . '%')->orWhereHas('category', function ($subQuery) use ($query) {
+                        $subQuery->where('name', 'like', '%' . $query . '%');
+                    });
+                })
+                ->orderBy('name', 'asc')
+                ->limit(10)
+                ->get()
+                ->map(function ($game) {
+                    return [
+                        'id' => $game->id,
+                        'name' => $game->name,
+                        'slug' => $game->slug,
+                        'category' => $game->category ? $game->category->name : 'Game',
+                        'image_url' => $game->image ? Storage::url($game->image) : asset('images/placeholder-game.png'),
+                    ];
+                });
 
-        return response()->json(['games' => $games, 'count' => $games->count()]);
-    } catch (\Exception $e) {
-        return response()->json(['games' => [], 'error' => $e->getMessage()], 500);
-    }
+            return response()->json(['games' => $games, 'count' => $games->count()]);
+        } catch (\Exception $e) {
+            return response()->json(['games' => [], 'error' => $e->getMessage()], 500);
+        }
+    });
+
+    Volt::route('/', 'guest.welcome')->name('home');
+    Volt::route('cek-transaksi', 'guest.cek-transaksi')->name('cek-transaksi');
+    Volt::route('leaderboard', 'guest.leaderboard')->name('leaderboard');
+    Volt::route('checkout', 'guest.checkout')->name('checkout');
+    Volt::route('game/{slug}', 'guest.game-detail')->name('game.detail');
+    Volt::route('magicwhele', 'guest.calculate.magicwhele')->name('magicwhele');
+    Volt::route('winrate', 'guest.calculate.winrate')->name('winrate');
+    Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
+    Volt::route('terms-and-conditions', 'guest.terms-and-conditions')->name('terms-and-conditions');
+    Volt::route('refund-policy', 'guest.refund-policy')->name('refund-policy');
+    Volt::route('faq', 'guest.faq')->name('faq');
+
+    // Guest Posts/Articles
+    Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
+    Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show');
+
+    // Webhooks & Callbacks (No auth required, IP restricted)
+    // Dynamic webhook handler for all suppliers
+    Route::post('/webhook/{supplierCode}', [WebhookController::class, 'handle'])
+        ->middleware('webhook.ip:suppliers')
+        ->name('webhook.handle');
+
+    // Legacy Digiflazz webhook (kept for backward compatibility)
+    Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
+        ->middleware('webhook.ip:digiflazz')
+        ->name('webhook.digiflazz');
+
+    Route::post('/payment/callback', [PaymentController::class, 'callback'])
+        ->middleware('webhook.ip:ipaymu')
+        ->name('payment.callback');
+
+    Route::get('/payment/return', [PaymentController::class, 'return'])->name('payment.return');
+
+    Volt::route('/payment/detail', 'guest.payment-detail')->name('payment.detail');
 });
-
-Volt::route('/', 'guest.welcome')->name('home');
-Volt::route('cek-transaksi', 'guest.cek-transaksi')->name('cek-transaksi');
-Volt::route('leaderboard', 'guest.leaderboard')->name('leaderboard');
-Volt::route('checkout', 'guest.checkout')->name('checkout');
-Volt::route('game/{slug}', 'guest.game-detail')->name('game.detail');
-Volt::route('magicwhele', 'guest.calculate.magicwhele')->name('magicwhele');
-Volt::route('winrate', 'guest.calculate.winrate')->name('winrate');
-Volt::route('zodiak', 'guest.calculate.zodiak')->name('zodiak');
-Volt::route('terms-and-conditions', 'guest.terms-and-conditions')->name('terms-and-conditions');
-Volt::route('refund-policy', 'guest.refund-policy')->name('refund-policy');
-Volt::route('faq', 'guest.faq')->name('faq');
-
-// Guest Posts/Articles
-Volt::route('artikel', 'guest.posts.index')->name('guest.posts.index');
-Volt::route('artikel/{post:slug}', 'guest.posts.show')->name('guest.posts.show');
-
-// Webhooks & Callbacks (No auth required, IP restricted)
-// Dynamic webhook handler for all suppliers
-Route::post('/webhook/{supplierCode}', [WebhookController::class, 'handle'])
-    ->middleware('webhook.ip:suppliers')
-    ->name('webhook.handle');
-
-// Legacy Digiflazz webhook (kept for backward compatibility)
-Route::post('/webhook/digiflazz', [DigiflazzController::class, 'handle'])
-    ->middleware('webhook.ip:digiflazz')
-    ->name('webhook.digiflazz');
-
-Route::post('/payment/callback', [PaymentController::class, 'callback'])
-    ->middleware('webhook.ip:ipaymu')
-    ->name('payment.callback');
-
-Route::get('/payment/return', [PaymentController::class, 'return'])
-    ->name('payment.return');
-
-Volt::route('/payment/detail', 'guest.payment-detail')
-    ->name('payment.detail');
-
 // User Dashboard Routes (Only for authenticated users with role 'user')
-Route::middleware(['auth', 'user'])->group(function () {
+Route::middleware(['auth', 'user', 'throttle:web'])->group(function () {
     Volt::route('/user/dashboard', 'user.dashboard')->name('user.dashboard');
     Volt::route('/user/transactions', 'user.transactions')->name('user.transactions');
     Volt::route('/user/profile', 'user.profile')->name('user.profile');
 });
 
 // Admin Dashboard Routes (Only for authenticated users with role 'admin')
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth', 'admin', 'throttle:web'])->group(function () {
     Volt::route('/admin/dashboard', 'admin.dashboard')->name('dashboard');
     Volt::route('/admin/profile', 'admin.profile')->name('admin.profile');
 
@@ -163,7 +161,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 });
 
 // Shared Auth Routes (Both admin and user can access)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'throttle:web'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('profile', 'settings.profile')->name('profile');
@@ -172,14 +170,6 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
 
     Volt::route('settings/two-factor', 'settings.two-factor')
-        ->middleware(
-            when(
-                Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
-                ['password.confirm'],
-                [],
-            ),
-        )
+        ->middleware(when(Features::canManageTwoFactorAuthentication() && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'), ['password.confirm'], []))
         ->name('two-factor.show');
 });
-

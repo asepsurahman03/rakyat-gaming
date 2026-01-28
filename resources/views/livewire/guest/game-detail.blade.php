@@ -451,9 +451,20 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                             label="{{ $fieldForm->label }}" />
                                     @endif
                                     @if ($fieldForm->description)
-                                        <flux:subheading size="xs" class="mt-1">
-                                            {{ $fieldForm->description }}
-                                        </flux:subheading>
+                                        <div
+                                            class="prose prose-zinc dark:prose-invert max-w-none my-2 text-gray-300
+                                                [&>p]:text-sm
+                                                [&>h1]:text-2xl [&>h2]:text-xl [&>h3]:text-lg
+                                                [&>p]:mb-4
+                                                [&>h1]:mt-6 [&>h1]:mb-4
+                                                [&>h2]:mt-6 [&>h2]:mb-4
+                                                [&>h3]:mt-6 [&>h3]:mb-4
+                                                [&>ul]:my-4 [&>ul]:list-disc [&>ul]:pl-8 [&>ul]:space-y-2
+                                                [&>ol]:my-4 [&>ol]:list-decimal [&>ol]:pl-8 [&>ol]:space-y-2
+                                                [&>ul>li]:ml-0 [&>ol>li]:ml-0
+                                                [&_ul]:list-disc [&_ol]:list-decimal">
+                                            {!! $fieldForm->description !!}
+                                        </div>
                                     @endif
                                 </div>
                             @endforeach
@@ -477,12 +488,14 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                         <div class="md:flex items-center justify-between gap-2 mb-4">
                             <div class="mb-2">
                                 <flux:icon.fire class="text-red-500" />
-                                <flux:heading size="lg" class="text-red-600">{{ __('messages.flazzsell_discount') }}
+                                <flux:heading size="lg" class="text-red-600">
+                                    {{ __('messages.flazzsell_discount') }}
                                 </flux:heading>
                             </div>
                             <!-- Countdown Timer -->
                             <div class="mt-3 pt-3">
-                                <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">{{ __('messages.ends_in') }}:</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                    {{ __('messages.ends_in') }}:</div>
                                 <div class="flex gap-2 text-center" x-data="{
                                     days: {{ $timeRemaining['days'] }},
                                     hours: {{ $timeRemaining['hours'] }},
@@ -544,14 +557,13 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                         <flux:heading size="sm" class="text-sm md:text-base line-clamp-2 flex-1">
                                             {{ $product->name }}</flux:heading>
                                         @if ($product->icon)
-                                            <img src="{{ asset('storage/' . $product->icon) }}"
-                                                alt="Icon"
+                                            <img src="{{ asset('storage/' . $product->icon) }}" alt="Icon"
                                                 class="w-6 h-6 md:w-8 md:h-8 object-contain rounded flex-shrink-0">
                                         @endif
                                     </div>
                                     @if ($product->description)
                                         <flux:subheading size="sm" class="mt-1 text-xs line-clamp-2">
-                                            <flux:icon.info variant="mini"/>
+                                            <flux:icon.info variant="mini" />
                                             {{ $product->description }}
                                         </flux:subheading>
                                     @endif
@@ -601,11 +613,11 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                     <div wire:click="selectProduct({{ $product->id }})"
                                         class="p-3 md:p-4 rounded-lg bg-zinc-100 dark:bg-zinc-800 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all {{ $selectedProduct === $product->id ? 'ring-2 ring-yellow-400' : '' }}">
                                         <div class="flex items-start gap-2">
-                                            <flux:heading size="sm" class="text-sm md:text-base line-clamp-2 flex-1">
+                                            <flux:heading size="sm"
+                                                class="text-sm md:text-base line-clamp-2 flex-1">
                                                 {{ $product->name }}</flux:heading>
                                             @if ($product->icon)
-                                                <img src="{{ asset('storage/' . $product->icon) }}"
-                                                    alt="Icon"
+                                                <img src="{{ asset('storage/' . $product->icon) }}" alt="Icon"
                                                     class="w-6 h-6 md:w-8 md:h-8 object-contain rounded flex-shrink-0">
                                             @endif
                                         </div>
@@ -637,7 +649,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 <!-- Ungrouped Products -->
                 @if ($ungroupedProducts->isNotEmpty())
                     <flux:card class="mb-4">
-                        <flux:heading size="lg" class="mb-4">{{ __('messages.select_nominal') }}</flux:heading>
+                        <flux:heading size="lg" class="mb-4">{{ __('messages.select_nominal') }}
+                        </flux:heading>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             @foreach ($ungroupedProducts as $product)
                                 <div wire:click="selectProduct({{ $product->id }})"
@@ -646,8 +659,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                         <flux:heading size="sm" class="text-sm md:text-base line-clamp-2 flex-1">
                                             {{ $product->name }}</flux:heading>
                                         @if ($product->icon)
-                                            <img src="{{ asset('storage/' . $product->icon) }}"
-                                                alt="Icon"
+                                            <img src="{{ asset('storage/' . $product->icon) }}" alt="Icon"
                                                 class="w-6 h-6 md:w-8 md:h-8 object-contain rounded flex-shrink-0">
                                         @endif
                                     </div>
@@ -685,7 +697,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 @endif
 
                 <flux:card class="mb-4 hidden md:block">
-                    <flux:heading class="mb-4">{{ __('messages.description_of') }} {{ $game->name }}</flux:heading>
+                    <flux:heading class="mb-4">{{ __('messages.description_of') }} {{ $game->name }}
+                    </flux:heading>
                     <flux:text class="whitespace-pre-line text-justify">
                         {{ $game->description }}
                     </flux:text>
@@ -704,7 +717,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                     <flux:icon.star class="w-10 h-10 text-yellow-400" variant="solid" />
                                 @endfor
                             </div>
-                            <div class="text-sm text-zinc-300">{{ __('messages.based_on_reviews', ['count' => '3.421']) }}</div>
+                            <div class="text-sm text-zinc-300">
+                                {{ __('messages.based_on_reviews', ['count' => '3.421']) }}</div>
                         </div>
                     </div>
                 </div>
@@ -881,7 +895,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                             <span>{{ __('messages.flazzsell_active') }}</span>
                                         </div>
                                         <div class="flex justify-between text-sm mb-1">
-                                            <span class="text-zinc-600 dark:text-zinc-300">{{ __('messages.normal_price') }}:</span>
+                                            <span
+                                                class="text-zinc-600 dark:text-zinc-300">{{ __('messages.normal_price') }}:</span>
                                             <span class="line-through text-zinc-300">Rp
                                                 {{ number_format($product->selling_price, 0, ',', '.') }}</span>
                                         </div>
@@ -894,13 +909,15 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 @endif
 
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-zinc-600 dark:text-zinc-300">{{ __('messages.product_price') }}:</span>
+                                    <span
+                                        class="text-zinc-600 dark:text-zinc-300">{{ __('messages.product_price') }}:</span>
                                     <span class="font-medium">Rp
                                         {{ number_format($displayPrice, 0, ',', '.') }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-zinc-600 dark:text-zinc-300">{{ __('messages.admin_fee') }}:</span>
+                                    <span
+                                        class="text-zinc-600 dark:text-zinc-300">{{ __('messages.admin_fee') }}:</span>
                                     <span class="font-medium">Rp
                                         {{ number_format($paymentFee, 0, ',', '.') }}</span>
                                 </div>
@@ -917,7 +934,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             </div>
                         @endif
                     @else
-                        <flux:text class="text-center text-zinc-300">{{ __('messages.select_product_first_simple') }}</flux:text>
+                        <flux:text class="text-center text-zinc-300">{{ __('messages.select_product_first_simple') }}
+                        </flux:text>
                     @endif
 
                     <flux:button wire:click="createOrder" variant="primary" class="w-full mt-6"

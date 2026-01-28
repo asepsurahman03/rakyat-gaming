@@ -318,8 +318,8 @@ $save = function () {
 
                                     <flux:field>
                                         <flux:label>Deskripsi (Opsional)</flux:label>
-                                        <flux:textarea wire:model="fieldForms.{{ $index }}.description"
-                                            placeholder="e.g., Masukkan ID karakter Anda" size="sm"></flux:textarea>
+                                        <flux:editor wire:model="fieldForms.{{ $index }}.description"
+                                            placeholder="e.g., Masukkan ID karakter Anda"></flux:editor>
                                         <flux:error name="fieldForms.{{ $index }}.description" />
                                     </flux:field>
 

@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
-use App\Listeners\SendWelcomeNotification;
-use App\Services\SupplierServiceFactory;
-use App\Services\Suppliers\DigiflazzSupplierService;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\ServiceProvider;
+use App\Services\SupplierServiceFactory;
+use App\Listeners\SendWelcomeNotification;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use App\Services\Suppliers\DigiflazzSupplierService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,5 +48,20 @@ class AppServiceProvider extends ServiceProvider
             Registered::class,
             SendWelcomeNotification::class,
         );
+
+        RateLimiter::for('web', function (Request $request) {
+
+            $ua = strtolower($request->userAgent());
+
+            if (
+                str_contains($ua, 'googlebot') ||
+                str_contains($ua, 'bingbot') ||
+                str_contains($request->path(), 'livewire')
+            ) {
+                return Limit::none();
+            }
+
+            return Limit::perMinute(100)->by($request->ip());
+        });
     }
 }
