@@ -21,5 +21,21 @@
   gtag('config', 'AW-17200405073');
 </script>
 
+@if(App\Models\Setting::get('meta_pixel_enabled', false))
+    {!! App\Models\Setting::get('meta_pixel_code', '') !!}
+@endif
+
+@if(App\Models\Setting::get('google_tag_enabled', false))
+    {!! App\Models\Setting::get('google_tag_code', '') !!}
+@endif
+
+@if(App\Models\Setting::get('tiktok_pixel_enabled', false))
+    {!! App\Models\Setting::get('tiktok_pixel_code', '') !!}
+@endif
+
+@if(App\Models\Setting::get('custom_head_enabled', false))
+    {!! App\Models\Setting::get('custom_head_code', '') !!}
+@endif
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance
