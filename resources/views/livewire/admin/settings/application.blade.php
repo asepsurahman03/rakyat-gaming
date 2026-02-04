@@ -48,12 +48,16 @@ new #[Layout('components.layouts.app'), Title('Application Configuration')] clas
         // Load tracking codes from database
         $this->meta_pixel_code = \App\Models\Setting::get('meta_pixel_code', '');
         $this->meta_pixel_enabled = \App\Models\Setting::get('meta_pixel_enabled', false);
+        $this->meta_pixel_enabled = $this->meta_pixel_enabled === '1' ;
         $this->google_tag_code = \App\Models\Setting::get('google_tag_code', '');
         $this->google_tag_enabled = \App\Models\Setting::get('google_tag_enabled', false);
+        $this->google_tag_enabled = $this->google_tag_enabled === '1' ;
         $this->tiktok_pixel_code = \App\Models\Setting::get('tiktok_pixel_code', '');
         $this->tiktok_pixel_enabled = \App\Models\Setting::get('tiktok_pixel_enabled', false);
+        $this->tiktok_pixel_enabled = $this->tiktok_pixel_enabled === '1' ;
         $this->custom_head_code = \App\Models\Setting::get('custom_head_code', '');
         $this->custom_head_enabled = \App\Models\Setting::get('custom_head_enabled', false);
+        $this->custom_head_enabled = $this->custom_head_enabled === '1' ;
     }
 
     public function saveSettings()
