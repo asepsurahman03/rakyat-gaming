@@ -63,6 +63,10 @@ class VerifyWebhookIP
             'duitku' => [
                 // Duitku Production IPs
             ],
+            'tripay' => [
+                // Tripay Production IPs
+                '95.111.200.230'
+            ],
             'ipaymu' => [
                 // Ipaymu Production IPs
                 '120.89.93.249',

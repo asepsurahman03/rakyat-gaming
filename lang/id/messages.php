@@ -47,6 +47,7 @@ return [
     'view_details' => 'Lihat Detail',
     'buy_now' => 'Beli Sekarang',
     'order_now' => 'Pesan Sekarang',
+    'order_new' => 'Pesan Baru',
 
     // Admin Menu
     'carousel' => 'Carousel',
@@ -175,7 +176,6 @@ return [
     'user_id' => 'User ID',
     'server_id' => 'Server ID',
     'zone_id' => 'Zone ID',
-    'payment_method' => 'Metode Pembayaran',
     'select_payment' => 'Pilih Metode Pembayaran',
     'order_summary' => 'Ringkasan Pesanan',
     'product_name' => 'Nama Produk',
@@ -196,7 +196,6 @@ return [
     'check_name' => 'Cek Nickname',
     'nickname' => 'Nickname',
     'flazzsell_discount' => 'FlazzSell - Diskon Terbatas!',
-    'ends_in' => 'Berakhir dalam',
     'days' => 'Hari',
     'hours' => 'Jam',
     'minutes' => 'Menit',
@@ -226,10 +225,8 @@ return [
     // Checkout
     'checkout_title' => 'Checkout',
     'confirm_payment' => 'Konfirmasi Pembayaran',
-    'pay_now' => 'Bayar Sekarang',
     'payment_instructions' => 'Instruksi Pembayaran',
     'complete_payment' => 'Selesaikan pembayaran dalam',
-    'minutes' => 'menit',
 
     // Footer
     'about_us' => 'Tentang Kami',
@@ -270,4 +267,22 @@ return [
     'at' => 'pada',
     'in' => 'dalam',
     'for' => 'untuk',
+
+    //payment detail
+    'reference' => 'Referensi',
+    'payment_url' => 'Tautan Pembayaran',
+    'qr_string' => 'String QR',
+    'qr_url' => 'Tautan QR',
+    'amount' => 'Jumlah',
+    'expired' => 'Kadaluarsa',
+    'logo' => 'Logo',
+    'payment_success' => 'Pembayaran Berhasil',
+    'payment_success_desc' => 'Terima kasih pembayaran telah di terima.',
+    'payment_pending' => 'Menunggu Pembayaran',
+    'payment_pending_desc' => 'Silahkan lakukan pembayaran untuk melanjutkan pesanan',
+    'payment_expired' => 'Pembayaran Expired',
+    'payment_expired_desc' => 'Batas waktu pembayaran telah berakhir',
+    'payment_failed' => 'Pembayaran Gagal',
+    'payment_failed_desc' => 'Transaksi gagal, silahkan coba lagi',
+    'total_order' => 'Total Pembayaran',
 ];

@@ -201,11 +201,8 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
         <!-- Left Column - Profile Info -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Profile Information Card -->
-            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-shadow">
+            <flux:card class="border border-zinc-200 shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                        <flux:icon.user class="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                    </div>
                     <div>
                         <flux:heading size="lg">Informasi Profile</flux:heading>
                         <flux:subheading>Perbarui informasi akun Anda</flux:subheading>
@@ -222,10 +219,10 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
                                     class="w-20 h-20 rounded-full object-cover border-2 border-yellow-400">
                             @elseif($currentImage)
                                 <img src="{{ Storage::url($currentImage) }}" alt="Current"
-                                    class="w-20 h-20 rounded-full object-cover border-2 border-zinc-300 dark:border-zinc-600">
+                                    class="w-20 h-20 rounded-full object-cover border-2 border-zinc-300">
                             @else
                                 <div
-                                    class="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border-2 border-zinc-300 dark:border-zinc-600">
+                                    class="w-20 h-20 rounded-full bg-zinc-100 flex items-center justify-center border-2 border-zinc-300">
                                     <flux:icon.user class="w-10 h-10 text-zinc-400" />
                                 </div>
                             @endif
@@ -237,7 +234,7 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
                         </div>
                         <flux:error name="image" />
                         <div wire:loading wire:target="image"
-                            class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2 mt-2">
+                            class="text-sm text-zinc-200 flex items-center gap-2 mt-2">
                             <flux:icon.arrow-path class="w-4 h-4 animate-spin" />
                             Mengupload...
                         </div>
@@ -297,7 +294,7 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
                         <flux:description>Format: 628xxxxxxxxxx (tanpa +)</flux:description>
                     </flux:field>
 
-                    <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                    <div class="pt-4 border-t border-zinc-200">
                         <flux:button type="submit" variant="primary" icon="check" class="w-full sm:w-auto">
                             Simpan Perubahan
                         </flux:button>
@@ -306,7 +303,7 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
             </flux:card>
 
             <!-- Change Password Card -->
-            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow-md transition-shadow">
+            <flux:card class="border border-zinc-200 shadow-sm hover:shadow-md transition-shadow">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                         <flux:icon.lock-closed class="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -340,7 +337,7 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
                         <flux:error name="password_confirmation" />
                     </flux:field>
 
-                    <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                    <div class="pt-4 border-t border-zinc-200">
                         <flux:button type="submit" variant="primary" icon="check" class="w-full sm:w-auto">
                             Update Password
                         </flux:button>
@@ -352,20 +349,20 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
         <!-- Right Column - Quick Info & Actions -->
         <div class="space-y-6">
             <!-- Account Stats -->
-            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm">
+            <flux:card class="border border-zinc-200 shadow-sm">
                 <flux:heading size="lg" class="mb-4">Statistik Akun</flux:heading>
                 <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                    <div class="flex items-center justify-between p-3 rounded-lg border border-zinc-200">
                         <div class="flex items-center gap-3">
-                            <flux:icon.shopping-bag class="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                            <flux:icon.shopping-bag class="w-5 h-5 text-zinc-200 " />
                             <span class="text-sm font-medium">Total Transaksi</span>
                         </div>
                         <span class="text-lg font-bold text-yellow-600">{{ auth()->user()->orders()->count() }}</span>
                     </div>
-                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                    <div class="flex items-center justify-between p-3 rounded-lg border border-zinc-200">
                         <div class="flex items-center gap-3">
-                            <flux:icon.clock class="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
-                            <span class="text-sm font-medium">Member Sejak</span>
+                            <flux:icon.clock class="w-5 h-5 text-zinc-200" />
+                            <span class="text-sm font-medium ">Member Sejak</span>
                         </div>
                         <span class="text-sm font-semibold">{{ auth()->user()->created_at->diffForHumans() }}</span>
                     </div>
@@ -373,36 +370,36 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
             </flux:card>
 
             <!-- Quick Actions -->
-            <flux:card class="border border-zinc-200 dark:border-zinc-700 shadow-sm">
+            <flux:card class="border border-zinc-200 shadow-sm">
                 <flux:heading size="lg" class="mb-4">Aksi Cepat</flux:heading>
                 <div class="space-y-3">
                     <a href="{{ route('user.transactions') }}" wire:navigate
-                        class="flex items-center gap-3 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors group">
+                        class="flex items-center gap-3 p-3 rounded-lg transition-colors group border border-zinc-200">
                         <flux:icon.document-text
-                            class="w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-yellow-600" />
+                            class="w-5 h-5 text-zinc-200 group-hover:text-yellow-600" />
                         <span class="text-sm font-medium">Lihat Transaksi</span>
                     </a>
-                    <a href="{{ route('user.dashboard') }}" wire:navigate
-                        class="flex items-center gap-3 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors group">
-                        <flux:icon.home class="w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-yellow-600" />
+                    <a href="{{ route('user.dashboard') }}" wire:navigate   
+                        class="flex items-center gap-3 p-3 rounded-lg transition-colors group border border-zinc-200">
+                        <flux:icon.home class="w-5 h-5 text-zinc-200 group-hover:text-yellow-600" />
                         <span class="text-sm font-medium">Ke Dashboard</span>
                     </a>
                     <a href="/" wire:navigate
-                        class="flex items-center gap-3 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors group">
+                        class="flex items-center gap-3 p-3 rounded-lg transition-colors group border border-zinc-200">
                         <flux:icon.shopping-cart
-                            class="w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-yellow-600" />
+                            class="w-5 h-5 text-zinc-200 group-hover:text-yellow-600" />
                         <span class="text-sm font-medium">Mulai Belanja</span>
                     </a>
                 </div>
             </flux:card>
 
             <!-- Danger Zone -->
-            <flux:card class="border-2 border-red-200 dark:border-red-900 shadow-sm bg-red-50/50 dark:bg-red-900/10">
+            <flux:card class="border-2 border-red-200 shadow-sm">
                 <div class="flex items-center gap-2 mb-3">
-                    <flux:icon.exclamation-triangle class="w-5 h-5 text-red-600 dark:text-red-400" />
-                    <flux:heading size="lg" class="text-red-700 dark:text-red-400">Zona Berbahaya</flux:heading>
+                    <flux:icon.exclamation-triangle class="w-5 h-5 text-zinc-200" />
+                    <flux:heading size="lg" class="text-zinc-200">Zona Berbahaya</flux:heading>
                 </div>
-                <flux:subheading class="mb-4 text-red-600 dark:text-red-400">
+                <flux:subheading class="mb-4 text-zinc-200">
                     Tindakan ini tidak dapat dibatalkan
                 </flux:subheading>
 
@@ -416,11 +413,11 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
                     <form wire:submit="deleteUser" class="space-y-6">
                         <div class="text-center">
                             <div
-                                class="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
-                                <flux:icon.exclamation-triangle class="w-8 h-8 text-red-600 dark:text-red-400" />
+                                class="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                                <flux:icon.exclamation-triangle class="w-8 h-8 text-red-600" />
                             </div>
                             <flux:heading size="lg">Hapus Akun Permanen?</flux:heading>
-                            <flux:text class="mt-3 text-zinc-600 dark:text-zinc-400">
+                            <flux:text class="mt-3 text-zinc-200">
                                 Tindakan ini akan menghapus semua data Anda secara permanen termasuk riwayat transaksi,
                                 profile, dan informasi lainnya. Data yang sudah dihapus tidak dapat dikembalikan.
                             </flux:text>
@@ -433,12 +430,12 @@ new #[Layout('components.layouts.user'), Title('Profile')] class extends Compone
                             <flux:error name="password" />
                         </flux:field>
 
-                        <div class="flex gap-3">
-                            <flux:modal.close class="flex-1">
+                        <div class="flex gap-3 justify-end">
+                            <flux:modal.close>
                                 <flux:button variant="ghost" class="w-full">Batal</flux:button>
                             </flux:modal.close>
 
-                            <flux:button type="submit" variant="danger" icon="trash" class="flex-1">
+                            <flux:button type="submit" variant="danger" icon="trash" >
                                 Ya, Hapus Akun
                             </flux:button>
                         </div>

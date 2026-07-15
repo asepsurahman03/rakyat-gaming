@@ -4,55 +4,65 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderPayment;
-use App\Services\IpaymuService;
+use App\Services\TripayService;
 use App\Services\SupplierServiceFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    protected $ipaymuService;
+    protected $tripayService;
     protected $supplierServiceFactory;
 
-    public function __construct(IpaymuService $ipaymuService, SupplierServiceFactory $supplierServiceFactory)
+    public function __construct(TripayService $tripayService, SupplierServiceFactory $supplierServiceFactory)
     {
-        $this->ipaymuService = $ipaymuService;
+        $this->tripayService = $tripayService;
         $this->supplierServiceFactory = $supplierServiceFactory;
     }
 
     /**
-     * Handle payment callback from Ipaymu
+     * Handle payment callback from Tripay
      */
     public function callback(Request $request)
     {
-        $data = $request->all();
+        //ambil callback signature dari header
+        $callbackSignature = isset($_SERVER['HTTP_X_CALLBACK_SIGNATURE'])
+            ? $_SERVER['HTTP_X_CALLBACK_SIGNATURE']
+            : '';
 
-        Log::info('Ipaymu callback received', $data);
+        // Ambil data JSON
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        Log::info('Tripay callback received', [
+            'ip' => $request->ip(),
+            'data' => $data,
+            'headers' => $request->headers->all(),
+        ]);
 
         // Verify signature
-        // if (!$this->ipaymuService->verifyCallback($request)) {
-        //     Log::warning('Invalid Ipaymu callback signature', [
-        //         'ip' => $request->ip(),
-        //         'data' => $data,
-        //         'headers' => $request->headers->all(),
-        //     ]);
-        //     return response()->json(['message' => 'Invalid signature'], 403);
-        // }
+        if (!$this->tripayService->validateCallbackSignature($callbackSignature, $json)) {
+            Log::warning('Invalid Tripay callback signature', [
+                'ip' => $request->ip(),
+                'data' => $json,
+                'headers' => $request->headers->all(),
+            ]);
+            return response()->json(['message' => 'Invalid signature'], 403);
+        }
 
-        // Ipaymu uses 'reference_id' or 'trx_id' instead of 'merchantOrderId'
-        $merchantOrderId = $data['reference_id'] ?? $data['trx_id'] ?? null;
-        $status = $data['status'] ?? '';
-        $statusCode = $data['status_code'] ?? '';
+        // Tripay uses 'reference_id' or 'trx_id' instead of 'merchantOrderId'
+        $merchantOrderId = $data['merchant_ref'] ?? null;
+        $status = $data['status'] ?? null;
 
         if (!$merchantOrderId) {
-            return response()->json(['message' => 'reference_id is required'], 400);
+            return response()->json(['message' => 'merchant_ref is required'], 400);
         }
 
         // Find order
         $order = Order::where('order_code', $merchantOrderId)->where('status', 'pending')->first();
 
         if (!$order) {
-            Log::warning('Order not found for Ipaymu callback', ['merchantOrderId' => $merchantOrderId]);
+            Log::warning('Order not found for Tripay callback', ['merchantOrderId' => $merchantOrderId]);
             return response()->json(['message' => 'Order not found'], 404);
         }
 
@@ -67,11 +77,11 @@ class PaymentController extends Controller
         // Update payment status based on Ipaymu status
         // Ipaymu status: 'berhasil' = success, 'pending' = pending, 'gagal' = failed, 'expired' = expired
         // Status code: 1 = pending, 2 = expired, 5 = success, 6 = failed/cancelled
-        if ($statusCode == '5' || strtolower($status) === 'berhasil') {
+        if (strtolower($status) === 'paid') {
             // Payment success
             $orderPayment->update([
                 'status' => 'paid',
-                'payment_reference' => $data['trx_id'] ?? $data['sid'] ?? null,
+                'payment_reference' => $data['reference'] ?? null,
             ]);
 
             $order->update(['status' => 'process']);
@@ -140,7 +150,7 @@ class PaymentController extends Controller
                     }
                 }
             }
-        } elseif ($statusCode == '2' || strtolower($status) === 'expired') {
+        } elseif (strtolower($status) === 'expired') {
             // Payment expired
             $orderPayment->update([
                 'status' => 'expired',
@@ -148,6 +158,22 @@ class PaymentController extends Controller
             ]);
 
             $order->update(['status' => 'failed']);
+        } elseif (strtolower($status) === 'refund') {
+            // Payment refunded
+            $orderPayment->update([
+                'status' => 'refunded',
+                'payment_reference' => $data['trx_id'] ?? $data['sid'] ?? null,
+            ]);
+
+            $order->update(['status' => 'failed']);
+        } elseif (strtolower($status) === 'unpaid') {
+            // Payment unpaid
+            $orderPayment->update([
+                'status' => 'unpaid',
+                'payment_reference' => $data['trx_id'] ?? $data['sid'] ?? null,
+            ]);
+
+            $order->update(['status' => 'pending']);
         } else {
             // Payment failed or pending
             $orderPayment->update([
@@ -168,8 +194,12 @@ class PaymentController extends Controller
      */
     public function return(Request $request)
     {
-        $merchantOrderId = $request->query('merchantOrderId');
-        $resultCode = $request->query('resultCode');
+        Log::info('Payment return received', [
+            'ip' => $request->ip(),
+            'query' => $request->query(),
+        ]);
+
+        $merchantOrderId = $request->query('tripay_merchant_ref');
 
         if (!$merchantOrderId) {
             Log::warning('merchantOrderId missing in payment return', [

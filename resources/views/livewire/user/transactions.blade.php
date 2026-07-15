@@ -195,7 +195,7 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                 <flux:table.column>Order ID</flux:table.column>
                 <flux:table.column>Game & Produk</flux:table.column>
                 <flux:table.column>Tanggal</flux:table.column>
-                <flux:table.column>Payment</flux:table.column>
+                <flux:table.column>Metode Pembayaran</flux:table.column>
                 <flux:table.column>Total</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column class="text-center">Actions</flux:table.column>
@@ -219,7 +219,7 @@ new #[Layout('components.layouts.user'), Title('Transaksi Saya')] class extends 
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge color="zinc" size="sm">{{ $order->paymentGateway->name ?? 'N/A' }}
+                            <flux:badge color="zinc" size="sm">{{ $order->payment_method ?? 'N/A' }}
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell>

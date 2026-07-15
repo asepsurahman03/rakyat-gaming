@@ -47,6 +47,7 @@ return [
     'view_details' => 'View Details',
     'buy_now' => 'Buy Now',
     'order_now' => 'Order Now',
+    'order_new' => 'Order New',
 
     // Admin Menu
     'carousel' => 'Carousel',
@@ -188,7 +189,8 @@ return [
     'whatsapp_placeholder' => 'Example: 08123456789',
     'view_game' => 'View More Games',
     'no_games_found' => 'No Games Found',
-    'desk_no_games_found' => 'Try selecting a different category',    'player_data' => 'Player Data',
+    'desk_no_games_found' => 'Try selecting a different category',
+    'player_data' => 'Player Data',
     'no_data_required' => 'No data required',
     'enter' => 'Enter',
     'select' => 'Select',
@@ -268,4 +270,22 @@ return [
     'at' => 'at',
     'in' => 'in',
     'for' => 'for',
+
+    //payment detail
+    'reference' => 'Reference',
+    'payment_url' => 'Payment URL',
+    'qr_string' => 'QR String',
+    'qr_url' => 'QR URL',
+    'amount' => 'Amount',
+    'expired' => 'Expired',
+    'logo' => 'Logo',
+    'payment_success' => 'Payment Successful',
+    'payment_success_desc' => 'Thank you, your payment has been received.',
+    'payment_pending' => 'Awaiting Payment',
+    'payment_pending_desc' => 'Please complete your payment to continue your order',
+    'payment_expired' => 'Payment Expired',
+    'payment_expired_desc' => 'The payment deadline has passed',
+    'payment_failed' => 'Payment Failed',
+    'payment_failed_desc' => 'Transaction failed, please try again',
+    'total_order' => 'Total Payment',
 ];

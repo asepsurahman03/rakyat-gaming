@@ -8,6 +8,7 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
     public $orderCode = '';
     public $order = null;
     public $notFound = false;
+    public $paymentUrl;
 
     public function checkOrder()
     {
@@ -26,6 +27,10 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
         $this->order = Order::with(['game', 'product', 'orderPayment.paymentGateway'])
             ->where('order_code', $this->orderCode)
             ->first();
+
+        $this->paymentUrl = $this->order->orderPayment->pay_url;
+
+        Log::info('Order: ' . json_encode($this->order));
 
         if (!$this->order) {
             $this->notFound = true;
@@ -334,19 +339,18 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
 
                         @if ($order->orderPayment && $order->orderPayment->status === 'pending')
                             <div class="mb-4 sm:mb-6">
-                                <flux:callout variant="warning" icon="exclamation-triangle">
-                                    <strong>Pembayaran Belum Selesai!</strong> Klik tombol di bawah untuk menyelesaikan
+                                    Klik tombol di bawah untuk menyelesaikan
                                     pembayaran Anda.
-                                </flux:callout>
                             </div>
                         @endif
 
                         <div class="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-2 sm:gap-3">
                             @if ($order->orderPayment && $order->orderPayment->status === 'pending')
-                                    <flux:button href="{{ route('payment.detail', ['order_code' => $order->order_code]) }}" target="_blank" variant="primary">
-                                        <flux:icon.credit-card class="w-5 h-5" />
-                                        Bayar Sekarang
-                                    </flux:button>
+                                <flux:button href="{{ $paymentUrl }}" target="_blank"
+                                    variant="primary">
+                                    <flux:icon.credit-card class="w-5 h-5" />
+                                    Bayar Sekarang
+                                </flux:button>
                             @endif
                             <flux:button wire:click="clearForm" variant="ghost" icon="arrow-path">
                                 Cek Transaksi Lain

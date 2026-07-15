@@ -81,7 +81,7 @@ Route::middleware('throttle:web')->group(function () {
         ->name('webhook.digiflazz');
 
     Route::post('/payment/callback', [PaymentController::class, 'callback'])
-        ->middleware('webhook.ip:ipaymu')
+        ->middleware('webhook.ip:tripay')
         ->name('payment.callback');
 
     Route::get('/payment/return', [PaymentController::class, 'return'])->name('payment.return');

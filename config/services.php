@@ -57,4 +57,10 @@ return [
         'redirect_url' => env('IPAYMU_REDIRECT_URL', env('APP_URL') . '/payment/return'),
         'sandbox' => env('IPAYMU_SANDBOX', true),
     ],
+    'tripay' => [
+        'api_key' => env('TRIPAY_API_KEY'),
+        'private_key' => env('TRIPAY_PRIVATE_KEY'),
+        'merchant_code' => env('TRIPAY_MERCHANT_CODE'),
+        'mode' => env('TRIPAY_MODE', 'production'),
+    ],
 ];

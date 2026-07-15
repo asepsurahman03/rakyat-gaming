@@ -15,6 +15,7 @@ class PaymentGateway extends Model
         'code',
         'api_key',
         'api_secret',
+        'merchant_code',
         'callback_url',
         'redirect_url',
         'is_active',

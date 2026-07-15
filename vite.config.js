@@ -18,5 +18,7 @@ export default defineConfig({
     ],
     server: {
         cors: true,
+        host: '0.0.0.0', // or 'true' to listen on all addresses
+        allowedHosts: ['ivproject.online'],
     },
 });

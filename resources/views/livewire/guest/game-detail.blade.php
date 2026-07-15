@@ -13,6 +13,8 @@ use App\Services\OnoyStoreSupplierService;
 use Illuminate\Support\Str;
 use Livewire\Attributes\{Layout, Title};
 use Livewire\Volt\Component;
+use Illuminate\Support\Facades\Log;
+use App\Services\TripayService;
 
 new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Component {
     public $slug;
@@ -23,13 +25,15 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
     public $productGroups = [];
     public $ungroupedProducts = [];
     public $flazzSellProducts = [];
+    public $flazzSell = false;
     public $timeRemaining = [];
-    public $flazzSell;
+    public $displayPrice = 0;
     public $email = '';
     public $whatsapp = '';
     public $selectedPaymentMethod = null;
     public $paymentMethods = [];
-    public $paymentMethodsCached = false;
+    public $totalFee = 0;
+    public $totalAmount = 0;
     public $paymentMethodsError = null;
     public $loading = false;
     public $playerName = null;
@@ -152,52 +156,70 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
         $product = $this->products->firstWhere('id', $productId) ?? $this->flazzSellProducts->firstWhere('id', $productId);
         if ($product) {
             $price = $product->selling_price;
+            $this->displayPrice = $price;
 
             // If FlazzSell, get discounted price
             if ($product->hasActiveFlazzSell()) {
                 $flazzSellProduct = $product->activeFlazzSellProduct();
                 $price = $flazzSellProduct->getDiscountedPrice();
+                $this->displayPrice = $price;
             }
 
             try {
-                $ipaymuService = app(IpaymuService::class);
+                $TripayService = app(TripayService::class);
 
-                // Define filters for payment methods
-                $filters = [
-                    'exclude' => ['cod'], // Example: exclude COD if needed
-
-                    // 'min_amount' => 5000,  // Example: filter by minimum amount
-                    // 'max_amount' => 10000000, // Example: filter by maximum amount
-                ];
-
-                // Get payment methods with caching enabled (default 15 minutes)
-                $result = $ipaymuService->getPaymentMethods((int) $price, $filters, true, 15);
+                $result = $TripayService->getPaymentChannels();
+                Log::info('Payment Channels: ' . json_encode($result));
 
                 if ($result['success']) {
-                    $this->paymentMethods = collect($result['methods'])->toArray();
-                    $this->paymentMethodsCached = $result['cached'] ?? false;
-
-                    // Log for debugging
-                    \Log::info('Payment methods loaded', [
-                        'product_id' => $productId,
-                        'price' => $price,
-                        'methods_count' => count($this->paymentMethods),
-                        'cached' => $this->paymentMethodsCached,
-                    ]);
+                    $this->paymentMethods = collect($result['data'])->toArray();
                 } else {
                     $this->paymentMethodsError = $result['message'] ?? 'Gagal memuat metode pembayaran';
-                    \Log::warning('Failed to load payment methods', [
+                    Log::warning('Failed to load payment methods', [
                         'product_id' => $productId,
                         'error' => $this->paymentMethodsError,
                     ]);
                 }
             } catch (\Exception $e) {
                 $this->paymentMethodsError = 'Terjadi kesalahan saat memuat metode pembayaran';
-                \Log::error('Exception loading payment methods', [
+                Log::error('Exception loading payment methods', [
                     'product_id' => $productId,
                     'error' => $e->getMessage(),
                 ]);
             }
+
+            // Calculate fee after payment methods are loaded
+            $this->calculatePaymentFee();
+        }
+    }
+
+    public function updatedSelectedPaymentMethod($value)
+    {
+        $this->calculatePaymentFee();
+    }
+
+    public function calculatePaymentFee()
+    {
+        if (empty($this->selectedPaymentMethod)) {
+            $this->totalFee = 0;
+            $this->totalAmount = $this->displayPrice;
+            return;
+        }
+        try {
+            $TripayService = app(TripayService::class);
+            $result = $TripayService->calculateFee($this->selectedPaymentMethod, $this->displayPrice);
+            if (empty($result['data'])) {
+                throw new \Exception('Data fee tidak ditemukan');
+            }
+            Log::info('Payment Fee: ' . json_encode($result));
+
+            $feeData = $result['data'][0];
+            $this->totalFee = $feeData['total_fee']['merchant'] + $feeData['total_fee']['customer'];
+            $this->totalAmount = $this->displayPrice + $this->totalFee;
+        } catch (\Exception $e) {
+            Log::error('Tripay Calculate Fee Error: ' . $e->getMessage());
+            $this->totalFee = 0;
+            $this->totalAmount = $this->displayPrice;
         }
     }
 
@@ -265,13 +287,6 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
             }
 
             // Get payment fee from selected method
-            $paymentFee = 0;
-            if (!empty($this->paymentMethods)) {
-                $method = collect($this->paymentMethods)->firstWhere('code', $this->selectedPaymentMethod);
-                $paymentFee = $method['fee'] ?? 0;
-            }
-
-            $totalAmount = $price + $paymentFee;
 
             // Create order
             $order = Order::create([
@@ -282,13 +297,13 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 'game_id' => $this->game->id,
                 'product_id' => $this->selectedProduct,
                 'data_player' => $this->fields,
-                'payment_method' => $this->selectedPaymentMethod,
-                'price' => $totalAmount,
+                'payment_method' => strtolower($this->selectedPaymentMethod),
+                'price' => $this->displayPrice,
                 'status' => 'pending',
             ]);
 
-            // Get payment gateway (Ipaymu)
-            $paymentGateway = PaymentGateway::where('code', 'ipaymu')->where('is_active', true)->first();
+            // Get payment gateway (Tripay)
+            $paymentGateway = PaymentGateway::where('code', 'tripay')->where('is_active', true)->first();
 
             if (!$paymentGateway) {
                 throw new \Exception('Payment gateway tidak tersedia');
@@ -300,13 +315,13 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 'payment_gateway_id' => $paymentGateway->id,
                 'method' => $this->selectedPaymentMethod,
                 'payment_name' => $method['name'] ?? null,
-                'amount' => $totalAmount,
+                'amount' => $this->totalAmount,
                 'status' => 'pending',
             ]);
 
-            // Create payment request to Ipaymu
-            $ipaymuService = app(IpaymuService::class);
-            $result = $ipaymuService->createPayment($order, $method);
+            // Create payment request to Tripay
+            $tripayService = app(TripayService::class);
+            $result = $tripayService->createPayment($order, $orderPayment);
 
             if (!$result['success']) {
                 throw new \Exception($result['message'] ?? 'Gagal membuat pembayaran');
@@ -314,27 +329,28 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
 
             // Store payment data in metadata for later display
             $paymentData = [
-                'channel' => $result['channel'] ?? null,
-                'payment_no' => $result['payment_no'] ?? null,
-                'payment_url' => $result['payment_url'] ?? null,
-                'qr_string' => $result['qr_string'] ?? null,
-                'QrImage' => $result['QrImage'] ?? null,
-                'amount' => $result['amount'] ?? $totalAmount,
-                'expired' => $result['expired'] ?? null,
+                'channel' => $result['data']['payment_method'] ?? null,
+                'payment_no' => $result['data']['reference'] ?? null,
+                'payment_url' => $result['data']['checkout_url'] ?? null,
+                'qr_string' => $result['data']['qr_string'] ?? null,
+                'QrImage' => $result['data']['qr_url'] ?? null,
+                'amount' => $result['data']['amount'] ?? $totalAmount,
+                'expired' => $result['expired_time'] ?? null,
                 'logo' => $method['logo'] ?? null,
+                'instructions' => $result['data']['instructions'] ?? null,
             ];
 
             // Update order payment with payment data
             $orderPayment->update([
-                'payment_reference' => $result['reference'],
-                'pay_url' => $result['payment_url'],
+                'payment_reference' => $result['data']['reference'],
+                'pay_url' => $result['data']['checkout_url'],
                 'metadata' => json_encode($paymentData),
             ]);
 
             \DB::commit();
 
             // Redirect to payment detail page instead of external URL
-            return $this->redirect(route('payment.detail', ['order_code' => $order->order_code]), navigate: true);
+            return $this->redirect($paymentData['payment_url']);
         } catch (\Exception $e) {
             \DB::rollBack();
             $this->loading = false;
@@ -505,12 +521,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 }" x-init="setInterval(() => {
                                     let now = new Date().getTime();
                                     let distance = endTime - now;
-
+                                
                                     if (distance < 0) {
                                         days = hours = minutes = seconds = 0;
                                         return;
                                     }
-
+                                
                                     days = Math.floor(distance / (1000 * 60 * 60 * 24));
                                     hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                                     minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -764,12 +780,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             @else
                                 @php
                                     // Group payment methods by group_name
-                                    $groupedMethods = collect($paymentMethods)->groupBy('group_name');
+                                    $groupedMethods = collect($paymentMethods)->groupBy('group');
 
                                     // Sort groups by custom order
                                     $groupOrder = [
                                         'Virtual Account',
-                                        'eWallet',
+                                        'E-Wallet',
                                         'QRIS',
                                         'Convenience Store',
                                         'Credit Card',
@@ -819,8 +835,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                                                     wire:model.live="selectedPaymentMethod"
                                                                     class="sr-only" />
 
-                                                                @if (!empty($method['logo']))
-                                                                    <img src="{{ $method['logo'] }}"
+                                                                @if (!empty($method['icon_url']))
+                                                                    <img src="{{ $method['icon_url'] }}"
                                                                         alt="{{ $method['name'] }}"
                                                                         class="w-full h-full object-contain p-1" />
                                                                 @else
@@ -845,13 +861,6 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                         </div>
                                     @endforeach
                                 </div>
-
-                                @if ($paymentMethodsCached)
-                                    <flux:text class="text-xs text-zinc-400 mt-2 flex items-center gap-1">
-                                        <flux:icon.information-circle class="w-3 h-3" />
-                                        {{ __('messages.payment_methods_from_cache') }}
-                                    </flux:text>
-                                @endif
                             @endif
 
                             <flux:error name="selectedPaymentMethod" />
@@ -863,51 +872,8 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                     <flux:heading size="lg" class="mb-4">{{ __('messages.payment_details') }}</flux:heading>
 
                     @if ($selectedProduct)
-                        @php
-                            $product =
-                                $this->products->firstWhere('id', $selectedProduct) ??
-                                $this->flazzSellProducts->firstWhere('id', $selectedProduct);
-                            $displayPrice = $product->selling_price;
-                            $isFlazzSell = false;
-                            $flazzSellProduct = null;
-
-                            if ($product && $product->hasActiveFlazzSell()) {
-                                $flazzSellProduct = $product->activeFlazzSellProduct();
-                                $displayPrice = $flazzSellProduct->getDiscountedPrice();
-                                $isFlazzSell = true;
-                            }
-
-                            // Calculate payment fee
-                            $paymentFee = 0;
-                            $totalAmount = $displayPrice;
-                            if ($selectedPaymentMethod && !empty($paymentMethods)) {
-                                $method = collect($paymentMethods)->firstWhere('code', $selectedPaymentMethod);
-                                $paymentFee = $method['fee'] ?? 0;
-                                $totalAmount = $displayPrice + $paymentFee;
-                            }
-                        @endphp
                         @if ($product)
                             <div class="space-y-3">
-                                @if ($isFlazzSell)
-                                    <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                                        <div class="flex items-center gap-2 text-red-600 text-sm font-semibold mb-2">
-                                            <flux:icon.fire class="w-4 h-4" />
-                                            <span>{{ __('messages.flazzsell_active') }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm mb-1">
-                                            <span
-                                                class="text-zinc-600 dark:text-zinc-300">{{ __('messages.normal_price') }}:</span>
-                                            <span class="line-through text-zinc-300">Rp
-                                                {{ number_format($product->selling_price, 0, ',', '.') }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm text-green-600 font-semibold">
-                                            <span>{{ __('messages.save_amount') }}:</span>
-                                            <span>- Rp
-                                                {{ number_format($product->selling_price - $displayPrice, 0, ',', '.') }}</span>
-                                        </div>
-                                    </div>
-                                @endif
-
                                 <div class="flex justify-between text-sm">
                                     <span
                                         class="text-zinc-600 dark:text-zinc-300">{{ __('messages.product_price') }}:</span>
@@ -919,14 +885,13 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                     <span
                                         class="text-zinc-600 dark:text-zinc-300">{{ __('messages.admin_fee') }}:</span>
                                     <span class="font-medium">Rp
-                                        {{ number_format($paymentFee, 0, ',', '.') }}</span>
+                                        {{ number_format($totalFee, 0, ',', '.') }}</span>
                                 </div>
 
                                 <div class="border-t border-zinc-300 dark:border-zinc-600 pt-3">
                                     <div class="flex justify-between items-center">
                                         <span class="font-bold">{{ __('messages.total_payment') }}:</span>
-                                        <span
-                                            class="text-2xl font-bold {{ $isFlazzSell ? 'text-red-600' : 'text-yellow-400' }}">
+                                        <span class="text-2xl font-bold text-yellow-400">
                                             Rp {{ number_format($totalAmount, 0, ',', '.') }}
                                         </span>
                                     </div>
