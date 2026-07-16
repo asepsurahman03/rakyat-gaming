@@ -160,8 +160,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
-                    <h2 class="text-xl sm:text-2xl font-bold mb-3">Transaksi Tidak Ditemukan</h2>
-                    <p class="text-sm sm:text-base text-zinc-600 mb-6">Kode transaksi tidak valid atau tidak ditemukan di sistem kami.</p>
+                    <h2 class="text-xl sm:text-2xl font-bold mb-3 text-zinc-200">Transaksi Tidak Ditemukan</h2>
+                    <p class="text-sm sm:text-base text-zinc-400 mb-6">Kode transaksi tidak valid atau tidak ditemukan di sistem kami.</p>
 
                     <div class="flex flex-col sm:flex-row justify-center gap-3">
                         <flux:button href="{{ route('cek-transaksi') }}" wire:navigate variant="ghost">
@@ -353,12 +353,12 @@ new #[Layout('components.layouts.guest')] class extends Component {
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <p class="text-sm text-zinc-500 mb-1">Kode Transaksi</p>
+                                <p class="text-sm text-zinc-400 mb-1">Kode Transaksi</p>
                                 <div class="flex items-center gap-2">
-                                    <p class="font-bold">{{ $order->order_code }}</p>
+                                    <p class="font-bold text-zinc-200">{{ $order->order_code }}</p>
                                     <button type="button"
                                         onclick="navigator.clipboard.writeText('{{ $order->order_code }}'); this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'2\' stroke=\'currentColor\' class=\'w-4 h-4\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M4.5 12.75l6 6 9-13.5\' /></svg>'; setTimeout(() => { this.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'2\' stroke=\'currentColor\' class=\'w-4 h-4\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184\' /></svg>'; }, 2000)"
-                                        class="p-1 rounded hover:bg-zinc-100 text-zinc-500" title="Salin kode">
+                                        class="p-1 rounded hover:bg-zinc-100 text-zinc-400" title="Salin kode">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -368,31 +368,31 @@ new #[Layout('components.layouts.guest')] class extends Component {
                                 </div>
                             </div>
                             <div>
-                                <p class="text-sm text-zinc-500 mb-1">Tanggal</p>
-                                <p class="font-semibold">{{ $order->created_at->format('d M Y, H:i') }} WIB</p>
+                                <p class="text-sm text-zinc-400 mb-1">Tanggal</p>
+                                <p class="font-semibold text-zinc-200">{{ $order->created_at->format('d M Y, H:i') }} WIB</p>
                             </div>
                             <div>
-                                <p class="text-sm text-zinc-500 mb-1">Game</p>
-                                <p class="font-semibold">{{ $order->game->name }}</p>
+                                <p class="text-sm text-zinc-400 mb-1">Game</p>
+                                <p class="font-semibold text-zinc-200">{{ $order->game->name }}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-zinc-500 mb-1">Produk</p>
-                                <p class="font-semibold">{{ $order->product->name }}</p>
+                                <p class="text-sm text-zinc-400 mb-1">Produk</p>
+                                <p class="font-semibold text-zinc-200">{{ $order->product->name }}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-zinc-500 mb-1">Email</p>
-                                <p class="font-semibold">{{ $order->email }}</p>
+                                <p class="text-sm text-zinc-400 mb-1">Email</p>
+                                <p class="font-semibold text-zinc-200">{{ $order->email }}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-zinc-500 mb-1">WhatsApp</p>
-                                <p class="font-semibold">{{ $order->whatsapp }}</p>
+                                <p class="text-sm text-zinc-400 mb-1">WhatsApp</p>
+                                <p class="font-semibold text-zinc-200">{{ $order->whatsapp }}</p>
                             </div>
                         </div>
 
                         @if ($order->data_player && is_array($order->data_player) && count(array_filter($order->data_player)) > 0)
                             <flux:separator class="my-6" />
                             <div>
-                                <p class="text-sm text-zinc-500 mb-3">Data Player</p>
+                                <p class="text-sm text-zinc-400 mb-3">Data Player</p>
                                 <div class="bg-zinc-50 rounded-lg p-4 space-y-2">
                                     @foreach ($order->data_player as $key => $value)
                                         @if ($value !== null && $value !== '')
@@ -424,8 +424,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
                 <!-- Help Section -->
                 <flux:card class="shadow-xl bg-white/95 backdrop-blur">
                     <div class="p-4 sm:p-6 text-center">
-                        <p class=" mb-3">Butuh bantuan?</p>
-                        <p class="text-sm text-zinc-500 mb-4">Hubungi customer service kami jika mengalami kendala</p>
+                        <p class=" mb-3 text-zinc-200">Butuh bantuan?</p>
+                        <p class="text-sm text-zinc-400 mb-4">Hubungi customer service kami jika mengalami kendala</p>
                         <div class="flex flex-col sm:flex-row justify-center gap-3">
                             <flux:button href="{{ $settings['url_whatsapp_cs'] }}" target="_blank" variant="primary"
                                 class="flex-1" color="green">

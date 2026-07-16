@@ -152,8 +152,8 @@ new #[Layout('components.layouts.guest'), Title('Rakyat Gaming - Cek Transaksi')
 
                     <flux:separator class="my-4 sm:my-6" />
 
-                    <flux:callout variant="info" icon="information-circle" class="text-xs sm:text-sm">
-                        <strong>Tips:</strong> Kode transaksi dapat ditemukan di email konfirmasi atau notifikasi
+                    <flux:callout variant="info" icon="information-circle" class="text-xs sm:text-sm text-zinc-400">
+                        <strong class="text-zinc-200">Tips:</strong> Kode transaksi dapat ditemukan di email konfirmasi atau notifikasi
                         WhatsApp yang Anda terima setelah melakukan pemesanan.
                     </flux:callout>
                 </div>

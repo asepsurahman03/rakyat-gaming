@@ -116,13 +116,13 @@
                             <template x-if="selected === 'id'">
                                 <span class="flex items-center gap-2">
                                     <img src="{{ asset('images/ind.png') }}" alt="Indonesia" class="w-5 h-5 rounded-sm" />
-                                    <span class="hidden md:inline text-sm font-medium">Ind</span>
+                                    <span class="hidden md:inline text-sm font-medium text-amber-50">Ind</span>
                                 </span>
                             </template>
                             <template x-if="selected === 'en'">
                                 <span class="flex items-center gap-2">
                                     <img src="{{ asset('images/eng.png') }}" alt="English" class="w-5 h-5 rounded-sm" />
-                                    <span class="hidden md:inline text-sm font-medium">Eng</span>
+                                    <span class="hidden md:inline text-sm font-medium text-amber-50">Eng</span>
                                 </span>
                             </template>
                             <svg class="w-4 h-4 ml-1" :class="{ 'rotate-180': open }" fill="none"
@@ -139,8 +139,8 @@
                             :class="{ 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400': selected === 'id' }">
                             <img src="{{ asset('images/ind.png') }}" alt="Indonesia" class="w-5 h-5 rounded-sm" />
                                 <div>
-                                    <div class="font-medium text-sm">Indonesia</div>
-                                    <div class="text-xs text-zinc-500">Bahasa Indonesia</div>
+                                    <div class="font-medium text-sm text-zinc-200">Indonesia</div>
+                                    <div class="text-xs text-zinc-400">Bahasa Indonesia</div>
                                 </div>
                             </a>
                             <a href="/lang/en"
@@ -148,8 +148,8 @@
                                 :class="{ 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400': selected === 'en' }">
                                 <img src="{{ asset('images/eng.png') }}" alt="English" class="w-5 h-5 rounded-sm" />
                                 <div>
-                                    <div class="font-medium text-sm">English</div>
-                                    <div class="text-xs text-zinc-500">United Kingdom</div>
+                                    <div class="font-medium text-sm text-zinc-200">English</div>
+                                    <div class="text-xs text-zinc-400">United Kingdom</div>
                                 </div>
                             </a>
                         </div>
@@ -282,8 +282,8 @@
                                     class="flex items-start gap-2 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
                                     <flux:icon.calculator class="size-4 mt-0.5" />
                                     <div>
-                                        <div class="font-medium text-sm">Magic Whele</div>
-                                        <div class="text-xs text-zinc-500 mt-0.5">
+                                        <div class="font-medium text-sm text-zinc-200">Magic Whele</div>
+                                        <div class="text-xs text-zinc-400 mt-0.5">
                                             Menghitung total diamond untuk skin legends
                                         </div>
                                     </div>
@@ -292,8 +292,8 @@
                                     class="flex items-start gap-2 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
                                     <flux:icon.calculator class="size-4 mt-0.5" />
                                     <div>
-                                        <div class="font-medium text-sm">Win Rate</div>
-                                        <div class="text-xs text-zinc-500 mt-0.5">
+                                        <div class="font-medium text-sm text-zinc-200">Win Rate</div>
+                                        <div class="text-xs text-zinc-400 mt-0.5">
                                             Menghitung persentase kemenangan
                                         </div>
                                     </div>
@@ -302,8 +302,8 @@
                                     class="flex items-start gap-2 p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
                                     <flux:icon.calculator class="size-4 mt-0.5" />
                                     <div>
-                                        <div class="font-medium text-sm">Zodiak</div>
-                                        <div class="text-xs text-zinc-500 mt-0.5">
+                                        <div class="font-medium text-sm text-zinc-200">Zodiak</div>
+                                        <div class="text-xs text-zinc-400 mt-0.5">
                                             Menghitung total diamond untuk skin zodiac
                                         </div>
                                     </div>

@@ -109,8 +109,8 @@ new #[Layout('components.layouts.guest')] class extends Component {
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-20 h-20 mx-auto mb-4 text-zinc-400">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
-                    <h2 class="text-2xl font-bold mb-3 text-zinc-800 dark:text-white">Transaksi Tidak Ditemukan</h2>
-                    <p class="text-zinc-600 dark:text-zinc-400 mb-6">Kode transaksi tidak valid atau tidak ditemukan di sistem kami.</p>
+                    <h2 class="text-2xl font-bold mb-3 text-zinc-200">Transaksi Tidak Ditemukan</h2>
+                    <p class="text-zinc-400 mb-6">Kode transaksi tidak valid atau tidak ditemukan di sistem kami.</p>
 
                     <div class="flex flex-col sm:flex-row justify-center gap-3">
                         <flux:button href="{{ route('cek-transaksi') }}" wire:navigate variant="ghost">
