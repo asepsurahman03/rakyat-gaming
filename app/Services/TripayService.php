@@ -153,7 +153,7 @@ class TripayService
                     [
                         'sku' => "product_" . $order->product_id,
                         'name' => $order->product->name,
-                        'price' => $orderPayment->amount,
+                        'price' => intval($orderPayment->amount),
                         'quantity' => 1,
                     ],
                 ],
@@ -165,7 +165,7 @@ class TripayService
             $payload = [
                 'method' => $orderPayment->method,
                 'merchant_ref' => $order->order_code,
-                'amount' => $orderPayment->amount,
+                'amount' => intval($orderPayment->amount),
                 'customer_name' => $data['customer_name'],
                 'customer_email' => $data['customer_email'],
                 'customer_phone' => $data['customer_phone'],

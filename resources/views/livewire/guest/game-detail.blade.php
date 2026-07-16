@@ -384,15 +384,15 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             <div class="items-end gap-2 hidden md:flex">
                                 <div class="flex gap-0.5 items-center">
                                     <flux:icon.zap class="w-5 h-5 text-yellow-400 animate-pulse" />
-                                    <span class="text-xs">{{ __('messages.fast_process') }}</span>
+                                    <span class="text-xs text-amber-50">{{ __('messages.fast_process') }}</span>
                                 </div>
                                 <div class="flex gap-0.5 items-center">
                                     <flux:icon.messages-square class="w-5 h-5 text-yellow-400 animate-pulse" />
-                                    <span class="text-xs">{{ __('messages.support_247') }}</span>
+                                    <span class="text-xs text-amber-50">{{ __('messages.support_247') }}</span>
                                 </div>
                                 <div class="flex gap-0.5 items-center">
                                     <flux:icon.credit-card class="w-5 h-5 text-yellow-400 animate-pulse" />
-                                    <span class="text-xs">{{ __('messages.secure_payment') }}</span>
+                                    <span class="text-xs text-amber-50">{{ __('messages.secure_payment') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -521,12 +521,12 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                 }" x-init="setInterval(() => {
                                     let now = new Date().getTime();
                                     let distance = endTime - now;
-                                
+
                                     if (distance < 0) {
                                         days = hours = minutes = seconds = 0;
                                         return;
                                     }
-                                
+
                                     days = Math.floor(distance / (1000 * 60 * 60 * 24));
                                     hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                                     minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -726,7 +726,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 <div class="p-4 rounded-xl mb-4 bg-zinc-900 border border-zinc-800 shadow-sm">
                     <flux:heading>{{ __('messages.reviews_rating') }}</flux:heading>
                     <div class="flex gap-2">
-                        <h1 class="text-5xl font-bold">4.9</h1>
+                        <h1 class="text-5xl font-bold text-amber-50">4.9</h1>
                         <div>
                             <div class="flex items-center gap-1">
                                 @for ($i = 0; $i < 5; $i++)
@@ -741,7 +741,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                 <flux:card class="sticky top-30">
                     <flux:heading size="lg" class="mb-4">{{ __('messages.contact_info') }}</flux:heading>
 
-                    <flux:callout variant="info" icon="information-circle" class="mb-4 text-xs">
+                    <flux:callout variant="info" icon="information-circle" class="mb-4 text-xs text-amber-50">
                         {{ __('messages.contact_notice') }}
                     </flux:callout>
 
@@ -767,14 +767,14 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                         </div>
 
                         <div x-data="{ openGroup: 'Virtual Account' }">
-                            <flux:label>{{ __('messages.payment_method') }} *</flux:label>
+                            <flux:label class="text-amber-50">{{ __('messages.payment_method') }} *</flux:label>
 
                             @if ($paymentMethodsError)
-                                <flux:callout variant="error" icon="exclamation-circle" class="text-sm mt-2">
+                                <flux:callout variant="error" icon="exclamation-circle" class="text-sm mt-2 text-amber-50">
                                     {{ $paymentMethodsError }}
                                 </flux:callout>
                             @elseif (!$paymentMethods || count($paymentMethods) === 0)
-                                <flux:callout variant="warning" icon="exclamation-triangle" class="text-sm mt-2">
+                                <flux:callout variant="warning" icon="exclamation-triangle" class="text-sm mt-2 text-amber-50">
                                     {{ __('messages.select_product_first') }}
                                 </flux:callout>
                             @else
@@ -813,7 +813,7 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                                                 @click="openGroup = openGroup === '{{ $groupName }}' ? null : '{{ $groupName }}'"
                                                 type="button"
                                                 class="w-full flex items-center justify-between p-3 hover:bg-zinc-800/50 transition-colors">
-                                                <div class="flex w-full items-center gap-3">
+                                                <div class="flex w-full items-center gap-3 text-amber-50">
                                                     <span class="font-semibold text-sm">{{ $groupName }}</span>
                                                 </div>
                                                 <flux:icon.chevron-down
@@ -876,21 +876,21 @@ new #[Layout('components.layouts.guest'), Title('Game Detail')] class extends Co
                             <div class="space-y-3">
                                 <div class="flex justify-between text-sm">
                                     <span
-                                        class="text-zinc-600 dark:text-zinc-300">{{ __('messages.product_price') }}:</span>
-                                    <span class="font-medium">Rp
+                                        class="text-zinc-300">{{ __('messages.product_price') }}:</span>
+                                    <span class="font-medium text-amber-50">Rp
                                         {{ number_format($displayPrice, 0, ',', '.') }}</span>
                                 </div>
 
                                 <div class="flex justify-between text-sm">
                                     <span
-                                        class="text-zinc-600 dark:text-zinc-300">{{ __('messages.admin_fee') }}:</span>
-                                    <span class="font-medium">Rp
+                                        class="text-zinc-300">{{ __('messages.admin_fee') }}:</span>
+                                    <span class="font-medium text-amber-50">Rp
                                         {{ number_format($totalFee, 0, ',', '.') }}</span>
                                 </div>
 
                                 <div class="border-t border-zinc-300 dark:border-zinc-600 pt-3">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-bold">{{ __('messages.total_payment') }}:</span>
+                                        <span class="font-bold text-amber-50">{{ __('messages.total_payment') }}:</span>
                                         <span class="text-2xl font-bold text-yellow-400">
                                             Rp {{ number_format($totalAmount, 0, ',', '.') }}
                                         </span>
