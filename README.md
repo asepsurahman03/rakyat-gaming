@@ -9,13 +9,14 @@
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Digiflazz](https://img.shields.io/badge/Provider-Digiflazz%20API-0099FF?style=for-the-badge)](https://digiflazz.com)
 [![Duitku](https://img.shields.io/badge/Payment-Duitku%20Gateway-00B14F?style=for-the-badge)](https://duitku.com)
+[![Vercel Deployment](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel&logoColor=white)](https://rakyat-gaming.vercel.app)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 <br/>
 
 **Rakyat Gaming** adalah web aplikasi top up game dan produk digital modern yang dibangun di atas ekosistem **Laravel 12** dan **Livewire 3**. Mengusung konsep *Cyber-Glassmorphism UI* dengan performa tinggi, sistem transaksi terotomatisasi penuh melalui **Digiflazz API** serta integrasi multi-pembayaran instan melalui **Duitku Payment Gateway**.
 
-[🌐 Live Demo](https://github.com/asepsurahman03/rakyat-gaming) • [✨ Fitur Utama](#-fitur-utama) • [🚀 Panduan Instalasi](#-instalasi--setup) • [🔑 Akun Demo](#-demo-credentials) • [☁️ Deployment](#-deployment-ke-vercel)
+[🌐 Live Demo Website](https://rakyat-gaming.vercel.app) • [📦 GitHub Repository](https://github.com/asepsurahman03/rakyat-gaming) • [✨ Fitur Utama](#-fitur-utama) • [🔑 Akun Demo](#-demo-credentials) • [🚀 Setup Lokal](#-instalasi--setup)
 
 ---
 
