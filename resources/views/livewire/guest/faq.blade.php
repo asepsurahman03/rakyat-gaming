@@ -9,10 +9,10 @@ new #[Layout('components.layouts.guest'), Title('Pertanyaan yang Sering Ditanyak
     public function mount()
     {
         $this->settings = [
-            'contact_email' => env('CONTACT_EMAIL', 'info@rakyatgaming.com'),
-            'contact_phone' => env('CONTACT_PHONE', '+62 812-3456-7890'),
-            'contact_whatsapp' => env('CONTACT_WHATSAPP', '+62 812-3456-7890'),
-            'url_whatsapp' => env('CONTACT_WHATSAPP') ? 'https://wa.me/+62' . preg_replace('/\D/', '', env('CONTACT_WHATSAPP')) : null,
+            'contact_email' => env('CONTACT_EMAIL', \App\Models\Setting::get('contact_email', 'codetech.id@gmail.com')),
+            'contact_phone' => env('CONTACT_PHONE', '85351221602'),
+            'contact_whatsapp' => env('CONTACT_WHATSAPP', '85351221602'),
+            'url_whatsapp' => env('CONTACT_WHATSAPP') ? 'https://wa.me/+62' . ltrim(preg_replace('/\D/', '', env('CONTACT_WHATSAPP')), '0') : null,
         ];
     }
 }; ?>
