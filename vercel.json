@@ -9,20 +9,7 @@
   },
   "routes": [
     {
-      "src": "/build/(.*)",
-      "dest": "/public/build/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/public/favicon.ico"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/public/robots.txt"
-    },
-    {
-      "src": "/(images|img|css|js|storage)/(.*)",
-      "dest": "/public/$1/$2"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",

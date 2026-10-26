@@ -4,8 +4,10 @@
 .env.*
 node_modules
 tests
-storage
+/storage
 database/*.sql
 public/build.zip
 public/error_log
 error_log
+!public/storage
+!public/storage/**
