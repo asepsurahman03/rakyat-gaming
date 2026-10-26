@@ -81,13 +81,15 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
     {
         // Get popular games based on product sales (order count)
         $this->popularGames = Game::where('is_active', true)
+            ->whereHas('products', function ($query) {
+                $query->where('is_active', true);
+            })
             ->withCount([
                 'products' => function ($query) {
                     $query->where('is_active', true);
                 },
                 'orders', // Count total orders for this game
             ])
-            ->having('products_count', '>', 0)
             ->orderBy('orders_count', 'desc') // Sort by most orders
             ->orderBy('name', 'asc')
             ->limit(6)
@@ -107,12 +109,14 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
         $this->loading = true;
         // Get all games for filter section
         $this->allGames = Game::where('is_active', true)
+            ->whereHas('products', function ($query) {
+                $query->where('is_active', true);
+            })
             ->withCount([
                 'products' => function ($query) {
                     $query->where('is_active', true);
                 },
             ])
-            ->having('products_count', '>', 0)
             ->orderBy('name', 'asc')
             ->get();
         $this->loading = false;
@@ -137,12 +141,14 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
     public function getFilteredProducts()
     {
         $query = Game::where('is_active', true)
+            ->whereHas('products', function ($q) {
+                $q->where('is_active', true);
+            })
             ->withCount([
                 'products' => function ($q) {
                     $q->where('is_active', true);
                 },
-            ])
-            ->having('products_count', '>', 0);
+            ]);
 
         if ($this->filterCategoryId !== null && $this->filterCategoryId !== '') {
             $query->where('category_id', $this->filterCategoryId);
@@ -159,12 +165,14 @@ new #[Layout('components.layouts.guest'), Title('RAKYATGAMING – Top Up Game Ce
     public function getTotalFilteredProducts()
     {
         $query = Game::where('is_active', true)
+            ->whereHas('products', function ($q) {
+                $q->where('is_active', true);
+            })
             ->withCount([
                 'products' => function ($q) {
                     $q->where('is_active', true);
                 },
-            ])
-            ->having('products_count', '>', 0);
+            ]);
 
         if ($this->filterCategoryId !== null && $this->filterCategoryId !== '') {
             $query->where('category_id', $this->filterCategoryId);

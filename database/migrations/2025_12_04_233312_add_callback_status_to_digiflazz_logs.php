@@ -12,8 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Change status column from ENUM to VARCHAR to support more statuses
-        DB::statement("ALTER TABLE `digiflazz_logs` MODIFY `status` VARCHAR(20) DEFAULT 'sent'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `digiflazz_logs` MODIFY `status` VARCHAR(20) DEFAULT 'sent'");
+        }
     }
 
     /**
@@ -21,7 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert back to original ENUM
-        DB::statement("ALTER TABLE `digiflazz_logs` MODIFY `status` ENUM('sent','success','failed') DEFAULT 'sent'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `digiflazz_logs` MODIFY `status` ENUM('sent','success','failed') DEFAULT 'sent'");
+        }
     }
 };
