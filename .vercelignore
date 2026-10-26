@@ -4,3 +4,8 @@
 .env.*
 node_modules
 tests
+storage
+database/*.sql
+public/build.zip
+public/error_log
+error_log
