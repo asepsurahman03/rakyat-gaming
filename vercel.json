@@ -29,6 +29,8 @@
     }
   ],
   "env": {
+    "APP_NAME": "Rakyat Gaming",
+    "APP_KEY": "base64:/k4c0DQ9OC72q8VhI+8dGY6zRu2F7HBZztL0aWs4nzI=",
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "LOG_CHANNEL": "stderr",
