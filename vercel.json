@@ -9,7 +9,12 @@
   },
   "routes": [
     {
-      "handle": "filesystem"
+      "src": "/(storage|build|images)/(.*)",
+      "dest": "/$1/$2"
+    },
+    {
+      "src": "/(favicon\\.ico|robots\\.txt|logo-rg\\.png|site\\.webmanifest|android-chrome-.*|apple-touch-icon\\.png)",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
