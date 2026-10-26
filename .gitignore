@@ -25,3 +25,5 @@ yarn-error.log
 /public/build.zip
 /public/error_log
 /database/*.sql
+
+.vercel
