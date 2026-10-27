@@ -171,3 +171,24 @@ select:focus[data-flux-control] {
 .hide-scrollbar::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
 }
+
+/* Customer Service Running Text Marquee */
+@keyframes csMarqueeAnimation {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-cs-marquee {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: csMarqueeAnimation 16s linear infinite;
+}
+
+.animate-cs-marquee:hover {
+    animation-play-state: paused;
+}
+
