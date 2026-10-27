@@ -12,4 +12,5 @@ public/error_log
 error_log
 !public/storage
 !public/storage/**
-
+screenshots
+Poster_*
