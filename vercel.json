@@ -25,7 +25,7 @@
     "APP_NAME": "Rakyat Gaming",
     "APP_KEY": "base64:/k4c0DQ9OC72q8VhI+8dGY6zRu2F7HBZztL0aWs4nzI=",
     "APP_ENV": "production",
-    "APP_DEBUG": "false",
+    "APP_DEBUG": "true",
     "LOG_CHANNEL": "stderr",
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",
