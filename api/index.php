@@ -23,9 +23,16 @@ foreach ($storageDirs as $dir) {
     }
 }
 
-// Provide writeable sqlite database in /tmp if using sqlite on Vercel
-if (!file_exists('/tmp/database.sqlite') && file_exists(__DIR__ . '/../database/database.sqlite')) {
-    @copy(__DIR__ . '/../database/database.sqlite', '/tmp/database.sqlite');
+// Copy SQLite database to /tmp for write access on Vercel serverless
+$needsMigration = false;
+if (!file_exists('/tmp/database.sqlite')) {
+    if (file_exists(__DIR__ . '/../database/database.sqlite')) {
+        @copy(__DIR__ . '/../database/database.sqlite', '/tmp/database.sqlite');
+    } else {
+        // Create empty SQLite file so migrations can run
+        @touch('/tmp/database.sqlite');
+        $needsMigration = true;
+    }
 }
 
 // Forward Vercel request to Laravel's public entry point
